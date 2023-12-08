@@ -246,6 +246,7 @@ occasions_cbind <- occasions %>%
             failure = n() - success)
 head(occasions_cbind)
 ```
+
 The first row indicates that for Site 10A and Time interval 0 (from 00:00:00 to 00:59:59) 
 we had 259 occasions (i.e. days in this case) without detecting a coyote and 0 occasion 
 with a coyote encounter. In the next section, we will see how to use this dataset to
