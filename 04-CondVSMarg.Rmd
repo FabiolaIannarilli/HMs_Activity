@@ -1,0 +1,20 @@
+# Conditional and Marginal Mean Activity Patterns {#condvsmarg}
+
+Some _significant_ applications are demonstrated in this chapter.
+
+## Example one
+
+## Example two
+
+
+Figure 1 in the main text was produced by In A, variability was induced by adding +/- 0.5, 1.0, and 1.5 to a predefined value of the random intercepts; in B, variability was induced by adding  +/- 0.5, 1.0, and 1.5 to a predefined values of random phase shifts. Dashed grey curves represent activity patterns at sites with +/- 0.5, 1.0, and 1.5 variation from the predefined value of the random component (from darker to lighter grey dashed lines, respectively). 
+
+Here, we use simulated unimodal and bimodal activity patterns to illustrate how each of the three approaches described in the main text (i.e., trigonometric GLMMs, cyclic spline GLMM, and KDEs) can be used to estimate conditional and marginal mean activity patterns. Details of the simulation are presented in the Appendix 1; here we only report the most relevant findings.
+
+Conditional and marginal mean activity patterns can be estimated in both the frequentist and Bayesian frameworks. The frequentist framework is generally accessible by more users than the Bayesian framework thanks to the availability of many ready-to-use R packages that implement GLMMs, so we will first focus on this framework. When using GLMMs, we can quantify the conditional mean by setting all random effects in the GLMM model equal to 0 and the marginal mean by integrating over the distribution of the random effects (Fieberg et al. 2009). Among the many packages available in R to model GLMMs, GLMMadaptive (Rizopoulos 2020), in particular, has the advantage of providing estimates of parameters describing both conditional and marginal mean response curves. As with other similar packages, the conditional mean can be easily estimated by setting the random effect equal to 0 (that is, NA in the code below) when predicting activity over the 24-hour cycle. The marginal coefficients, estimated using the marginal_coefs function in the GLMMadaptive package, approximate the curve formed by integrating over the random effects using a numerical approximation based on an adaptive Gauss-Hermite quadrature rule, as described in Hedeker et al. (2018). 
+
+ADD briefly, HOW TO DO THE SAME FOR CYCLIC AND KDEs JRF: This could be done in a separate “tutorial” that just demonstrates the approach to estimating marginal curves from fitted glmms similar to the chapter here: https://fw8051statistics4ecologists.netlify.app/glmm.html#glmminterp
+
+•	Thus, the choice of estimation target, conditional versus marginal activity pattern, becomes extremely important when we suspect high variability in the timing of peak activity. Conditional and marginal curves are likely to differ most when there are large differences in the timing of peak activity levels among sites (Fig. Box-1 C), whereas curves may be similar when sites only exhibit variability in their frequency of use (Fig. Box-1A-B). 
+
+This result is not too surprising for the GLMMs due to the lack of inclusion of random slopes in the models used to estimate activity (due to lack of ready-to-use software to easily include random slopes in non-linear models: see Discussion). The trigonometric GLMMs provided the more accurate estimates or, at least, worked as well as the other methods, whereas cyclic cubic spline GLMMs performed poorly as estimators of conditional means, especially when variability in timing of peak activity was high (Fig. 3). A Bayesian model that explicitly accounted for both horizontal and vertical variability provided unbiased estimates of conditional and marginal means, and, when possible to apply, is the best option for the model-based analysis of activity patterns. 
