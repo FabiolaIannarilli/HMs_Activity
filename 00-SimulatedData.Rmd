@@ -1,0 +1,23 @@
+# Variability in activity patterns from camera-trap data {#var}
+
+To illustrate how variability in site-to-site use can affect activity patterns from
+camera-trap data, we 
+simulated data under equation 1 explained in the main text and reported here:
+
+$$
+y_{it} \sim Bernoulli(p_{it})
+$$
+
+$$
+logit(p_{it}) = \beta_0 + \beta_1*cos(\frac{2\pi t}{24} + (\theta_0 + \gamma_i)) + \beta_2*cos(\frac{2\pi t}{12} + (\theta_1 + \gamma_i)) + \tau_i
+$$
+
+$$
+\tau_i \sim N(0,\sigma_\tau)
+$$
+
+$$
+\gamma_i \sim N(0,\sigma_\gamma)
+$$
+
+We set 
