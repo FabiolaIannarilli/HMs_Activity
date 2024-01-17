@@ -1,6 +1,6 @@
 # Variability in activity patterns from camera-trap data {#var}
 
-To illustrate how variability in site-to-site use can affect activity patterns from
+To illustrate how site-to-site variability can affect the estimate of activity patterns from
 camera-trap data, we simulated data under equation 1 explained in the main text and reported here:
 
 $$
@@ -35,7 +35,7 @@ theta1 = 2
 tau_i = gamma_i = seq(-1.5, 1.5, by = 0.5)
 time <- seq(0, wavelength, wavelength/512)
 ```
-To create examples of *variability in frequency of site-use*, keep all the parameters constant (with $\gamma_i = 0$) except for $\tau_i$, which varies from -1.5 to 1.5 in increments of 0.5. We create the curves in logit scale but trasform them in the 
+To create examples of *variability in frequency of site-use*, we keep all the parameters constant (with $\gamma_i = 0$) except for $\tau_i$, which varies from -1.5 to 1.5 in increments of 0.5. For illustrative purposes, we assigned these predefined values $\tau_i$, instead of drawing random values from the distribution $N(0,\sigma_\tau)$. We create the curves in logit scale but trasform them in the 
 probability scale, for easiness in interpretation. We also include code to calculate conditional and marginal mean activity curves (red and black curves in the following plots); we will cover this aspect in detail in section \@ref(condvsmarg). Here, we only say that the conditional mean curve describes the activity pattern at a typical site, whereas the marginal mean curve describes the activity patterns averaged across all the sites.  
 
 ```{r vertical}
@@ -86,9 +86,9 @@ pl_vert <- ggplot(p_df, aes(x = time, y = p, group = curvesID)) +
 pl_vert
 ```
 
-In this first plot, the dashed grey curves represents the curves generated using the different values (darker to lighter colors from lower to higher in absolute values) assigned to $\tau_i$. These different values of $\tau_i$ lead to a vertical shift in the activity curves, which corresponds to a change in the frequency of site-use. 
+In this first plot, the dashed grey curves represents the curves generated using the different values (darker to lighter colors from lower to higher in absolute values) assigned to $\tau_i$. All other things equal, these different values of $\tau_i$ lead to a vertical shift in the activity curves, which corresponds to a change in the frequency of site-use. 
 
-Similarly, to create example of *variability in timing of activity peak*, we set the random phaseshift $\gamma_i$ as equal to 0, $\pm$ 0.5, $\pm$ 1.0, and $\pm$ 1.5, while keeping $\tau_i = 0$ and all the other parameters constant. As the final step for this example, we joint the first two plots we created in this vignette to created Figure 1, reported in the main text. 
+To create examples of *variability in timing of activity peak*, we set the random phaseshift $\gamma_i$ as equal to 0, $\pm$ 0.5, $\pm$ 1.0, and $\pm$ 1.5, while keeping $\tau_i = 0$ and all the other parameters constant. As the final step for this example, we joint the two plots to created Figure 1, reported in the main text. 
 
 ```{r horizontal}
 # creating the curves
@@ -143,9 +143,9 @@ pl <- grid.arrange(pl_vert, pl_hor, ncol = 2)
 # ggsave(pl, filename = "figures/Fig1_Site_Variability_in_Activity_bimodal.jpg", device = "jpeg", units = "cm", width = 16, height = 8, dpi = 300)
 
 ```
-The dashed lines in panel B represent curves simulated using different values of $\gamma_i$ (darker to lighter colors from lower to higher in absolute values). Varying the random phaseshift $\gamma_i$ results in activity curves that are shifted horizontally. Because we are simulating data using two cosine terms, the cumulative effects of the two random phaseshifts (one per cosine term) also affect the intensity of site-use. We will discuss in more details when illustrating the differences between conditional and marginal mean activity curves. 
+The dashed lines in panel B represent curves simulated using different values of $\gamma_i$ (darker to lighter colors from lower to higher in absolute values). Varying the random phaseshift $\gamma_i$ results in activity curves that are shifted horizontally. Because we are simulating data using two cosine terms, the cumulative effects of the two random phaseshifts (one per cosine term) also affect the intensity of site-use. Again, we will discuss in more details when illustrating the differences between conditional and marginal mean activity curves. 
 
-For completeness, we present also the example of a unimodal pattern. We can simulate this activity pattern setting $\beta_2 = 0$ (see main text) and re-running the code above. Setting $\beta_2 = 0$ eliminates the second cosine term and return a curve with only one peak in activity within the 24-hour cycle.
+For completeness, we present also the example of a unimodal pattern. We can simulate this activity pattern setting $\beta_2 = 0$ (see main text) and re-running the code above. Setting $\beta_2 = 0$ eliminates the second cosine term and returns a curve with only one peak in activity within the 24-hour cycle.
 
 ```{r unimodal}
 # setting beta2 equal to zero 
@@ -248,13 +248,12 @@ pl_hor_uni <- ggplot(p_df, aes(x = time, y = p, group = curvesID)) +
 #' Join plots
 pl <- grid.arrange(pl_vert_uni, pl_hor_uni, ncol = 2)
 ```
-This second example clearly illustrate how varying $\gamma_i$ leads to the horizontal shift of the 
-curves, with peaks in activity equal across time but occurring at different times of the diel cycle.
+This second example clearly illustrate how varying $\gamma_i$ (while keeping all the other parameters constant) leads to the horizontal shift of the curves, with peaks in activity equal across time but occurring at different times of the diel cycle.
 
-In the next tutorial we will use data created using this simulation approach to illustrate how
+In the next section, we will use data created with this simulation approach to illustrate how
 trigonometric and cyclic cubic regression spline GLMMs can be used to estimate activity patterns. In section 
-\@ref(condvsmarg), we will illustrate the different between conditional and marginal mean
-activity patterns and explained when this difference can be relevant to answer important ecological 
+\@ref(condvsmarg), we will illustrate the difference between conditional and marginal mean
+activity patterns and explained how this difference can be relevant when answering ecological 
 questions.
 
 

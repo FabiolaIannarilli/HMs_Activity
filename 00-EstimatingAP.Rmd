@@ -1,0 +1,92 @@
+# Estimating activity patterns from camera-trap data {#est}
+
+In this vignette, we introduce two alternative approaches to estimate activity patterns
+from camera-trap data:
+* trigonometric generalized linear mixed models and
+* cyclic cubic spline generalized linear mixed models. 
+
+To keep the focus on estimating activity pattern, we encapsulate the code to simulate the data in the function *sim_activity*, that we source after loading the necessary libraries. 
+
+```{r setsim1}
+#' Load libraries and function to simulate activity patterns
+library(tidyverse)
+library(GLMMadaptive)
+library(tidyr)
+#library(grid)
+#library(gridExtra)
+source("source_functions/sim_activity.R")
+source("source_functions/sim_to_minute.R")
+
+# Set equations' parameters
+M = 100
+J = 30
+wavelength = 24
+n_peak = 2
+b0 = -3
+b1 = 1 
+b2 = 0.7
+theta0 = 3
+theta1 = 2 
+sd_tau = 1
+sd_gamma = 0.3
+time <- seq(0, wavelength, wavelength/512)
+```
+
+We now simulate bimodal activity patterns for 100 sites (M) based on equation 1 \@ref(var) and the parameters defined in the code above. We set $\tau_i$ and 
+$\gamma_i$ as drawn from the distributions $\tau_i \sim N(0,\sigma_\tau)$ and $\gamma_i \sim N(0,\sigma_\gamma)$, respectively, with $\sigma_\tau = 1$ and $\sigma_\gamma = 0.3$. 
+
+```{r setsim2}
+dat <- sim_activity2(M = M, 
+                     J = J, 
+                     wavelength = wavelength, 
+                     n_peak = n_peak, 
+                     n_sim = 1, 
+                     b0 = -3, 
+                     b0_constant = TRUE, # common intercept
+                     tau_constant = FALSE, 
+                     sdtau = sd_tau, # ~site-specific intercept
+                     b1 = b1, 
+                     b2 = b2, # amplitude of the cosine terms 
+                     theta0 = theta0, 
+                     theta1 = theta1, # common phaseshifts for the cosine terms
+                     phaseshift_constant = FALSE, 
+                     sd_phaseshift = sd_gamma, # site-specific phaseshift (equal for both cosine terms)
+                     plot_true_act = TRUE)
+
+```
+
+This function returns a list containing several objects, including the true values of conditional and marginal
+mean probability of activity used to build the plot above. The list also contains the activity patterns simulated for each of the 100 sites, and the associated encounter data (i.e. detection events) collected during a virtual 30-day sampling period. 
+
+```{r setsim3}
+# plot true confidional with 5 simulated sites
+sites_i <- sample(x = 1:M, size = 10, replace = FALSE)
+sample_sites <- cbind(sites_i, dat$true_activity_prob[sites_i, 1:24]) 
+colnames(sample_sites) <- c("sites", 01:24)
+sample_sites <- as.data.frame(sample_sites) %>% 
+  pivot_longer(cols = -sites, names_to = "time", values_to = "prob")
+  
+ggplot() +
+  geom_line(data = sample_sites, aes(x = as.numeric(time), y = prob, group = sites, color = as.factor(sites)), 
+            linewidth = 1, alpha = 0.3) +
+  geom_line(data = dat$Conditional, aes(x = time, y = p), linewidth = 1, color = "red", inherit.aes = TRUE) +
+  labs(x = "Time of Day (Hour)", y = "Simulated Activity Pattern \n (probability)", title = "Simulated data")+
+  #coord_cartesian(ylim = c(0, 0.005)) +
+  theme_minimal()+
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        legend.text = element_text(size=10,face="bold"),
+        legend.margin=margin(0,0,0,0),
+        legend.box.margin=margin(-5,-10,-10,-10),
+        plot.title = element_text(size=10,face="bold"),
+        axis.line = element_line(colour = 'black', linetype = 'solid'),
+        axis.ticks = element_line(colour = 'black', linetype = 'solid'),
+        axis.title = element_text(size=9,face="bold"),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
+        panel.grid.minor.x = element_blank(),
+        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
+  #panel.grid.minor.x = element_line(colour='deepskyblue4', linetype = 'dotted', size=0.35))+
+  scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4))
+```

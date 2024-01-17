@@ -1,21 +1,31 @@
 # Unimodal versus binomial activity {#unibim}
 
-In this first example, we illustrate how trigonometric and cyclic cubic spline GLMMs can 
-be used to explore the what diel pattern best describe that of the target species. 
-Traditionally, diel activity patterns are usually classified as:
+In this first example, we illustrate how trigonometric GLMMs can 
+be used to describe diel activity patterns. Traditionally, diel activity patterns are usually classified as:
 * **unimodal**: the species is mostly active in a certain period of the 24-hour cycle,
 and not (or almost not) active in the remaining time. The activity pattern curve
-is characterized by only one peak, and it is typically of diurnal and nocturnal species.
-* **bimodal**: the species is mostly active during two specific time of 24-hour cycle,
+is characterized by only one peak, and it is typical of diurnal and nocturnal species.
+* **bimodal**: the species is mostly active during two specific times of 24-hour cycle,
 often corresponding to sunrise and sunset (i.e., crepuscular species), and inactive (or mostly inactive) during the 
 rest of the time. The activity pattern curve is characterized by having two peaks.
-* **cathemeral**: the species is equally active throughout the 24-hour cycle.
+* **cathemeral**: the species is equally active throughout the 24-hour cycle and 
+and activity pattern curve approximate a flat line.
 
-We use independent camera-trap records of coyotes (*Canis latrans*) collected at 100 locations between 2016 and 2018 in Northern Minnesota, USA.
+We use independent camera-trap records of coyotes (*Canis latrans*) collected at 
+100 locations between 2016 and 2018 in Northern Minnesota, USA. We use the data 
+as prepared in the previous section, \@ref(dataprep). 
+
+
+
+null_mod <- mixed_model(fixed = cbind(success, failure) ~ 1, 
+                        random = ~ 1 | Site,
+                        family = binomial(),
+                        data = occasions_cbind) 
+
 
 
 ## The simplest Trigonometric GLMMs
-We use the data as prepared in the previous section, \@ref(dataprep)
+
 
 
 
