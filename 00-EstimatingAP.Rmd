@@ -342,12 +342,16 @@ ggplot(cond_eff, aes(Time, pred)) +
 This model corresponds, in general terms, to the trigonometric random intercept-only model we ran earlier and similarly accommodate only for variability in the frequency of site use. We can add complexity to this model and include a random slope component that allows the site-specific estimates to vary also in the timing of peak activity. In *mgcv*, there is no need to explicitly force the independence between the random intercept and the random slope (as done before for the trigonometric-based model) because there is no covariance term between two random effects.
 
 ```{r setsim10}
+occasions_cbind$Time_fct <- as.factor(occasions_cbind$Time)
+
 cycl_rand_slope <- bam(cbind(success, failure) ~ s(Time, bs = "cc", k = wavelength) + 
                                           s(Site, bs="re"),
-                                          s(Site, as.factor(Time), bs="re"),
+                                          #s(Site, Time_fct, bs="re"),
+                                          #s(Site, Time, k = 12, bs = "fs"),
+                                          s(Time, by=Site, m=1, bs="tp"),
                                           family = "binomial", 
                                           data = occasions_cbind, 
-                                          knots = list(Time=c(0,23))) 
+                                          knots = list(Time=c(0,23), Time_fct = levels(occasions_cbind$Time_fct))) 
 summary(cycl_rand_slope)
 
 newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), max(Time), 1),
