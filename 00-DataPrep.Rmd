@@ -1,25 +1,15 @@
 # Data preparation {#dataprep}
 
-Before analyzing the data, we need to prepared them in the format required by the 
-methods applied. A first step, often known as _data aggregation_, althought not stricly 
-required is often highly recommended as a preparatory step before applying KDEs. 
-This process aggregates images collected at the same sites closely in time and reduces 
-short-term serial correlation among subsequent records of the same species collected 
-at a certain site. Data aggregation is not necessary when using the trigonometric and 
-cyclic cubic spline GLMMs that are the focus of this work. However, to facilitate
-comparison among methods, we use the aggregated dataset as the starting point of all 
-the analyses presented in this tutorial. A second step wrangles the data in the format 
-required to apply GLMMs methods for the analysis of activity patterns. 
+After using simulated data to introduce the basis of the variability in activity patterns \@ref(var) and the use of GLMM-based approaches for their estimate \@ref(est), we switch gear. In this and the remaining how-to tutorials, we use real camera-trap data and cover some of the most common ecological questions related to the study of activity patterns.
 
-The next two sections explain the details of both preparatory steps. These will be applied 
-every time we use a new set of data in the different examples presented in this tutorial. 
-To minimize redundancy, we will illustrate in details these processes only once, and then 
-refer to and extend on the code below, when necessary. 
+Camera-trap data are often organized in datasets where each row contains the information related to a certain image. At a minimum, for a certain species, we need information on the location id (or geographic coordinates) and time of the day in which the different encounter events occurred. To run the model-based approaches described in section \@ref(est), we need to organize the events 
+in counts (or occurrences) of the events within each occasion and sites. 
 
-We start by loading the data and show a preview of what the data look like. Here, we select
-camera-trap records of coyotes (*Canis latrans*) collected at all the 100 locations sampled 
-between 2016 and 2018 in Northern Minnesota, USA (@Iannarilliea2020). We also load some 
-libraries that are needed to wrangle the data in the desired format.
+When preparing camera-trap data for analysis of activity patterns, the first step is to aggregate images collected at the same sites closely in time in an unique encounter event (or sequence). This process, often known as _data aggregation_, reduces short-term serial correlation among subsequent records of the same species collected at a certain site, and it is often highly recommended as a preparatory step before applying KDEs - althought not stricly required. Data aggregation is not necessary when using the trigonometric and cyclic cubic spline GLMMs that are the focus of this work. However, to facilitate comparison among methods, we use the aggregated dataset as the starting point of all the analyses presented in this tutorial. A second step wrangles the data in the format required to apply GLMMs methods for the analysis of activity patterns. 
+
+The next two sections explain the details of both preparatory steps. These will be applied every time we use a new set of data in the different examples presented in the next how-to tutorials. To minimize redundancy, we will illustrate in details these processes only once, and then refer to and extend on the code below, when necessary. 
+
+We start by loading the data and showing a preview of what the data look like. Here, we select camera-trap records of coyotes (*Canis latrans*) collected at all the 100 locations sampled between 2016 and 2018 in Northern Minnesota, USA (@Iannarilliea2020). We also load some libraries that are needed to wrangle the data in the desired format.
 
 ```{r}
 # Load libraries
@@ -36,47 +26,23 @@ head(coy)
 
 ```
 
-In this dataset, each row corresponds to one image. To estimate activity
-patterns, we are interested in the time of day in which each event has
-been recorded. These values are stored in the column named 'Time'.
-Because in our study cameras were set up to collected burst of three
-pictures every time the sensor was triggered, some images have been
-collected at the same exact time and location and thus show identical
-values in all columns (see for example the first and second row).
+In this dataset, each row corresponds to one image. To estimate activity patterns, we are interested in the time of day in which each event has been recorded. These values are stored in the column named 'Time'. Because in our study cameras were set up to collected burst of three pictures every time the sensor was triggered, some images have been collected at the same exact time and location and thus show identical values in all columns (see for example the first and second rows).
 
 
 ## Data aggregation {#dataprepkde}
 
-It often happens that individuals tend to spend several minutes in front
-of a camera, triggering the sensor several times in a short period of
-time. This leads to camera-trap data being inherently highly correlated:
-once a camera has been triggered, it is more likely that it will be
-triggered again in the following few minutes than, for example, several
-hours later. The resulting short-term autocorrelation might lead to
-overestimating activity patterns. To minimize this risk and the level of
-autocorrelation, camera trap data are often aggregated based on some
-time threshold (often between 1 and 60 minutes, commonly 30;
-\@ref(Burtonea2015)). We refer to \@ref(dataaggr) for an explanation of
-the effects of aggregating camera trap data when estimating activity
-patterns. Using the code below, we aggregate data using a 30-minute
-threshold established based on previous results obtained using the
-lorelogram approach applied to the same dataset (see @Iannarilliea2021).
-We set the correct date-time format for the column specifying when each 
-picture was taken, group the records based on species and camera-trap site (_Station_), 
-order the data within each group, and calculate the time difference (in minutes) 
-between each record and the previous. When calculating these differences, NAs are assigned 
-to the first record collected for a certain species at each location (there are no previous 
-records in this cases). We replace those NAs with zeros, then proceed to assign a unique 
-numeric identifier to each event. The next bit of code extract the date-time information 
-of the first record of each group (alternatively, you can for example calculate the median 
-time of the records belonging to a certain event) and retain only the columns of
-interest.
+It often happens that individuals tend to spend several minutes in front of a camera, triggering the sensor several times in a short period of time. This leads to camera-trap data being inherently highly correlated: once a camera has been triggered, it is more likely that it will be triggered again in the following few minutes than, for example, several hours later. The resulting short-term autocorrelation might lead to overestimating activity patterns. To minimize this risk and the level of autocorrelation, camera-trap data are often aggregated based on some time threshold (often between 1 and 60 minutes, commonly 30; @Burtonea2015) and @Iannarilliea2021. We also refer to \@ref(dataaggr) for an explanation of the effects of aggregating camera trap data when estimating activity patterns. 
+
+Using the code below, we aggregate data using a 30-minute threshold established based on previous results obtained using the
+lorelogram approach applied to the same dataset (see @Iannarilliea2021). We set the correct date-time format for the column specifying when each picture was taken, group the records based on species and camera-trap site (_Station_), order the data within each group, and calculate the time difference (in minutes) between each record and the previous. When calculating these differences, NAs are assigned 
+to the first record collected for a certain species at each location (there are no previous records in this cases). We replace those NAs with zeros, then proceed to assign a unique numeric identifier to each event. The next bit of code extract the date-time information 
+of the first record of each group (alternatively, it is possible, for example, to calculate the median time of the records belonging to a certain event) and retain only the columns of interest.
 
 ```{r figaggr, fig.cap='Numbers of records at each camera site before and after aggregating the data to resuce short-term autocorrelation', out.width='80%', fig.asp=.75, fig.align='center'}
 # Set the threshold that define independence independence between subsequent records
 independence_interval <- 30 #minutes
 
-# Aggregate data to reduce short-term tmporal dependence
+# Aggregate data to reduce short-term temporal dependence
 coy_event <- coy %>% 
   mutate(DateTimeOriginal = ymd_hms(DateTimeOriginal)) %>% 
   group_by(Species, Station) %>%      # group by species and location
@@ -121,32 +87,17 @@ rbind(coy_summary, coy_event_summary)  %>%
 
 ```
 
-Comparing the resulting number of records per location with and without
-data aggregation shows how most of images were taken within
-less than 30 minutes from the previous. In our specific case,
-aggregating data also removes duplicates recorded within the same
-trigger event. In the left panel, each record corresponds to an image,
-whereas, in the right panel, each record corresponds to an independent
-encounter event. We will use the aggregated version of the dataset in the 
-next few sections of this tutorial.
+Comparing the resulting number of records per location with and without data aggregation shows how most of images were taken within
+less than 30 minutes from the previous. In our specific case, aggregating data also removes duplicates recorded within the same
+trigger event. In the left panel, each record corresponds to an image, whereas, in the right panel, each record corresponds to an independent encounter event. We will use the aggregated version of the dataset in the next sections of this tutorial.
 
 ## Organizing the data for trigonometric and cyclic GLMMs {#dataprepglmm}
 
-Contrary to KDEs, trigonometric and cyclic GLMMs enables us to leverage not only 
-the times an encounter was recorded in cameras but also the times in which cameras 
-were active at a certain location and no encounter was recorded. This, in turn, allows 
-us to estimate activity while accounting for sampling effort and makes comparison across
-sites (or e.g. environmental and anthropogenic conditions) more robust than with KDEs.
+Contrary to KDEs, trigonometric and cyclic GLMMs enables us to leverage not only the times an encounter was recorded in cameras but also the times in which cameras were active at a certain location and no encounter was recorded. This, in turn, allows us to estimate activity while accounting for sampling effort and makes comparison across sites (or e.g. environmental and anthropogenic conditions) more robust than with KDEs.
 
-To include effort, we have to build a matrix that stores information about when camera
-were active at each site, and in how many of this days (or shorter occasions, see later)
-we recorded the target species.
+To include effort, we have to build a matrix that stores information about when a camera was active at each site, and in how many of this days (or shorter occasions, see later) we recorded the target species.
 
-We load a new dataframe that contains information on the start and the end of the period 
-in which a camera was active at each site. The startof this period usually corresponds 
-to the deployment date, while the end of the period might be the date of retrieval 
-or the last day the camera was working at each location (e.g. in case of camera failure, or
-cameras displaced by an animal).
+We load a new dataframe that contains information on the start and the end of the period in which a camera was active at each site. The start of this period usually corresponds to the deployment date, while the end of the period might be the date of retrieval or the last day the camera was working at each location (e.g. in case of camera failure, or cameras displaced by an animal).
 
 ```{r loadoperab}
 cov <- read.csv("data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv", as.is = TRUE) %>% 
@@ -157,16 +108,9 @@ cov <- read.csv("data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv", 
          Problem1_to = mdy(Problem1_to)) 
 head(cov)
 ```
-The dataframe contains information on the sampling session (Session), the camera-trap site
-(Site), the date a camera was deployed (Date_setup) and retrieved (Date_retr) from the corresponding
-site. For cameras that were no longer active at the retrieval we also have information 
-about the period the camera become inactive (Problem1_from and Problem1_to). This structure
-follows the one accepted in the camtrapR package.
+The dataframe contains information on the sampling session (Session), the camera-trap site (Site), the date a camera was deployed (Date_setup) and retrieved (Date_retr) from the corresponding site. For cameras that were no longer active at the retrieval we also have information about the period the camera become inactive (Problem1_from and Problem1_to). This structure follows the one accepted in the *camtrapR* package.
 
-In this case, the information about the last day of camera operation at the sites are 
-spread across two columns, Date_retr (for cameras that not failed) and Problem1_from 
-(for cameras that did not fail). We bring this information together in one column 
-called end.
+In this format, the information about the last day of camera operation at the sites are spread across two columns, Date_retr (for cameras that not failed) and Problem1_from (for cameras that did not fail). We bring this information together in one column called end.
 
 ```{r fixend}
 # Merge time of deployment and retrieval + problems
@@ -177,13 +121,9 @@ for(i in 1:nrow(site)){
 }
 ```
 
-Then we create a dataframe to store the information about when and when not the target
-species was encountered at the different locations and within temporal occasions of 
-length of our choice. Here we use temporal occasions 60 minutes long, but different 
-durations (from seconds to several hours) can be also used. Shorter length will increase 
-computational time. For each site, we first create a list all the hourly occasions 
-from the start to the end of the deployment of an active camera at that site. We then populate
-the column capt (which will track the encounter/non-encounter information) with zeros.
+Then we create a dataframe to store the information about when and when not the target species was encountered at the different locations and within temporal occasions of length of our choice. Here, we use temporal occasions 60 minutes long, but different durations (from seconds to several hours) can be used. Shorter length will increase computational time. 
+
+For each site, we first create a list of all the hourly occasions from the start to the end of the deployment of an active camera at that site. We then populate the column capt (which will track the encounter/non-encounter information) with zeros.
 
 ```{r fixend}
 # Create dataframe to store captures 
@@ -201,8 +141,7 @@ occasions$capt <- 0
 head(occasions)
 ```
 
-For each record of coyote collected during the study, we assign the value 1 in the column
-capt in the corresponding row for that site and the time interval including the recording time. 
+For each record of coyote collected during the study, we assign the value 1 in the column capt in the corresponding row for the combination of site and time interval that includes the time of the encounter event. 
 
 ```{r populate}
 #' Store captures
@@ -212,16 +151,10 @@ for(i in 1:nrow(coy)){
 }
 table(occasions$capt)
 ```
-We have 570925 and 251 1-hour long occasions with and without encounters of coyotes, 
-respectively. There is a minor mismatch between the occasions with encounters (251), 
-and the number independent encounters (253). This is due to some independent encounters
-falling within the same time interval (if their datetime values are, for example,
-'2021-04-15 13:06:08' and '2021-04-15 13:46:09').
+We have 251 and 570925 1-hour long occasions with and without encounters of coyotes, respectively. There is a minor mismatch between the occasions with encounters (251), and the number of independent encounters (253). This is due to some independent encounters
+falling within the same time interval (if their datetime values are, for example, '2021-04-15 13:06:08' and '2021-04-15 13:46:09').
 
-Because we chose to use hourly occasions, we can extract the information about the hour 
-of each interval to use it as the Time variable in the models we will run in the following 
-sections. If a different time length is used (e.g. 1-minute long), this step needs to be adapted
-accordingly. We also code Site as a factor.
+Because we chose to use hourly occasions, we can extract the information about the hour of each interval to use it as the Time variable in the models that we will run in the following sections. If a different time length is used (e.g. 1-minute long), this step needs to be adapted accordingly. We also code Site as a factor.
 
 ```{r fixclass}
 #' Format data 
@@ -230,13 +163,7 @@ occasions$Time <- hour(occasions$Time)
 occasions$Site <- as.factor(occasions$Site)
 nrow(occasions)
 ```
-Our dataset, occasions, contains now more than 570 000 rows. Running a GLMM on such dataset
-might take a long time and even be impossible without relying on a computing cluster.
-When the condition under which we test for variation in activity patterns does not
-varies across the period of sampling (e.g. Julian day), we can summarize the 
-encounter/non-encounter records counting the number of successes (i.e. interval with encounters)
-and failures (i.e. interval without encounters) at each site and hourly temporal occasion,
-and then run the GLMMs using the _cbind(success, failure)_ approach (see next section for examples).
+Our dataset, occasions, contains now more than 570 000 rows. Running a GLMM on such dataset might take a long time and even be impossible without relying on a computing cluster. When the condition under which we test for variation in activity patterns does not varies across the period of sampling (e.g. Julian day), we can summarize the encounter/non-encounter records counting the number of successes (i.e. interval with encounters) and failures (i.e. interval without encounters) at each site and hourly temporal occasion, and then run the GLMMs using the _cbind(success, failure)_ approach (see next section for examples).
 
 ```{r fixclass}
 # format data for cbind(success, failure)
@@ -247,7 +174,4 @@ occasions_cbind <- occasions %>%
 head(occasions_cbind)
 ```
 
-The first row indicates that for Site 10A and Time interval 0 (from 00:00:00 to 00:59:59) 
-we had 259 occasions (i.e. days in this case) without detecting a coyote and 0 occasion 
-with a coyote encounter. In the next section, we will see how to use this dataset to
-test hypotheses about coyotes' diel activity patterns.
+The first row indicates that for Site 10A and Time interval 0 (from 00:00:00 to 00:59:59) we had 259 occasions (i.e. days in this case) without detecting a coyote and 0 occasion with a coyote encounter during this specific time of day. In the next section, we will see how to use this dataset to test hypotheses about coyotes' diel activity patterns.
