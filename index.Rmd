@@ -1,0 +1,40 @@
+--- 
+title: "An “How to” guide on estimating Activity Patterns from Camera-Trap Data using a Hierarchical Modeling approach:\n tutorials"
+author: 
+  - Fabiola Iannarilli:
+      email: fabiola.iannarilli@gmail.com
+      institute: [umn]
+      correspondence: true
+  - John Erb:
+      institute: [dnr] 
+  - John R Fieberg:
+      institute: [umn]
+institute: 
+  - umn: Department of Fisheries, Wildlife and Conservation Biology, St. Paul, MN, USA
+  - dnr: Minnesota Department of Natural Resources, Grand Rapids, MN, USA
+date: "`r Sys.Date()`"
+site: bookdown::bookdown_site
+output: bookdown::gitbook
+documentclass: book
+bibliography: [book.bib, packages.bib, articles.bib]
+biblio-style: apalike
+link-citations: yes
+github-repo: rstudio/bookdown-demo
+description: "This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript Iannarilli.ea.2024."
+---
+
+pdf_document: 
+    number_sections: yes
+    toc: yes
+    toc_depth: 4
+    pandoc_args:
+      - '--lua-filter=scholarly-metadata.lua'
+      - '--lua-filter=author-info-blocks.lua'
+
+
+
+# Preface {#preface}
+
+This vignette accompanies the manuscript @Iannarilliea2024 and contains step-by-step examples on how to use trigonometric and cyclic regression spline Generalized Linear Mixed Models (GLMMs) for the analysis of activity patterns from camera-trap data (chapter \@ref(trig) and chapter \@ref(cyclic), respectively). It also includes examples of comparing the importance of different covariates when fitting GLMMs to describe activity patterns \@ref(compcovs), and additional resources to illustrate the difference between conditional and marginal mean activity patterns \@ref(condvsmarg) and the application of Kernel Density Estimators through the packages currently available in R \@ref(kdes).
+
+All the analyses presented in the following sections were created in @R. The camera-trap data used in the real-case examples can be accessed at XXXX. Details on how this data have been collected can be found in @Iannarilliea2020.
