@@ -16,6 +16,7 @@ library(tidyr)
 #library(gridExtra)
 source("source_functions/sim_activity.R")
 source("source_functions/sim_to_minute.R")
+set.seed(129)
 
 # Set equations' parameters
 M = 100
@@ -56,13 +57,13 @@ dat <- sim_activity2(M = M,
 ```
 
 This function returns a list containing several objects, including the true values of conditional and marginal
-mean probability of activity used to build the plot above. The list also contains the activity patterns simulated for each of the 100 sites, and the associated encounter data (i.e. detection events) collected during a virtual 30-day sampling period. 
+mean probability of activity used to build the plot above. The list also contains the activity patterns simulated for each of the 100 sites. We can access the information for some of this sites and plot their activity patterns, along with the conditional mean activity patterns (the red curve in the following plot). 
 
 ```{r setsim3}
 # plot true confidional with 5 simulated sites
 sites_i <- sample(x = 1:M, size = 10, replace = FALSE)
-sample_sites <- cbind(sites_i, dat$true_activity_prob[sites_i, 1:24]) 
-colnames(sample_sites) <- c("sites", 01:24)
+sample_sites <- cbind(sites_i, dat$true_activity_prob[sites_i, 0:25]) 
+colnames(sample_sites) <- c("sites", 00:24)
 sample_sites <- as.data.frame(sample_sites) %>% 
   pivot_longer(cols = -sites, names_to = "time", values_to = "prob")
   
@@ -70,7 +71,123 @@ ggplot() +
   geom_line(data = sample_sites, aes(x = as.numeric(time), y = prob, group = sites, color = as.factor(sites)), 
             linewidth = 1, alpha = 0.3) +
   geom_line(data = dat$Conditional, aes(x = time, y = p), linewidth = 1, color = "red", inherit.aes = TRUE) +
-  labs(x = "Time of Day (Hour)", y = "Simulated Activity Pattern \n (probability)", title = "Simulated data")+
+  labs(x = "Time of Day (Hour)", y = "Simulated Activity Pattern \n (probability)", title = "Simulated data", 
+       color = "Site_ID")+
+  #coord_cartesian(ylim = c(0, 0.005)) +
+  theme_minimal()+
+  theme(legend.position = "bottom",
+        legend.title = element_text(size=10,face="bold"),
+        legend.text = element_text(size=10,face="bold"),
+        legend.margin=margin(0,0,0,0),
+        legend.box.margin=margin(-5,-10,-10,-10),
+        plot.title = element_text(size=10,face="bold"),
+        axis.line = element_line(colour = 'black', linetype = 'solid'),
+        axis.ticks = element_line(colour = 'black', linetype = 'solid'),
+        axis.title = element_text(size=9,face="bold"),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
+        panel.grid.minor.x = element_blank(),
+        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
+  #panel.grid.minor.x = element_line(colour='deepskyblue4', linetype = 'dotted', size=0.35))+
+  scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4))
+```
+The plot shows that there is great variability in the frequency of use of the different sites and a relatively smaller variation in timing of peak activity. 
+
+## Data preparation
+
+The first step to analyze these activity patterns is to format the hourly encounter data (i.e. detection events) virtually collected at each one of the simulated sites during a 30-day sampling period. These encounter data were drawn as a Bernoulli distribution based on the probability of activity simulated at each site and time of day $p_{it}$: 
+$$
+y_{it} \sim Bernoulli(p_{it})
+$$ 
+and are stored in one of the object of the list created by the *sim_activity* function. We access the encounter data and store them in an object called *y*, which has a number of rows equal to the number of simulated sites and a number of columns equal to 24 times the length (in days) of the simulated sampling period (e.g. $24 hour * 30 days = 720 encounter occasions $). We add a column which contain an unique identifier for each site (e.g. *A1*) and assigned a name to each column, then convert the data in long format using the *id* column as reference.
+
+```{r setsim4}
+# The data
+y <- as.data.frame(dat$sim_data)
+dim(y)
+
+# summarize aggregated data
+y <- data.frame(id=paste("A", seq(1,M,1), sep=""), y=as.data.frame(y))
+colnames(y) <- c("id", paste0("S", seq(1, ncol(y)-1, 1), sep=""))
+
+# Format data in long format
+y_long <- pivot_longer(data = y, cols = -id, names_to = "time", values_to = "y") %>%
+                mutate(time=as.numeric(substr(time,2,10)),
+                       id = factor(id))
+
+knitr::kable(head(y_long))
+```
+
+To optimize computational time, we can reduce the number of rows in the dataset but counting the number of hourly-long occasions in which the species was observed (i.e. successes) and the number of occasion the species was not observed (i.e. failures) for each time interval and camera site.
+
+
+```{r setsim5}
+# count successes and failures at each site-occasion
+occasions_cbind <- y_long %>% 
+  group_by(id, time) %>% 
+  summarise(success = sum(y),
+            n_events = n(),
+            failure = n_events - success) %>% 
+  dplyr::rename(Site = id,
+               Time = time)
+
+knitr::kable(head(occasions_cbind))
+```
+
+We can now use this dataframe to estimate activity patterns using trigonometric Generalized Linear Mixed Models.
+
+## Trigonometric GLMMs
+
+Equation 1 is non linear, and currently there is no out-of-the-box option to code non linear model using a frequentist approach in R. To overcome this challenge we rewrite equation 1 using compound angle formula (see also main text):
+$$
+add version after compund formulas
+$$
+In this version (equation 2), we can model activity patterns with any packages commonly used for running GLMMs. Here, we choose the *GLMMadaptive* library because it give us the option to also explore conditional and marginal mean activity patterns \@ref(condvsmarg).
+
+The simplest trigonometric GLMM we can run is one that includes only a random intercept. In the context of estimatimg of activity patterns, a random intercept-only model accounts for variability in the frequency of use of the sites (i.e. vertical shifts among the curves), but not variability in the timing of peak activity (i.e. horizontal shift).   
+
+```{r setsim5}
+mod_rand_int <- mixed_model(fixed = cbind(success, failure) ~ 
+                      cos(2 * pi * Time/24)  + sin(2 * pi * Time/24) +
+                      cos(2 * pi * Time/12)  + sin(2 * pi * Time/12),
+                    random = ~  1  |   Site, 
+                    data = occasions_cbind, 
+                    family = binomial(), 
+                    iter_EM = 0)
+summary(mod_rand_int)
+
+```
+For trigonometric models, interpreting the model results looking at the coefficient estimates could be daunting. An easier and effective way to explore the results is to visually check the activity patterns
+predicted based on the model itself. Thus, we predict the estimated activity patterns, backtrasform the results in the probability scale, and plot the estimated activity pattern along the true simulated conditional activity patterns.
+
+```{r setsim6}
+# estimated activity pattern
+newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), 24, length.out = 48)))
+cond_eff0 <- effectPlotData(mod_rand_int, newdat, marginal = FALSE) %>% 
+  mutate(pred = plogis(pred),
+         low = plogis(low),
+         upp = plogis(upp),
+         Mod = "Estimated: Random Intercept-only")
+
+# simulated conditional activity pattern
+cond_true <- dat$Conditional %>% 
+  mutate(low = NA,
+         upp = NA,
+         Mod = "Simulated Conditional") %>% 
+  dplyr::rename(Time = time, pred = p) %>% 
+  select(Time, pred, low, upp, Mod)
+
+# combine the two for visualization  purposes
+cond_eff <- rbind(cond_true, cond_eff0)
+
+# plot
+ggplot(cond_eff, aes(Time, pred)) +
+  geom_ribbon(aes(ymin = low, ymax = upp, color = Mod, fill = Mod), alpha = 0.3, linewidth = 0.25) + #
+  geom_line(aes(color = Mod), linewidth = 1) + #
+  scale_color_manual(values = c("blue", "red")) +
+  scale_fill_manual(values = c("blue", "red")) +
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "Estimated vs Simulated Activity Patterns")+
   #coord_cartesian(ylim = c(0, 0.005)) +
   theme_minimal()+
   theme(legend.position = "bottom",
@@ -89,4 +206,79 @@ ggplot() +
         strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
   #panel.grid.minor.x = element_line(colour='deepskyblue4', linetype = 'dotted', size=0.35))+
   scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4))
+
 ```
+
+The activity pattern estimated based on a random-only trigonometric GLMM (in blue) resembles very closely the simulated conditional probability (in red). 
+
+In same cases, we can also suspect that site-specific activity patterns present differences in the timing the sites are used the most by our target species. We can explore this hypothesis by adding a random slope to the model. The choice of the structure of the random slope effect is not trivial; we can include only parameters linked to the first cosine term in equation 1 (i.e. first two terms in equation 2), only terms for the second cosine term in equation 2 (i.e. third and forth terms in equation 2) or both. When possible, based on computational time and the information contained in the data, we recommend to include all the terms and allow for the random intercept to vary independently of the random slope. In *GLMMadaptive*, we ensure this independence by using the syntax || when specifying the random effect component of the model. 
+
+```{r setsim7}
+mod_rand_slope <- mixed_model(fixed = cbind(success, failure) ~ 
+                      cos(2 * pi * Time/24)  + sin(2 * pi * Time/24) +
+                      cos(2 * pi * Time/12)  + sin(2 * pi * Time/12),
+                    random = ~  cos(2 * pi * Time/24)  + sin(2 * pi * Time/24) +
+                                  cos(2 * pi * Time/12)  + sin(2 * pi * Time/12)  ||   Site,
+                    data = occasions_cbind, 
+                    family = binomial(), 
+                    iter_EM = 0)
+
+summary(mod_rand_slope)
+
+```
+
+As before, we visually inspect the estimated acitity pattern based on this model and compare it with the simulated conditional mean activity pattern.
+
+```{r setsim8}
+# estimated activity pattern
+newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), 24, length.out = 48)))
+cond_eff1 <- effectPlotData(mod_rand_slope, newdat, marginal = FALSE) %>% 
+  mutate(pred = plogis(pred),
+         low = plogis(low),
+         upp = plogis(upp),
+         Mod = "Estimated: Random Intercept and Slope")
+
+# simulated conditional activity pattern
+cond_true <- dat$Conditional %>% 
+  mutate(low = NA,
+         upp = NA,
+         Mod = "Simulated Conditional") %>% 
+  dplyr::rename(Time = time, pred = p) %>% 
+  select(Time, pred, low, upp, Mod)
+
+# combine the two for visualization  purposes
+cond_eff <- rbind(cond_true, cond_eff1)
+
+# plot
+ggplot(cond_eff, aes(Time, pred)) +
+  geom_ribbon(aes(ymin = low, ymax = upp, color = Mod, fill = Mod), alpha = 0.3, linewidth = 0.25) + #
+  geom_line(aes(color = Mod), size = 1) + #
+  scale_color_manual(values = c("blue", "red")) +
+  scale_fill_manual(values = c("blue", "red")) +
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "Estimated vs Simulated Activity Patterns")+
+  #coord_cartesian(ylim = c(0, 0.005)) +
+  theme_minimal()+
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        legend.text = element_text(size=10,face="bold"),
+        legend.margin=margin(0,0,0,0),
+        legend.box.margin=margin(-5,-10,-10,-10),
+        plot.title = element_text(size=10,face="bold"),
+        axis.line = element_line(colour = 'black', linetype = 'solid'),
+        axis.ticks = element_line(colour = 'black', linetype = 'solid'),
+        axis.title = element_text(size=9,face="bold"),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
+        panel.grid.minor.x = element_blank(),
+        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
+  #panel.grid.minor.x = element_line(colour='deepskyblue4', linetype = 'dotted', size=0.35))+
+  scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4))
+
+```
+
+ADD COMMENT ON THE FIGURE- after running the random slope model!!!
+
+## Cyclic cubic spline GLMMs
+
+
