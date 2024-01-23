@@ -6,38 +6,14 @@ editor_options:
 
 # Comparison among KDE estimators {#kdes}
 
-Kernel Density Estimators are currently the main approach to estimate
-activity patterns from camera trap data. At the time of writing, we are
-aware of three packages available in R to estimate activity patterns
-based on the KDE approach. The three packages return similar estimates
-of activity, with some differences. The *overlap* package
-\@ref(RidoutLinkie2009) converts estimates so that the area under the
-curve is equal to one. The *activity* package \@ref(Rowcliffeea2014) has
-the additional option to estimate 95% confidence intervals using
-bootstrap approaches; the main function implemented in this package,
-named activity::fitact, has also an argument to correct for differences
-in detection probability (e.g., between day and night) while the
-function activity::solartime enable double-anchoring procedures to
-adjust the timestamp associate with the different records based on
-sunrise and sunset times (see \ref(Vazquezea2021) for details). Finally,
-the circular package \@ref(AgostinelliLund2017) can identify periods of
-higher levels of activity using an isopleth approach similar to that
-applied in analysis of telemetry data to identify core area in
-home-range estimates \@ref(Oliveira-Santosea2013).
+Kernel Density Estimators are currently the main approach to estimate activity patterns from camera-trap data. At the time of writing, we are aware of three packages available in R to estimate activity patterns based on the KDE approach. The three packages return similar estimates of activity, with some differences. The *overlap* package \@ref(RidoutLinkie2009) converts estimates so that the area under the curve is equal to one. The *activity* package \@ref(Rowcliffeea2014) has the additional option to estimate 95% confidence intervals using bootstrap approaches; the main function implemented in this package, named activity::fitact, has also an argument to correct for differences in detection probability (e.g., between day and night) while the function activity::solartime enable double-anchoring procedures to adjust the timestamp associated with the different records based on sunrise and sunset times (see \ref(Vazquezea2021) for details). Finally, the circular package \@ref(AgostinelliLund2017) can identify periods of higher levels of activity using an isopleth approach similar to that applied in the analysis of telemetry data to identify core areas in home-range estimates \@ref(Oliveira-Santosea2013).
 
-In this chapter, we illustrate how to estimate activity patterns based
-on KDEs using these three packages. Then, we show the consequences of not aggregating 
-data on estimatesof activty patterns. As an example, we use camera trap
-data of American black bears (*Ursus americanus*) collected in
-northern-Minnesota between mid-May and mid-July 2017
-(@Iannarilliea2020).
+In this chapter, we illustrate how to estimate activity patterns based on KDEs using these three packages. Then, we show the consequences of not aggregating data when estimateing activity patterns. As an example, we use camera-trap data of American black bears (*Ursus americanus*) collected in northern-Minnesota between mid-May and mid-July 2017 (@Iannarilliea2020).
 
 ## Data preparation
-We start by loading the three R libraries listed above along with other
-packages necessary to wrangling the data. We also load the data itself
-and show a preview of what the data look like.
+We start by loading the three R libraries listed above along with other packages necessary to wrangling the data. We also load the data itself and show a preview of what the data look like.
 
-```{r}
+```{r kde1}
 # Load libraries
 library(tidyverse)
 library(tictoc)
@@ -60,50 +36,58 @@ head(dat)
 ```
 
 
-ADD DATA AGGREGATION
+We aggregate the data as described in \@ref(dataprep)
 
-All of the three packages require time values provided as radians. Thus,
-the next step before applying KDEs is to trasform the time values from
-the HH:MM:SS format to radians. This requires some multiplications.
-Since there are $2*\pi$ radians in a circle and $60 minutes x 24 hours$
-in a day, we can estimate minutes in terms of radians by dividing the
-minutes corresponding to a certain time of the day by the total number
-of minutes in a day (equal to 60x24) and multiplying the resulting value
-by $2*\pi$. For simplicity, we do not consider seconds here.
+```{r kde2}
+# Set the threshold that define independence independence between subsequent records
+independence_interval <- 30 #minutes
 
-```{r}
+# Aggregate data to reduce short-term temporal dependence
+dat_event <- dat %>% 
+  mutate(DateTimeOriginal = ymd_hms(DateTimeOriginal)) %>% 
+  group_by(Species, Station) %>%      # group by species and location
+  arrange(DateTimeOriginal, .by_group = TRUE) %>% # arrange record temporally within each group
+  mutate(timediff = as.numeric(difftime(DateTimeOriginal, lag(DateTimeOriginal), units="mins")), # calculate time difference (in minutes) between consecutive events
+         timediff = replace_na(timediff, 0),
+         grp = ifelse(timediff >= independence_interval, 1, 0), # create events
+         grp_ind = cumsum(grp) + 1) # assign a group number to each event
+
+# group by camera site and event group
+# summarize: calculate median time for each event
+dat_event <- dat_event %>%
+  group_by(Species, Station, grp_ind) %>%
+  slice(1) %>% 
+  select("Station", "Species", "DateTimeOriginal", "Date", "Time", "Session")
+```
+
+All of the three packages require time values provided as radians. Thus, the next step is trasforming the time values from the HH:MM:SS format to radians. This requires some multiplications. Since there are $2*\pi$ radians in a circle and $60 minutes x 24 hours$ in a day, we can estimate minutes in terms of radians by dividing the minutes corresponding to a certain time of the day by the total number of minutes in a day (equal to 60x24) and multiplying the resulting value by $2*\pi$. For simplicity, we do not consider seconds here.
+
+```{r kde3}
 # Specify the format of the column Time
-dat2$Time <- hms(dat2$Time) 
+dat_event$Time <- hms(dat_event$Time) 
 
 # Convert time values to radians
-dat2$Time_Rad <- (hour(dat2$Time)*60 + minute(dat2$Time))/(60*24)*2*pi 
+dat_event$Time_Rad <- (hour(dat_event$Time)*60 + minute(dat_event$Time))/(60*24)*2*pi 
 
-plot((hour(dat2$Time)*60 + minute(dat2$Time)), dat2$Time_Rad, xlab = "Original Timestamp", ylab = "Time in radians")
+plot((hour(dat_event$Time)*60 + minute(dat_event$Time)), dat_event$Time_Rad, xlab = "Original Timestamp (in minute in a day)", ylab = "Time in radians")
 ```
 The plot above shows the 1:1 match in time of the records expressed as minutes (x axis) and radians (y axis).
 
 
 ## Estimating activity patterns
 
-We can now proceed to estimating the activity patterns using each of the
-three package available in R. We will first run the code for each
-package and then visually compare the results of all of them.
+We can now proceed to estimating the activity patterns using each of the three packages available in R. We will first run the code for each package and then visually compare the results of all of them.
 
 ### Using the overlap package
 
-We start from the overlap package. To facilitate comparison of estimates
-based on the other two packages, we explicitly specify the values for
-the argument *n.grid*, which control the number of points along the 24
-hours cycle (in radians) at which density values are estimated. \_xscale
-= 24\*60\_ returns the values of these points in minutes, instead of the
-default radians.
+We start from the *overlap* package. To facilitate comparison of estimates based on the other two packages, we explicitly specify the values for the argument *n.grid*, which controls the number of points along the 24 hours cycle (in radians) at which density values are estimated. \_xscale = 24\*60\_ returns the values of these points in minutes, instead of the default radians.
 
 ```{r}
 # To avoid plotting
 pdf(file = NULL) 
 
 # Estimate activity patterns and store values in an object 
-res_over <- densityPlot(dat2$Time_Rad, rug = FALSE, adjust = 1, xscale = 24*60, n.grid = 513, extend = NULL) %>% 
+res_over <- densityPlot(dat_event$Time_Rad, rug = FALSE, adjust = 1, xscale = 24*60, n.grid = 513, extend = NULL) %>% 
   mutate(se = NA,
          Package = "Overlap",
          Data = "Aggregated") 
@@ -120,13 +104,12 @@ pl_over <- ggplot(res_over, aes(x=x, y=y, group=Data)) +
         legend.title = element_text(size=8,face="bold"),
         axis.line = element_line(colour = 'black', linetype = 'solid'),
         axis.ticks = element_line(colour = 'black', linetype = 'solid'),
-        #axis.title.y = element_blank(),
         axis.text = element_text(size=8),
         axis.title.y = element_text(size=10,face="bold"),
         axis.title.x = element_blank(),
         panel.grid.minor.y = element_blank(),
         panel.grid.major.y = element_blank(),
-        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', size=0.5),#element_line(colour = 'grey', linetype = 'solid', size=0.5),
+        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
         panel.grid.minor.x = element_blank(),
         strip.text = element_text(size = 10, colour = "black", face = "bold")) +
   scale_x_continuous(breaks=seq(0,24*60,60*4), labels=seq(0,24,4), expand = expand_scale(mult = c(0.02,0.02)))+
@@ -139,17 +122,12 @@ head(res_over)
 
 ### Using the activity package
 
-The *fitact* function within the *activity* package allows users to
-estimates uncertainty (i.e. confidence intervals) around the activity
-patterns using bootstrap approaches. Following the recommendation
-available in the function's help-file and based on the number of events
-available in the dataset `r nrow(dat2)`, we resample from the data
-(argument *sample = "data"*). Some tricks are needed to store the
-estimates returned by the *fitact* function in a R object.
+The *fitact* function within the *activity* package allows users to estimates uncertainty (i.e. confidence intervals) around the activity
+patterns using bootstrap approaches. Following the recommendations available in the function's help-file and based on the number of events available in the dataset, `r nrow(dat_event)`, we resample from the  data (argument *sample = "data"*). Some tricks are needed to store the estimates returned by the *fitact* function in a R object.
 
 ```{r}
 # Estimate activity patterns and store values in an object 
-res_acti <- as.data.frame(fitact(dat2$Time_Rad, reps = 999, sample = "data", show = FALSE)@pdf[,1:3]) %>% 
+res_acti <- as.data.frame(fitact(dat_event$Time_Rad, reps = 999, sample = "data", show = FALSE)@pdf[,1:3]) %>% 
   mutate(x = x/(2*pi)*24*60, # to bring results back to the minute scale,
          Package = "Activity",
          Data = "Aggregated") 
@@ -157,7 +135,7 @@ res_acti <- as.data.frame(fitact(dat2$Time_Rad, reps = 999, sample = "data", sho
 # store plot in an object
 pl_acti <- ggplot(res_acti, aes(x=x, y=y, group=Data)) +
   geom_ribbon(aes(ymin=y-1.96*se, ymax=y+1.96*se, color=Data, fill=Data), alpha=0.3) +
-  geom_line(aes(linetype=Data, color=Data), size=1) +
+  geom_line(aes(linetype=Data, color=Data), linewidth=1) +
   scale_color_manual(values = c("#CC79A7")) +
   scale_fill_manual(values = c("#CC79A7")) +
   labs(x = "", y = "Activity density", title = "B: Activity pkg") +
@@ -166,13 +144,12 @@ pl_acti <- ggplot(res_acti, aes(x=x, y=y, group=Data)) +
   theme(legend.position = "none",
         axis.line = element_line(colour = 'black', linetype = 'solid'),
         axis.ticks = element_line(colour = 'black', linetype = 'solid'),
-        #axis.title.y = element_blank(),
         axis.text = element_text(size=8),
         axis.title.y = element_text(size=10,face="bold"),
         axis.title.x = element_blank(),
         panel.grid.minor.y = element_blank(),
         panel.grid.major.y = element_blank(),
-        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', size=0.5),#element_line(colour = 'grey', linetype = 'solid', size=0.5),
+        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
         panel.grid.minor.x = element_blank(),
         strip.text = element_text(size = 10, colour = "black", face = "bold")) +
   scale_x_continuous(breaks=seq(0,24*60,60*4), labels=seq(0,24,4), expand = expand_scale(mult = c(0.02,0.02)))+
@@ -189,15 +166,15 @@ We now estimate activity using the *circular* package.
 
 ```{r}
 # prepare the specific format required by circular
-dat2$Time_Rad_circ <- as.circular(dat2$Time_Rad, units = "radians",
+dat_event$Time_Rad_circ <- as.circular(dat_event$Time_Rad, units = "radians",
 template = "none", zero=0, type="angles", modulo = "2pi",
 rotation="counter")
 
 # determine bandwidth
-bw2 <- bw.cv.ml.circular(dat2$Time_Rad_circ, kernel = "vonmises") 
+bw2 <- bw.cv.ml.circular(dat_event$Time_Rad_circ, kernel = "vonmises") 
 
 # estimate activity patterns
-temp2 <- modal.region.circular(dat2$Time_Rad_circ, kernel = "vonmises", q = 0.5, adjust = 1, bw = bw2) 
+temp2 <- modal.region.circular(dat_event$Time_Rad_circ, kernel = "vonmises", q = 0.5, adjust = 1, bw = bw2) 
 
 # organize the output in a datafram to match those of the other packages
 res_circ <- data.frame(x=temp2$density$x, 
@@ -213,7 +190,7 @@ res_area2 <- res_circ %>% filter(x>temp2$zeros[2,1]/(2*pi)*24*60 & x<temp2$zeros
 
 # store plot in an object
 pl_circ <- ggplot(res_circ, aes(x=x, y=y, group=Data)) +
-  geom_line(aes(linetype=Data, color=Data), size=1) +
+  geom_line(aes(linetype=Data, color=Data), linewidth=1) +
   geom_area(data=res_area1, aes(x=x, y=y), col="#CC79A7", fill="#CC79A7", alpha=0.3) +
   geom_area(data=res_area2, aes(x=x, y=y), col="#CC79A7", fill="#CC79A7", alpha=0.3) +
   scale_color_manual(values = c("#CC79A7")) +
@@ -229,7 +206,7 @@ pl_circ <- ggplot(res_circ, aes(x=x, y=y, group=Data)) +
         axis.title.x = element_blank(),
         panel.grid.minor.y = element_blank(),
         panel.grid.major.y = element_blank(),
-        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', size=0.5),#element_line(colour = 'grey', linetype = 'solid', size=0.5),
+        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
         panel.grid.minor.x = element_blank(),
         strip.text = element_text(size = 10, colour = "black", face = "bold")) +
   scale_x_continuous(breaks=seq(0,24*60,60*4), labels=seq(0,24,4), expand = expand_scale(mult = c(0.02,0.02)))+
@@ -253,8 +230,5 @@ We now can visually compare the estimates of activity patterns returned by the t
 
 ```
 
-The three packages return patterns in activity that match in the timing of peaks and overlall shape fo the curves. 
-Notably, the y-axis associated to the estimates produced using *overlap* differ from those returned by the other 
-two packages. These differences are due to an additional step that takes place within the 
-_densityPlot_ function and converts estimates so that the area under the curve is equal to one.
+The three packages return patterns in activity that match in the timing of peaks and overall shape of the curves. Notably, the y-axis associated to the estimates produced using *overlap* differs from those returned by the other two packages. These differences are due to an additional step that takes place within the _densityPlot_ function and converts estimates so that the area under the curve is equal to one.
 
