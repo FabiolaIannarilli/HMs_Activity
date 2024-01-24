@@ -13,8 +13,6 @@ library(tidyverse)
 library(GLMMadaptive)
 library(mgcv)
 library(tidyr)
-#library(grid)
-#library(gridExtra)
 source("source_functions/sim_activity.R")
 source("source_functions/sim_to_minute.R")
 set.seed(129)
@@ -340,6 +338,8 @@ ggplot(cond_eff, aes(Time, pred)) +
   
 ```
 This model corresponds, in general terms, to the trigonometric random intercept-only model we ran earlier and similarly accommodate only for variability in the frequency of site use. We can add complexity to this model and include a random slope component that allows the site-specific estimates to vary also in the timing of peak activity. In *mgcv*, there is no need to explicitly force the independence between the random intercept and the random slope (as done before for the trigonometric-based model) because there is no covariance term between two random effects.
+
+## STRUCTURE CYCLIC RANDOM SLOPE
 
 ```{r setsim10}
 occasions_cbind$Time_fct <- as.factor(occasions_cbind$Time)
