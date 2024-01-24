@@ -1,50 +1,184 @@
 # Unimodal versus binomial activity {#unibim}
 
-In this first example, we illustrate how trigonometric GLMMs can 
-be used to describe diel activity patterns. Traditionally, diel activity patterns are usually classified as:
-* **unimodal**: the species is mostly active in a certain period of the 24-hour cycle,
-and not (or almost not) active in the remaining time. The activity pattern curve
-is characterized by only one peak, and it is typical of diurnal and nocturnal species.
-* **bimodal**: the species is mostly active during two specific times of 24-hour cycle,
-often corresponding to sunrise and sunset (i.e., crepuscular species), and inactive (or mostly inactive) during the 
-rest of the time. The activity pattern curve is characterized by having two peaks.
-* **cathemeral**: the species is equally active throughout the 24-hour cycle and 
-and activity pattern curve approximate a flat line.
+In this first example based on real data, we illustrate how trigonometric GLMMs can be used to describe different structures of diel activity patterns. Traditionally, diel activity patterns are usually classified as:
 
-We use independent camera-trap records of coyotes (*Canis latrans*) collected at 
-100 locations between 2016 and 2018 in Northern Minnesota, USA. We use the data 
-as prepared in the previous section, \@ref(dataprep). 
+* **unimodal**: the species is mostly active during a restricted portion of the 24-hour cycle, and not (or almost not) active in the remaining time. The activity pattern curve is characterized by only one peak, and it is typical of species that are either diurnal or nocturnal.
+* **bimodal**: the species is mostly active during two specific times of 24-hour cycle, often corresponding to sunrise and sunset (i.e., crepuscular species), and inactive (or mostly inactive) during the rest of the time. The activity pattern curve is characterized by having two peaks.
+* **cathemeral**: the species is equally active throughout the 24-hour cycle and and activity pattern curve approximates a flat line.
+
+Here, we build and compare model structures that represent these three different diel activity patterns. We use independent camera-trap records of coyotes (*Canis latrans*) collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021], with the data organized as described in \@ref(dataprep). 
+
+``` {r univsbim1 echo = FALSE}
+# Load libraries
+library(tidyverse)
+library(lubridate)
+library(GLMMadaptive)
+library(lmtest)
+
+# Load data: Coyote 
+dat <- read.csv("data_input/AllRecords_allSpecies_allSessions_0min_deltaT.csv", as.is = TRUE) %>% 
+  filter(c(Species == "Coyote" ) & Station != ".dtrash") %>% droplevels %>%  
+  mutate(DateTimeOriginal = ymd_hms(DateTimeOriginal))
+cov <- read.csv("data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv", as.is = TRUE) %>% 
+  select(c(Session, Site, Date_setup, Date_retr, Problem1_from, Problem1_to)) %>% 
+  mutate(Date_setup = mdy(Date_setup),
+         Date_retr = mdy(Date_retr),
+         Problem1_from = mdy(Problem1_from),
+         Problem1_to = mdy(Problem1_to)) 
+
+# Set the threshold that define independence independence between subsequent records
+independence_interval <- 30 #minutes
+
+#' Aggregate data (30-minute threshold based on lorelogram results for camera-trap sampling design paper)
+dat_event <- dat %>% 
+  mutate(DateTimeOriginal = ymd_hms(DateTimeOriginal)) %>% 
+  group_by(Species, Station) %>%      # group by species and location
+  arrange(DateTimeOriginal, .by_group = TRUE) %>% # arrange record temporally within each group
+  mutate(timediff = as.numeric(difftime(DateTimeOriginal, lag(DateTimeOriginal), units="mins")), # calculate time difference (in minutes) between consecutive events
+         timediff = replace_na(timediff, 0),
+         grp = ifelse(timediff >= independence_interval, 1, 0), # create events
+         grp_ind = cumsum(grp) + 1) # assign a group number to each event
+
+# group by camera site and event group
+# summarize: calculate median time for each event
+dat_event <- dat_event %>%
+  group_by(Species, Station, grp_ind) %>%
+  slice(1) %>% 
+  select("Station", "Species", "DateTimeOriginal", "Date", "Time", "Session")
+
+# Merge time of deployment and retrieval + problems
+#site <- left_join(site, cov, by = c("Session" = "Session", "Station" = "Site"))
+site <- cov
+site$end <- ymd("2000-01-01")
+for(i in 1:nrow(site)){
+  site$end[i] <-  min(site$Date_retr[i], site$Problem1_from[i], na.rm = TRUE)
+}
 
 
+# Create dataframe to store captures 
+# (model does not converge if using 30 minutes)
+occasions <- vector("list", length = nrow(site))
+for(i in 1:nrow(site)){
+  occasions[[i]] <- data.frame(Session = site$Session[i],
+                               Site = site$Site[i],
+                               start = seq(from = ymd_hms(paste(site$Date_setup[i], "00:00:00", sep = " ")), 
+                                           to = ymd_hms(paste(site$end[i], "23:59:59", sep = " ")), by = '60 min')) %>% 
+    mutate(end = c(start[2:length(start)], start[length(start)]+minutes(60))) 
+}
+occasions <- do.call(rbind.data.frame, occasions)
+occasions$capt <- 0
 
+#' Store captures
+for(i in 1:nrow(dat)){
+  occasions[occasions$Session == as.character(dat$Session[i]) & occasions$Site == as.character(dat$Station[i]) &
+              occasions$start <= dat$DateTimeOriginal[i] & occasions$end > dat$DateTimeOriginal[i], "capt"] <- 1
+}
+
+#' Format data 
+occasions$Time <- ymd_hms(occasions$start) 
+occasions$Time <- hour(occasions$Time)
+occasions$Site <- as.factor(occasions$Site)
+
+# format data for cbind(success, failure)
+occasions_cbind <- occasions %>% 
+  group_by(Site, Time) %>% 
+  summarize(success = sum(capt),
+            failure = n() - success)
+head(occasions_cbind)
+
+```
+
+We start by fitting a model that describes a *unimodal* activity pattern. This structure includes only the first of the two cosine terms in equation 1 (which translates in the first and second terms of equation 2), and random intercept and slope as described in \ref(est).   
+
+``` {r univsbim2}
+# Unimodal 
+unimodal <- mixed_model(fixed = cbind(success, failure) ~ cos(2*pi*Time/24) + sin(2*pi*Time/24), 
+                        random = ~ cos(2*pi*Time/24) + sin(2*pi*Time/24) || Site,
+                        family = binomial(),
+                        data = occasions_cbind)
+
+summary(unimodal)
+```
+
+To code for a *bimodal* activity pattern, we extend the model structure above by also including the second cosine term in equation 1 (i.e. third and forth terms in equation 2).
+
+``` {r univsbim3}
+# Bimodal 
+bimodal <- mixed_model(fixed = cbind(success, failure) ~ cos(2*pi*Time/24) + sin(2*pi*Time/24)+
+                                                         cos(2*pi*Time/12) + sin(2*pi*Time/12), 
+                       random = ~ cos(2*pi*Time/24) + sin(2*pi*Time/24)+
+                                  cos(2*pi*Time/12) + sin(2*pi*Time/12) || Site,
+                       family = binomial(),
+                       data = occasions_cbind)
+
+summary(bimodal)
+```
+
+Finally, we use a model without any cosine term to describe a *cathemeral* activity patterns. We include a random intercept but cannot include a random slope due the structure of model itself. 
+
+``` {r univsbim4}
 null_mod <- mixed_model(fixed = cbind(success, failure) ~ 1, 
                         random = ~ 1 | Site,
                         family = binomial(),
-                        data = occasions_cbind) 
-
-
-
-## The simplest Trigonometric GLMMs
-
-
-
-
-You can label chapter and section titles using `{#label}` after them, e.g., we can reference Chapter \@ref(intro). If you do not manually label them, there will be automatic labels anyway, e.g., Chapter \@ref(methods).
-
-Figures and tables with captions will be placed in `figure` and `table` environments, respectively.
-
-```{r nice-fig, fig.cap='Here is a nice figure!', out.width='80%', fig.asp=.75, fig.align='center'}
-par(mar = c(4, 4, .1, .1))
-plot(pressure, type = 'b', pch = 19)
+                        data = occasions_cbind)
+summary(null_mod)
 ```
 
-Reference a figure by its code chunk label with the `fig:` prefix, e.g., see Figure \@ref(fig:nice-fig). Similarly, you can reference tables generated from `knitr::kable()`, e.g., see Table \@ref(tab:nice-tab).
+We can now proceed to compare the different module structures and associated hypotheses. We can do this using the Akaike Information Criterion (AIC; @AIC).
 
-```{r nice-tab, tidy=FALSE}
-knitr::kable(
-  head(iris, 20), caption = 'Here is a nice table!',
-  booktabs = TRUE
-)
+``` {r univsbim5}
+# AIC comparison
+AIC(null_mod, unimodal, bimodal)
+
 ```
 
-You can write citations, too. For example, we are using the **bookdown** package [@R-bookdown] in this sample book, which was built on top of R Markdown and **knitr** [@xie2015].
+We can also compare the models using a Likelihood Ratio Test.
+
+``` {r univsbim6}
+lrtest(null_mod, unimodal, bimodal)
+```
+
+Both comparisons show that the XXXX is the most supported model among those compared. We can, thus, conclude that coyotes have a XXX activity pattern.
+
+We can also visually compare predicted activity curves based on these models. As in other examples, we first use the function _GLMMadaptive::effectPlotData_ to predict the activity curve throughout the 24-hour cycle and then use _ggplot_ to plot the results.
+
+``` {r univsbim7}
+# build a new dataset 
+newdat <- with(occasions_bind, expand.grid(Time = seq(min(Time), max(Time), length.out = 24)))
+
+# obtain the estimated activity curves
+predict_unimodal <- effectPlotData(unimodal, newdat, marginal = FALSE) %>% 
+  mutate(Model = "Unimodal")
+predict_bimodal <- effectPlotData(bimodal, newdat, marginal = FALSE) %>% 
+  mutate(Model = "Biimodal")
+predict_cathemeral <- effectPlotData(null_mod, newdat, marginal = FALSE) %>% 
+  mutate(Model = "Cathemeral")
+
+# join and plot results
+rbind(predict_unimodal, predict_bimodal, predict_cathemeral) %>% 
+  ggplot(., aes(x = Time, y = pred, group = Model, color = Model, fill = Model)) +
+  geom_line() +
+  geom_ribbon(aes(ymin = low, ymax = upp), alpha = 0.3) +
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "Estimated Activity Patterns")+
+  #coord_cartesian(ylim = c(0, 0.005)) +
+  theme_minimal()+
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        legend.text = element_text(size=10,face="bold"),
+        legend.margin=margin(0,0,0,0),
+        legend.box.margin=margin(-5,-10,-10,-10),
+        plot.title = element_text(size=10,face="bold"),
+        axis.line = element_line(colour = 'black', linetype = 'solid'),
+        axis.ticks = element_line(colour = 'black', linetype = 'solid'),
+        axis.title = element_text(size=9,face="bold"),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
+        panel.grid.minor.x = element_blank(),
+        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
+  #panel.grid.minor.x = element_line(colour='deepskyblue4', linetype = 'dotted', size=0.35))+
+  scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4))
+
+```
+
+We can test other hypotheses related to shape of the activity pattern curve for our target species (e.g. three or more peaks in the activity pattern) by simply adding additional cosine terms to the model structure and than comparing the different structures using AIC or a Likelihood Ratio Test. However, going beyond two peaks might be computationally intense, especially when a random slope is included. In these cases, an option would be to reduce model complexity by only including a random intercept.
