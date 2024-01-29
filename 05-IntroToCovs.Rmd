@@ -1,6 +1,8 @@
-# Difference in activity pattern based on categorical variables {#cat}
+# Difference in activity pattern based on variables {#cat}
 
-Many researchers exploring activity patterns from camera-trap data sooner or later run into the challenge of estimating how activity patterns vary in response to some conditions, often related to the environment in which the data have been collected. We address this common set of ecological questions in this and the next vignette, focused on categorical and continuous variables, respectively. 
+Many researchers exploring activity patterns from camera-trap data sooner or later run into the challenge of estimating how activity patterns vary in response to some conditions, often related to the environment in which the data have been collected. We address this common set of ecological questions in this vignette, focusing first on categorical and then on continuous variables.
+
+## Categorical covariates
 
 The task of comparing activity patterns among different levels of a categorical variable can be achieved also using KDE approaches. However, the process can be particularly cumbersome, especially when comparing more than two levels. It requires splitting the dataset of the independent records depending on the levels of the variable of interest, run a KDE for each groups of records, and then comparing the results using an ad-hoc test. Conversely, the same task can be accomplished by fitting a model-based approach on the whole dataset, as we describe here.
 
@@ -87,7 +89,7 @@ occasions_cbind <- occasions %>%
 ```
 
 
-## Trigonometric GLMMs
+### Trigonometric GLMMs
 
 Extending the trigonometric GLMMs to explore the effect of a covariate on activity patterns only requires to add that covariate to the model. We start again by fitting and visualizing the estimate based on a random-intercept only model:
 
@@ -186,7 +188,7 @@ ggplot(pred_rand_int, aes(Time, plogis(pred))) +
 
 ## TO RUN AND CACHE?
 
-## Cyclic cubic spline GLMMs
+### Cyclic cubic spline GLMMs
 
 Similar to trigonometric GLMMs, cyclic cubic spline GLMMs can also be used to model activity patterns as a function of a categorical covariate. As we explained in \ref{est}, this class of models are highly flexible and offer a pletora of options when it comes to choose which structure to fit. Here we focus on two. The first resembles a trigonometric random-intercept only GLMM and contains a cubic cyclic smoother for Time which varies by Season, Season as a fixed term, and a smoother for Site as random effect. The second that also has a general smoother for Time and resembles a trigonometric GLMM with random intercept and slope.
 
@@ -286,3 +288,7 @@ In this analysis, the patterns estimated by the two models structure is close to
 AIC(mod_cycl1, mod_cycl2)
 AIC(mod_cycl2) - AIC(mod_cycl1)
 ```
+
+## Continuous covariates
+
+## ADD EXAMPLE?? rstoat not working

@@ -1,6 +1,8 @@
 # Unimodal versus binomial activity {#unibim}
 
-In this first example based on real data, we illustrate how trigonometric GLMMs can be used to describe different structures of diel activity patterns. Traditionally, diel activity patterns are usually classified as:
+In this first example based on real data, we illustrate how trigonometric GLMMs can be used to describe different structures of diel activity patterns. Contrary to trigonometric GLMMs, cyclic cubic spline GLMMs cannot easily be constrain to accommodate a specific shape of the resulting activity pattern. Thus, if the interest is in determining which general shape of the activity curve that best describe the data collected we recommend to rely on trigonometric GLMMs, as illustrated here.
+
+Traditionally, diel activity patterns are usually classified as:
 
 * **unimodal**: the species is mostly active during a restricted portion of the 24-hour cycle, and not (or almost not) active in the remaining time. The activity pattern curve is characterized by only one peak, and it is typical of species that are either diurnal or nocturnal.
 * **bimodal**: the species is mostly active during two specific times of 24-hour cycle, often corresponding to sunrise and sunset (i.e., crepuscular species), and inactive (or mostly inactive) during the rest of the time. The activity pattern curve is characterized by having two peaks.
