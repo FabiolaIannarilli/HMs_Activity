@@ -7,7 +7,7 @@ from camera-trap data:
 
 To keep the focus on estimating activity pattern, we encapsulate the code to simulate the data in the function *sim_activity*, that we source after loading the necessary libraries. 
 
-```{r setsim1}
+```{r est1}
 #' Load libraries and function to simulate activity patterns
 library(tidyverse)
 library(GLMMadaptive)
@@ -35,8 +35,8 @@ time <- seq(0, wavelength, wavelength/512)
 We now simulate bimodal activity patterns for 100 sites (M) based on equation 1 \@ref(var) and the parameters defined in the code above. We set $\tau_i$ and 
 $\gamma_i$ as drawn from the distributions $\tau_i \sim N(0,\sigma_\tau)$ and $\gamma_i \sim N(0,\sigma_\gamma)$, respectively, with $\sigma_\tau = 1$ and $\sigma_\gamma = 0.3$. 
 
-```{r setsim2}
-dat <- sim_activity2(M = M, 
+```{r est2}
+dat <- sim_activity(M = M, 
                      J = J, 
                      wavelength = wavelength, 
                      n_peak = n_peak, 
@@ -58,7 +58,7 @@ dat <- sim_activity2(M = M,
 This function returns a list containing several objects, including the true values of conditional and marginal
 mean probability of activity used to build the plot above. The list also contains the activity patterns simulated for each of the 100 sites. We can access the information for some of this sites and plot their activity patterns, along with the conditional mean activity patterns (the red curve in the following plot). 
 
-```{r setsim3}
+```{r est3}
 # plot true confidional with 5 simulated sites
 sites_i <- sample(x = 1:M, size = 10, replace = FALSE)
 sample_sites <- cbind(sites_i, dat$true_activity_prob[sites_i, 0:25]) 
@@ -101,7 +101,7 @@ y_{it} \sim Bernoulli(p_{it})
 $$ 
 and are stored in one of the object of the list created by the *sim_activity* function. We access the encounter data and store them in an object called *y*, which has a number of rows equal to the number of simulated sites and a number of columns equal to 24 times the length (in days) of the simulated sampling period (e.g. $24 hour * 30 days = 720 encounter occasions $). We add a column which contain an unique identifier for each site (e.g. *A1*) and assigned a name to each column, then convert the data in long format using the *id* column as reference.
 
-```{r setsim4}
+```{r est4}
 # The data
 y <- as.data.frame(dat$sim_data)
 dim(y)
@@ -124,7 +124,7 @@ knitr::kable(head(y_long))
 To optimize computational time, we can reduce the number of rows in the dataset but counting the number of hourly-long occasions in which the species was observed (i.e. successes) and the number of occasion the species was not observed (i.e. failures) for each time interval and camera site.
 
 
-```{r setsim5}
+```{r est5}
 # count successes and failures at each site-occasion
 occasions_cbind <- y_long %>% 
   group_by(id, hour) %>% 
@@ -141,15 +141,19 @@ We can now use this dataframe to estimate activity patterns using trigonometric 
 
 ## Trigonometric GLMMs
 
-Equation 1 is non linear, and currently there is no out-of-the-box option to code non linear model using a frequentist approach in R. To overcome this challenge we rewrite equation 1 using compound angle formula (see also main text):
+Equation 1 is non linear, and currently there is no out-of-the-box option  in R to code non linear model using a frequentist approach. To overcome this challenge, we rewrite equation 1 using compound angle formula (see also main text):
 $$
-add version after compund formulas
+
+logit(p_t) = \beta_0 + \alpha_1*cos(\frac{2\pi t}{24}) + \alpha_2*sin(\frac{2\pi t}{24}) + \alpha_3*cos(\frac{2\pi t}{12}) + \alpha_4*sin(\frac{2\pi t}{12})
+
 $$
-In this version (equation 2), we can model activity patterns with any packages commonly used for running GLMMs. Here, we choose the *GLMMadaptive* library because it give us the option to also explore conditional and marginal mean activity patterns \@ref(condvsmarg).
+where $\alpha_1= \beta_1*cos(\theta_0 + \gamma_i)$, $\alpha_2= -\beta_1*sin(\theta_0 + \gamma_i)$, $\alpha_3= \beta_2*cos(\theta_1 + \gamma_i)$, $\alpha_4= -\beta_2*sin(\theta_1 + \gamma_i)$. 
+
+In this version (labeled as equation 2 in the main text), we can model activity patterns with any packages commonly used for running GLMMs. Here, we choose the *GLMMadaptive* library because it give us the option to also explore conditional and marginal mean activity patterns \@ref(condvsmarg).
 
 The simplest trigonometric GLMM we can run is one that includes only a random intercept. In the context of estimatimg of activity patterns, a random intercept-only model accounts for variability in the frequency of use of the sites (i.e. vertical shifts among the curves), but not variability in the timing of peak activity (i.e. horizontal shift).   
 
-```{r setsim5}
+```{r est6}
 trig_rand_int <- mixed_model(fixed = cbind(success, failure) ~ 
                       cos(2 * pi * Time/24)  + sin(2 * pi * Time/24) +
                       cos(2 * pi * Time/12)  + sin(2 * pi * Time/12),
@@ -163,7 +167,7 @@ summary(trig_rand_int)
 For trigonometric models, interpreting the model results looking at the coefficient estimates could be daunting. An easier and effective way to explore the results is to visually check the activity patterns
 predicted based on the model itself. Thus, we predict the estimated activity patterns, backtrasform the results in the probability scale, and plot the estimated activity pattern along the true simulated conditional activity patterns.
 
-```{r setsim6}
+```{r est7}
 # estimated activity pattern
 newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), 24, length.out = 48)))
 cond_eff0 <- effectPlotData(trig_rand_int, newdat, marginal = FALSE) %>% 
@@ -215,7 +219,7 @@ The activity pattern estimated based on a random-only trigonometric GLMM (in blu
 
 In same cases, we can also suspect that site-specific activity patterns present differences in the timing the sites are used the most by our target species. We can explore this hypothesis by adding a random slope to the model. The choice of the structure of the random slope effect is not trivial; we can include only parameters linked to the first cosine term in equation 1 (i.e. first two terms in equation 2), only terms for the second cosine term in equation 2 (i.e. third and forth terms in equation 2) or both. When possible, based on computational time and the information contained in the data, we recommend to include all the terms and allow for the random intercept to vary independently of the random slope. In *GLMMadaptive*, we ensure this independence by using the syntax || when specifying the random effect component of the model. 
 
-```{r setsim7}
+```{r est8, cache=TRUE, cache.path="cache/"}
 trig_rand_slope <- mixed_model(fixed = cbind(success, failure) ~ 
                       cos(2 * pi * Time/24)  + sin(2 * pi * Time/24) +
                       cos(2 * pi * Time/12)  + sin(2 * pi * Time/12),
@@ -229,9 +233,9 @@ summary(trig_rand_slope)
 
 ```
 
-As before, we visually inspect the estimated acitity pattern based on this model and compare it with the simulated conditional mean activity pattern.
+As before, we visually inspect the estimated activity pattern based on this model and compare it with the simulated conditional mean activity pattern.
 
-```{r setsim8}
+```{r est9}
 # estimated activity pattern
 newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), 24, length.out = 48)))
 cond_eff1 <- effectPlotData(trig_rand_slope, newdat, marginal = FALSE) %>% 
@@ -254,7 +258,7 @@ cond_eff <- rbind(cond_true, cond_eff1)
 # plot
 ggplot(cond_eff, aes(Time, pred)) +
   geom_ribbon(aes(ymin = low, ymax = upp, color = Mod, fill = Mod), alpha = 0.3, linewidth = 0.25) + #
-  geom_line(aes(color = Mod), size = 1) + #
+  geom_line(aes(color = Mod), linewidth = 1) + #
   scale_color_manual(values = c("blue", "red")) +
   scale_fill_manual(values = c("blue", "red")) +
   labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "Estimated vs Simulated Activity Patterns")+
@@ -279,7 +283,7 @@ ggplot(cond_eff, aes(Time, pred)) +
 
 ```
 
-### ADD COMMENT ON THE FIGURE- after running the random slope model!!!
+The estimated activity curve closely matches the true activity that was used to generate the data. In this case, adding a random slope improved the estimates only marginally. This is generally the case when ther eis only a low level of variation in the time of peak activity across sites. 
 
 ## Cyclic cubic spline GLMMs
 
@@ -289,7 +293,7 @@ We fit a hierarchical cyclic cubic spline GLMM using the *bam* function in packa
 
 ### SHOULD TIME BE CODED AS FACTOR?
 
-```{r setsim9}
+```{r est10}
 cycl_rand_int <- bam(cbind(success, failure) ~ s(Time, bs = "cc", k = wavelength) + 
                                           s(Site, bs="re"), 
                                           family = "binomial", 
@@ -341,17 +345,26 @@ This model corresponds, in general terms, to the trigonometric random intercept-
 
 ## STRUCTURE CYCLIC RANDOM SLOPE
 
-```{r setsim10}
-occasions_cbind$Time_fct <- as.factor(occasions_cbind$Time)
+```{r est11, cache=TRUE, cache.path="cache/"}
+# occasions_cbind$Time_fct <- as.factor(occasions_cbind$Time)
+# 
+# cycl_rand_slope <- bam(cbind(success, failure) ~ s(Time, bs = "cc", k = wavelength) + 
+#                                           s(Site, bs="re"),
+#                                           #s(Site, Time_fct, bs="re"),
+#                                           #s(Site, Time, k = 12, bs = "fs"),
+#                                           s(Time, by=Site, m=1, bs="tp"),
+#                                           family = "binomial", 
+#                                           data = occasions_cbind, 
+#                                           knots = list(Time=c(0,23), Time_fct = levels(occasions_cbind$Time_fct))) 
 
-cycl_rand_slope <- bam(cbind(success, failure) ~ s(Time, bs = "cc", k = wavelength) + 
-                                          s(Site, bs="re"),
-                                          #s(Site, Time_fct, bs="re"),
-                                          #s(Site, Time, k = 12, bs = "fs"),
-                                          s(Time, by=Site, m=1, bs="tp"),
-                                          family = "binomial", 
-                                          data = occasions_cbind, 
-                                          knots = list(Time=c(0,23), Time_fct = levels(occasions_cbind$Time_fct))) 
+# With general smoother for Time
+cycl_rand_slope <- bam(cbind(success, failure) ~ 
+                   s(Time, bs = "cc", k = 12) + # general smoother
+                   s(Time, bs = "cc", k = 12, by = Site, m = 1) +
+                   s(Site, bs="re"), 
+                 knots = list(Time=c(0,23)),
+                 family = "binomial", 
+                 data = occasions_cbind)
 summary(cycl_rand_slope)
 
 newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), max(Time), 1),
