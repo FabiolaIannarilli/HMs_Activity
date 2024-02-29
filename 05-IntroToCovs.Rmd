@@ -141,7 +141,7 @@ Importantly, the two seasons were sampled for a different number of days: the wh
 
 We can further extend the model above by including a random slope based on Season. 
 
-```{r cat3}
+```{r cat3, eval=FALSE}
 trig_rand_slope <- mixed_model(fixed = cbind(success, failure) ~ 
                                               cos(2 * pi * Time/24) * Season +
                                               sin(2 * pi * Time/24) * Season +
@@ -186,7 +186,7 @@ ggplot(pred_rand_int, aes(Time, plogis(pred))) +
 
 ```
 
-## TO RUN AND CACHE?
+However, this model is likely to be too computational demanding for most laptop. In such cases, we can either opt for the simpler model - keeping in mind that we are not allowing the estimates to vary in their timing of peak activity - or we can run this model in a high computing cluster.
 
 ### Cyclic cubic spline GLMMs
 
