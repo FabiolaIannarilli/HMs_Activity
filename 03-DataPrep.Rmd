@@ -11,7 +11,7 @@ The next two sections explain the details of both preparatory steps. These will 
 
 We start by loading the data and showing a preview of what the data look like. Here, we select camera-trap records of coyotes (*Canis latrans*) collected at all the 100 locations sampled between 2016 and 2018 in Northern Minnesota, USA (@Iannarilliea2020). We also load some libraries that are needed to wrangle the data in the desired format.
 
-```{r}
+```{r prep1}
 # Load libraries
 library(tidyverse)
 library(lubridate)
@@ -33,12 +33,9 @@ In this dataset, each row corresponds to one image. To estimate activity pattern
 
 It often happens that individuals tend to spend several minutes in front of a camera, triggering the sensor several times in a short period of time. This leads to camera-trap data being inherently highly correlated: once a camera has been triggered, it is more likely that it will be triggered again in the following few minutes than, for example, several hours later. The resulting short-term autocorrelation might lead to overestimating activity patterns. To minimize this risk and the level of autocorrelation, camera-trap data are often aggregated based on some time threshold (often between 1 and 60 minutes, commonly 30; @Burtonea2015) and @Iannarilliea2021. We also refer to \@ref(dataaggr) for an explanation of the effects of aggregating camera trap data when estimating activity patterns. 
 
-Using the code below, we aggregate data using a 30-minute threshold established based on previous results obtained using the
-lorelogram approach applied to the same dataset (see @Iannarilliea2021). We set the correct date-time format for the column specifying when each picture was taken, group the records based on species and camera-trap site (_Station_), order the data within each group, and calculate the time difference (in minutes) between each record and the previous. When calculating these differences, NAs are assigned 
-to the first record collected for a certain species at each location (there are no previous records in this cases). We replace those NAs with zeros, then proceed to assign a unique numeric identifier to each event. The next bit of code extract the date-time information 
-of the first record of each group (alternatively, it is possible, for example, to calculate the median time of the records belonging to a certain event) and retain only the columns of interest.
+Using the code below, we aggregate data using a 30-minute threshold established based on previous results obtained using the lorelogram approach applied to the same dataset (see @Iannarilliea2021). We set the correct date-time format for the column specifying when each picture was taken, group the records based on species and camera-trap site (_Station_), order the data within each group, and calculate the time difference (in minutes) between each record and the previous. When calculating these differences, NAs are assigned to the first record collected for a certain species at each location (there are no previous records in this cases). We replace those NAs with zeros, then proceed to assign a unique numeric identifier to each event. The next bit of code extract the date-time information of the first record of each group (alternatively, it is possible, for example, to calculate the median time of the records belonging to a certain event) and retain only the columns of interest.
 
-```{r figaggr, fig.cap='Numbers of records at each camera site before and after aggregating the data to resuce short-term autocorrelation', out.width='80%', fig.asp=.75, fig.align='center'}
+```{r prep2, fig.cap='Numbers of records at each camera site before and after aggregating the data to resuce short-term autocorrelation', out.width='80%', fig.asp=.75, fig.align='center'}
 # Set the threshold that define independence independence between subsequent records
 independence_interval <- 30 #minutes
 
@@ -99,7 +96,7 @@ To include effort, we have to build a matrix that stores information about when 
 
 We load a new dataframe that contains information on the start and the end of the period in which a camera was active at each site. The start of this period usually corresponds to the deployment date, while the end of the period might be the date of retrieval or the last day the camera was working at each location (e.g. in case of camera failure, or cameras displaced by an animal).
 
-```{r loadoperab}
+```{r prep3}
 cov <- read.csv("data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv", as.is = TRUE) %>% 
   select(Session, Site, Date_setup, Date_retr, Problem1_from, Problem1_to) %>% 
   mutate(Date_setup = mdy(Date_setup),
@@ -112,7 +109,7 @@ The dataframe contains information on the sampling session (Session), the camera
 
 In this format, the information about the last day of camera operation at the sites are spread across two columns, Date_retr (for cameras that not failed) and Problem1_from (for cameras that did not fail). We bring this information together in one column called end.
 
-```{r fixend}
+```{r prep4}
 # Merge time of deployment and retrieval + problems
 site <- cov
 site$end <- ymd("2000-01-01")
@@ -125,7 +122,7 @@ Then we create a dataframe to store the information about when and when not the 
 
 For each site, we first create a list of all the hourly occasions from the start to the end of the deployment of an active camera at that site. We then populate the column capt (which will track the encounter/non-encounter information) with zeros.
 
-```{r fixend}
+```{r prep5}
 # Create dataframe to store captures 
 # (model does not converge if using 30 minutes)
 occasions <- vector("list", length = nrow(site))
@@ -143,7 +140,7 @@ head(occasions)
 
 For each record of coyote collected during the study, we assign the value 1 in the column capt in the corresponding row for the combination of site and time interval that includes the time of the encounter event. 
 
-```{r populate}
+```{r prep6}
 #' Store captures
 for(i in 1:nrow(coy)){
   occasions[occasions$Session == as.character(coy$Session[i]) & occasions$Site == as.character(coy$Station[i]) &
@@ -156,7 +153,7 @@ falling within the same time interval (if their datetime values are, for example
 
 Because we chose to use hourly occasions, we can extract the information about the hour of each interval to use it as the Time variable in the models that we will run in the following sections. If a different time length is used (e.g. 1-minute long), this step needs to be adapted accordingly. We also code Site as a factor.
 
-```{r fixclass}
+```{r prep7}
 #' Format data 
 occasions$Time <- ymd_hms(occasions$start) 
 occasions$Time <- hour(occasions$Time)
@@ -165,7 +162,7 @@ nrow(occasions)
 ```
 Our dataset, occasions, contains now more than 570 000 rows. Running a GLMM on such dataset might take a long time and even be impossible without relying on a computing cluster. When the condition under which we test for variation in activity patterns does not varies across the period of sampling (e.g. Julian day), we can summarize the encounter/non-encounter records counting the number of successes (i.e. interval with encounters) and failures (i.e. interval without encounters) at each site and hourly temporal occasion, and then run the GLMMs using the _cbind(success, failure)_ approach (see next section for examples).
 
-```{r fixclass}
+```{r prep8}
 # format data for cbind(success, failure)
 occasions_cbind <- occasions %>% 
   group_by(Site, Time) %>% 
