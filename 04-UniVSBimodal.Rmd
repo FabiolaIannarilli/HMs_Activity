@@ -10,7 +10,7 @@ Traditionally, diel activity patterns are usually classified as:
 
 Here, we build and compare model structures that represent these three different diel activity patterns. We use independent camera-trap records of coyotes (*Canis latrans*) collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021], with the data organized as described in \@ref(dataprep). 
 
-``` {r univsbim1 echo = FALSE}
+``` {r univsbim1, echo = FALSE}
 # Load libraries
 library(tidyverse)
 library(lubridate)
@@ -104,7 +104,7 @@ summary(unimodal)
 
 To code for a *bimodal* activity pattern, we extend the model structure above by also including the second cosine term in equation 1 (i.e. third and forth terms in equation 2).
 
-``` {r univsbim3}
+``` {r univsbim3, cache=TRUE, cache.path="cache/"}
 # Bimodal 
 bimodal <- mixed_model(fixed = cbind(success, failure) ~ cos(2*pi*Time/24) + sin(2*pi*Time/24)+
                                                          cos(2*pi*Time/12) + sin(2*pi*Time/12), 
@@ -146,7 +146,7 @@ We can also visually compare predicted activity curves based on these models. As
 
 ``` {r univsbim7}
 # build a new dataset 
-newdat <- with(occasions_bind, expand.grid(Time = seq(min(Time), max(Time), length.out = 24)))
+newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), max(Time), length.out = 24)))
 
 # obtain the estimated activity curves
 predict_unimodal <- effectPlotData(unimodal, newdat, marginal = FALSE) %>% 
