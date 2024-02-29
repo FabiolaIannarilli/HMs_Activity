@@ -21,7 +21,7 @@ $$
 
 We load the necessary libraries and set the intercept $\beta_0$, and the two amplitudes $\beta_1$ and $\beta_2$ equal to -3, 1, and 0.7, respectively. We assign the values 3 and 2 to the common phaseshifts terms, $\theta_0$ and $\theta_1$, respectively. 
 
-```{r setsim1}
+```{r sim1}
 #' Load libraries and set equations' parameters
 library(tidyverse)
 library(grid)
@@ -38,7 +38,7 @@ time <- seq(0, wavelength, wavelength/512)
 To create examples of *variability in frequency of site-use*, we keep all the parameters constant (with $\gamma_i = 0$) except for $\tau_i$, which varies from -1.5 to 1.5 in increments of 0.5. For illustrative purposes, we assigned these predefined values $\tau_i$, instead of drawing random values from the distribution $N(0,\sigma_\tau)$. We create the curves in logit scale but trasform them in the 
 probability scale, for easiness in interpretation. We also include code to calculate conditional and marginal mean activity curves (red and black curves in the following plots); we will cover this aspect in detail in section \@ref(condvsmarg). Here, we only say that the conditional mean curve describes the activity pattern at a typical site, whereas the marginal mean curve describes the activity patterns averaged across all the sites.  
 
-```{r vertical}
+```{r sim2}
 # creating the curves
 p_df <- data.frame(p = c(
   boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[1]),
@@ -90,7 +90,7 @@ In this first plot, the dashed grey curves represents the curves generated using
 
 To create examples of *variability in timing of activity peak*, we set the random phaseshift $\gamma_i$ as equal to 0, $\pm$ 0.5, $\pm$ 1.0, and $\pm$ 1.5, while keeping $\tau_i = 0$ and all the other parameters constant. As the final step for this example, we joint the two plots to created Figure 1, reported in the main text. 
 
-```{r horizontal}
+```{r sim3}
 # creating the curves
 p_df <- data.frame(p = c(
   boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[1]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[1]) + tau_i[4]),
@@ -147,7 +147,7 @@ The dashed lines in panel B represent curves simulated using different values of
 
 For completeness, we present also the example of a unimodal pattern. We can simulate this activity pattern setting $\beta_2 = 0$ (see main text) and re-running the code above. Setting $\beta_2 = 0$ eliminates the second cosine term and returns a curve with only one peak in activity within the 24-hour cycle.
 
-```{r unimodal}
+```{r sim4}
 # setting beta2 equal to zero 
 b2 = 0
 
