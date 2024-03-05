@@ -1,0 +1,262 @@
+# Temporal partitioning {#temppart}
+
+Another common question related to activity patterns often asked by ecologists is whether a species changes its activity due to the co-occurrence of another species. In this section, we illustrate how GLMMs can be used to also address this set of questions. 
+
+As an example, we analyze temporal partitioning between coyotes and wolves. We format the data as usual.  
+
+``` {r temp1}
+library(tidyverse) 
+library(lubridate) 
+library(GLMMadaptive)
+library(ggpubr)
+library(mgcv)
+library(tictoc)
+library(activity)
+
+#' Load data: Coyote/Wolf Species interactions
+dat <- read.csv("data_input/AllRecords_allSpecies_allSessions_0min_deltaT.csv", as.is = TRUE) %>% 
+  filter(c(Species == "Coyote" | Species == "Wolf") & Station != ".dtrash") %>% droplevels %>%  
+  mutate(DateTimeOriginal = ymd_hms(DateTimeOriginal))
+cov <- read.csv("data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv", as.is = TRUE) %>% 
+  select(c(Session, Site, Date_setup, Date_retr, Problem1_from, Problem1_to)) %>% 
+  mutate(Date_setup = mdy(Date_setup),
+         Date_retr = mdy(Date_retr),
+         Problem1_from = mdy(Problem1_from),
+         Problem1_to = mdy(Problem1_to)) 
+
+
+# Set the threshold that define independence independence between subsequent records
+independence_interval <- 30 #minutes
+
+#' Aggregate data (30-minute threshold based on lorelogram results for camera-trap sampling design paper)
+dat <- dat %>% 
+  mutate(DateTimeOriginal = ymd_hms(DateTimeOriginal)) %>% 
+  group_by(Species, Station) %>%      # group by species and location
+  arrange(DateTimeOriginal, .by_group = TRUE) %>% # arrange record temporally within each group
+  mutate(timediff = as.numeric(difftime(DateTimeOriginal, lag(DateTimeOriginal), units="mins")), # calculate time difference (in minutes) between consecutive events
+         timediff = replace_na(timediff, 0),
+         grp = ifelse(timediff >= independence_interval, 1, 0), # create events
+         grp_ind = cumsum(grp) + 1) # assign a group number to each event
+
+# group by camera site and event group
+# summarize: calculate median time for each event
+dat <- dat %>%
+  group_by(Species, Station, grp_ind) %>%
+  slice(1) %>% 
+  select("Station", "Species", "DateTimeOriginal", "Date", "Time", "Session")
+```
+However, before organizing the data using the _cbind(success, failure)_ approach we need to additional information on whether the other species was also detected at least once at a certain site during a sampling session. We thus create two lists of _site X session_ (hereafter, site-session) in which either wolves or coyotes have been encountered and then look at the overlap between these two lists. 
+
+``` {r temp2}
+#' Where both species were detected at the same site during a session?
+# List sites with at least a detection on a given session
+site_Co <- dat %>% filter(Species == "Coyote") %>% group_by(Session, Station) %>% 
+  summarize(n = n()) 
+site_Wo <- dat %>% filter(Species == "Wolf") %>% group_by(Session, Station) %>% 
+  summarize(n = n()) 
+site <- semi_join(site_Co, site_Wo, by = c("Session", "Station")) %>% 
+  mutate(Sess_site = paste(Session, Station, sep = "_"))
+```
+Wolves and coyotes have been detected at `r nrow(site_Wo)` and `r nrow(site_Co)` site-session, `r nrow(site)` were the same.
+
+
+``` {r temp3}
+# Add binary variable for presence of other species
+dat$oth_sp <- NA
+for(i in 1:nrow(dat)){
+  dat$oth_sp[i] <- ifelse(paste(dat$Session[i], dat$Station[i], sep = "_") %in% site$Sess_site, 1,0)
+}
+table(dat$Species, dat$oth_sp)
+```
+For each species (e.g., coyote), we used a dummy variable called oth_sp to describe whether the other species (e.g., wolf) was photographed at least once (oth_sp = 1; 0 otherwise) at the same site during the same site-session. This resulted in 129 and 124 records of coyotes at sites where wolves were and were not recorded, and 177 and 362 records of wolf at sites where coyotes were and were not recorded. With this additional piece of information we can now proceed on organizing the data as number of successes and failures, starting with coyotes. 
+
+``` {r temp4}
+#' Prepare data for model-based methods
+#' Coyote data:
+# Merge time of deployment and retrieval + problems
+#site_Co2 <- left_join(site_Co, cov, by = c("Session" = "Session", "Station" = "Site"))  
+site_Co2 <- cov
+site_Co2$end <- ymd("2000-01-01")
+for(i in 1:nrow(site_Co2)){
+  site_Co2$end[i] <-  min(site_Co2$Date_retr[i], site_Co2$Problem1_from[i], na.rm = TRUE)
+}
+
+# Create dataframe to store captures 
+occasions_Co <- vector("list", length = nrow(site_Co2))
+for(i in 1:nrow(site_Co2)){
+  occasions_Co[[i]] <- data.frame(Session = site_Co2$Session[i],
+                                  site = site_Co2$Site[i],
+                                  start = seq(from = ymd_hms(paste(site_Co2$Date_setup[i], "00:00:00", sep = " ")), 
+                                              to = ymd_hms(paste(site_Co2$end[i], "23:59:59", sep = " ")), by = '60 min')) %>% 
+    mutate(end = c(start[2:length(start)], start[length(start)]+minutes(60))) 
+}
+occasions_Co <- do.call(rbind.data.frame, occasions_Co)
+occasions_Co$capt <- 0
+occasions_Wo <- occasions_Co
+
+#' Store captures
+dat_Co <- dat %>% filter(Species == "Coyote")
+for(i in 1:nrow(dat_Co)){
+  occasions_Co[occasions_Co$Session == as.character(dat_Co$Session[i]) & occasions_Co$site == as.character(dat_Co$Station[i]) &
+                 occasions_Co$start <= dat_Co$DateTimeOriginal[i] & occasions_Co$end > dat_Co$DateTimeOriginal[i], "capt"] <- 1
+}
+
+#' Format data 
+occasions_Co$Time <- ymd_hms(occasions_Co$start) 
+occasions_Co$Time <- hour(occasions_Co$Time)
+occasions_Co$oth_sp <- NA
+for(i in 1:nrow(occasions_Co)){
+  occasions_Co$oth_sp[i] <- ifelse(paste(occasions_Co$Session[i], occasions_Co$site[i], sep = "_") %in% site$Sess_site, 1,0)
+}
+table(occasions_Co$oth_sp, occasions_Co$capt)
+occasions_Co$site <- as.factor(occasions_Co$site)
+occasions_Co$oth_sp <- as.factor(occasions_Co$oth_sp)
+
+# format data for cbind(success, failure)
+occasions_Co_cbind <- occasions_Co %>% 
+  group_by(site, Time, oth_sp) %>% 
+  summarize(success = sum(capt),
+            failure = n() - success)
+```
+We had 127 hourly intervals (out of 56 928) and 115 hourly intervals (out of 514 133) in which coyotes were recorded at a site-session where wolves were and were not photographed.
+
+For convenience, here we run a trigonometric random-intercept only model, but more complex models or cyclic cubic spline GLMMs can also be used, as we show below. 
+
+``` {r temp5}
+mod_trig_Co <- mixed_model(fixed = cbind(success, failure) ~ cos(2*pi*Time/24)*oth_sp + sin(2*pi*Time/24)*oth_sp +
+                             cos(2*pi*Time/12)*oth_sp + sin(2*pi*Time/12)*oth_sp, 
+                           random = ~ 1 | site,
+                           family = binomial(),
+                           data = occasions_Co_cbind,
+                           iter_EM = 0) 
+summary(mod_trig_Co)
+
+```
+We repeate the same steps for wolves. For this species, we had 176 (out of 56 928) and 348 (out of 514 248) hourly intervals with at least 1 record of wolves at site-sessions in which coyotes were and were not recorded.
+
+``` {r temp5}
+#' Store captures
+dat_Wo <- dat %>% filter(Species == "Wolf")
+for(i in 1:nrow(dat_Wo)){
+  occasions_Wo[occasions_Wo$Session == as.character(dat_Wo$Session[i]) & occasions_Wo$site == as.character(dat_Wo$Station[i]) &
+                 occasions_Wo$start <= dat_Wo$DateTimeOriginal[i] & occasions_Wo$end > dat_Wo$DateTimeOriginal[i], "capt"] <- 1
+}
+
+#' Format data 
+occasions_Wo$Time <- ymd_hms(occasions_Wo$start) 
+occasions_Wo$Time <- hour(occasions_Wo$Time)
+occasions_Wo$oth_sp <- NA
+for(i in 1:nrow(occasions_Wo)){
+  occasions_Wo$oth_sp[i] <- ifelse(paste(occasions_Wo$Session[i], occasions_Wo$site[i], sep = "_") %in% site$Sess_site, 1,0)
+}
+table(occasions_Wo$oth_sp, occasions_Wo$capt)
+occasions_Wo$site <- as.factor(occasions_Wo$site)
+occasions_Wo$oth_sp <- as.factor(occasions_Wo$oth_sp)
+
+# format data for cbind(success, failure)
+occasions_Wo_cbind <- occasions_Wo %>% 
+  group_by(site, Time, oth_sp) %>% 
+  summarize(success = sum(capt),
+            failure = n() - success)
+
+# run model
+mod_trig_Wo <- mixed_model(fixed = cbind(success, failure) ~ cos(2*pi*Time/24)*oth_sp + sin(2*pi*Time/24)*oth_sp +
+                             cos(2*pi*Time/12)*oth_sp + sin(2*pi*Time/12)*oth_sp, 
+                           random = ~ 1 | site,
+                           family = binomial(),
+                           data = occasions_Wo_cbind,
+                           iter_EM = 0) 
+summary(mod_trig_Wo)
+```
+We now plot the results both for coyotes and wolves in the presence and absence of the other species.
+
+``` {r temp6}
+# coyote
+newdat <- with(occasions_Co_cbind, expand.grid(Time = seq(min(Time), 24, length.out = 48), 
+                                         oth_sp = as.factor(c(0,1))))
+cond_eff_Co <- effectPlotData(mod_trig_Co, newdat, marginal = FALSE)
+cond_eff_Co$Species <- "Coyote"
+
+# wolf
+newdat <- with(occasions_Wo_cbind, expand.grid(Time = seq(min(Time), 24, length.out = 48), 
+                                         oth_sp = as.factor(c(0,1))))
+cond_eff_Wo <- effectPlotData(mod_trig_Wo, newdat, marginal = FALSE)
+cond_eff_Wo$Species <- "Wolf"
+
+cond_eff <- rbind(cond_eff_Co, cond_eff_Wo)
+(pl_trig <- ggplot(cond_eff, aes(Time, plogis(pred), color=Species, group=Species)) +
+  geom_ribbon(aes(ymin=plogis(low), ymax=plogis(upp), fill=Species), alpha=0.5, size = 0.25) +
+  geom_line(size=1) +
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "A: trigonometric GLMM")+
+  scale_color_manual(values = c("#E69F00", "#0072B2")) +
+  scale_fill_manual(values = c("#E69F00", "#0072B2")) +
+  theme_minimal()+
+  theme(legend.position = "none",
+        legend.title = element_text(size=10,face="bold"),
+        plot.title = element_text(size=10,face="bold"),
+        axis.line = element_line(colour = 'black', linetype = 'solid'),
+        axis.ticks = element_line(colour = 'black', linetype = 'solid'),
+        axis.title = element_text(size=9,face="bold"),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', size=0.5),
+        panel.grid.minor.x = element_blank(),
+        strip.text = element_blank())+
+  scale_x_continuous(breaks=seq(0,24,4), labels=seq(0,24,4)) +
+  facet_wrap(~oth_sp, scales = "fixed"))
+
+```
+This figure and a comment on the results are presented in the main manuscript (Figure 3). Here we proceed instead with addressing the same question using a cyclic cubic spline GLMM (without general smoother) for each species and then plotting the estimates of activity patterns to visually inspect the results.
+
+``` {r temp7}
+#' Cyclic cubic spline (without general smoother)
+#' Coyote
+mod_cycl_Co <- bam(cbind(success, failure) ~ s(Time, bs = "cc", k = 12, by = oth_sp, m = 1) +
+                     oth_sp + 
+                     s(site, bs="re"), 
+                   knots = list(Time=c(0,23)),
+                   family = "binomial", 
+                   data = occasions_Co_cbind)
+
+newdat <- with(occasions_Co_cbind, expand.grid(Time = seq(0, 24, 1), 
+                                         oth_sp = as.factor(c(0,1)), site = "10E")) #Site doesn't matter
+cycl_pred_Co <- predict.bam(mod_cycl_Co, newdata = newdat,  exclude = "s(site)", se.fit = TRUE, type = "response") 
+cycl_pred_Co <- cbind(newdat, fit=cycl_pred_Co$fit, se.fit=cycl_pred_Co$se.fit, Species = "Coyote")
+
+#' Wolf
+mod_cycl_Wo <- bam(cbind(success, failure) ~ s(Time, bs = "cc", k = 12, by = oth_sp, m = 1) +
+                     oth_sp + 
+                     s(site, bs="re"), 
+                   knots = list(Time=c(0,23)),
+                   family = "binomial", 
+                   data = occasions_Wo_cbind)
+
+newdat <- with(occasions_Wo_cbind, expand.grid(Time = seq(0, 24, 1), 
+                                         oth_sp = as.factor(c(0,1)), site = "10E")) #Site doesn't matter
+cycl_pred_Wo <- predict.bam(mod_cycl_Wo, newdata = newdat,  exclude = "s(site)", se.fit = TRUE, type = "response") 
+cycl_pred_Wo <- cbind(newdat, fit=cycl_pred_Wo$fit, se.fit=cycl_pred_Wo$se.fit, Species = "Wolf")
+
+cycl_pred <- rbind(cycl_pred_Co, cycl_pred_Wo)
+pl_cycl <- ggplot(cycl_pred, aes(Time, fit, color=Species, group=Species)) +
+  geom_ribbon(aes(ymin=fit-1.96*se.fit, ymax=fit+1.96*se.fit, fill=Species), alpha=0.5, size = 0.25) +
+  geom_line(size=1) +
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "B: cyclic cub regr. spline GLMM")+
+  scale_color_manual(values = c("#E69F00", "#0072B2")) +
+  scale_fill_manual(values = c("#E69F00", "#0072B2")) +
+  theme_minimal()+
+  theme(legend.position = "none",
+        plot.title = element_text(size=10,face="bold"),
+        axis.line = element_line(colour = 'black', linetype = 'solid'),
+        axis.ticks = element_line(colour = 'black', linetype = 'solid'),
+        axis.title = element_text(size=9,face="bold"),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', size=0.5),
+        panel.grid.minor.x = element_blank(),
+        strip.text = element_blank())+
+  scale_x_continuous(breaks=seq(0,24,4), labels=seq(0,24,4)) +
+  facet_wrap(~oth_sp, scales = "fixed")
+
+ggarrange(pl_trig, pl_cycl)
+```
+We see that the trigonometric and the cyclic cubic spline GLMMs return the same pattern.
