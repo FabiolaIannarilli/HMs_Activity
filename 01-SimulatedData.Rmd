@@ -21,7 +21,7 @@ $$
 
 We load the necessary libraries and set the intercept $\beta_0$, and the two amplitudes $\beta_1$ and $\beta_2$ equal to -3, 1, and 0.7, respectively. We assign the values 3 and 2 to the common phaseshifts terms, $\theta_0$ and $\theta_1$, respectively. 
 
-```{r sim1}
+```{r sim1, message = FALSE, warnings = FALSE}
 #' Load libraries and set equations' parameters
 library(tidyverse)
 library(grid)
@@ -35,6 +35,9 @@ theta1 = 2
 tau_i = gamma_i = seq(-1.5, 1.5, by = 0.5)
 time <- seq(0, wavelength, wavelength/512)
 ```
+
+## Variability in frequency of site-use
+
 To create examples of *variability in frequency of site-use*, we keep all the parameters constant (with $\gamma_i = 0$) except for $\tau_i$, which varies from -1.5 to 1.5 in increments of 0.5. For illustrative purposes, we assigned these predefined values $\tau_i$, instead of drawing random values from the distribution $N(0,\sigma_\tau)$. We create the curves in logit scale but trasform them in the 
 probability scale, for easiness in interpretation. We also include code to calculate conditional and marginal mean activity curves (red and black curves in the following plots); we will cover this aspect in detail in section \@ref(condvsmarg). Here, we only say that the conditional mean curve describes the activity pattern at a typical site, whereas the marginal mean curve describes the activity patterns averaged across all the sites.  
 
@@ -62,31 +65,34 @@ p_df2 <- p_df %>% select(p, time) %>% group_by(time) %>%
 
 p_df <- rbind(p_df, as.data.frame(p_df2))
 
-pl_vert <- ggplot(p_df, aes(x = time, y = p, group = curvesID)) +
-  geom_line(aes(color = curvesLeg, size = mean, linetype = mean)) +
+(pl_vert <- ggplot(p_df, aes(x = time, y = p, group = curvesID)) +
+  geom_line(aes(color = curvesLeg, linewidth = mean, linetype = mean)) +
   scale_color_manual(values = c("grey40", "grey60", "grey80", "red", "black")) +
-  scale_size_manual(values = c(0.5, 1.5)) +
+  scale_linewidth_manual(values = c(0.5, 1.5)) +
   scale_linetype_manual(values = c(2, 1, 2)) +
   coord_cartesian(ylim = c(-0.05, 0.40)) +
   #geom_path(data = data.frame(x = c(11.5, 9), y = c(0.005, 0.005)), aes(x = x, y = y), linejoin = "mitre") +
-  labs(x = "Time of Day", y = "Activity Patterns", title = "A) Variability in frequency of site-use") +
+  labs(x = "Time of Day", y = "Probability of Activity", title = "A) Variability in \n frequency of site-use") +
   theme_minimal()+
   theme(legend.position = "none",
         axis.line = element_line(colour = 'black', linetype = 'solid'),
         axis.ticks.x = element_line(colour = 'black', linetype = 'solid'), #element_blank(), #
-        axis.text.y = element_blank(), #element_text(size=8),
-        axis.title=element_text(size=10,face="bold"),
+        axis.text.y = element_blank(), 
+        axis.title=element_text(size = 8,face = "bold"),
+        plot.title=element_text(size = 9,face = "bold"),
         panel.grid.minor = element_blank(),
         panel.grid.major = element_blank()) + 
   geom_segment(aes(x=12, y=min(p), xend=12, yend=min(p)-0.05), arrow=arrow(length= unit(0.5, "cm")), 
                size = 1, color = "orange", linejoin = "mitre") +
   geom_segment(aes(x=12, y=0.25+0.003, xend=12, yend=0.25+0.053), arrow=arrow(length= unit(0.5, "cm")), 
                size = 1, color = "orange", linejoin = "mitre")+
-  scale_x_continuous(breaks=seq(0,24,length.out=7), labels=seq(0,24,4)) 
-pl_vert
+  scale_x_continuous(breaks=seq(0,24,length.out=7), labels=seq(0,24,4))) 
+
 ```
 
 In this first plot, the dashed grey curves represents the curves generated using the different values (darker to lighter colors from lower to higher in absolute values) assigned to $\tau_i$. All other things equal, these different values of $\tau_i$ lead to a vertical shift in the activity curves, which corresponds to a change in the frequency of site-use. 
+
+## Variability in timing of activity peak
 
 To create examples of *variability in timing of activity peak*, we set the random phaseshift $\gamma_i$ as equal to 0, $\pm$ 0.5, $\pm$ 1.0, and $\pm$ 1.5, while keeping $\tau_i = 0$ and all the other parameters constant. As the final step for this example, we joint the two plots to created Figure 1, reported in the main text. 
 
@@ -114,20 +120,19 @@ p_df2 <- p_df %>% select(p, time) %>% group_by(time) %>%
 
 p_df <- rbind(p_df, as.data.frame(p_df2))
 
-pl_hor <- ggplot(p_df, aes(x = time, y = p, group = curvesID)) +
-  geom_line(aes(color = curvesLeg, size = mean, linetype = mean)) +
+(pl_hor <- ggplot(p_df, aes(x = time, y = p, group = curvesID)) +
+  geom_line(aes(color = curvesLeg, linewidth = mean, linetype = mean)) +
   scale_color_manual(values = c("grey40", "grey60", "grey80", "red", "black")) +
-  scale_size_manual(values = c(0.5, 1.5)) +
+  scale_linewidth_manual(values = c(0.5, 1.5)) +
   scale_linetype_manual(values = c(2, 1)) +
-  #coord_cartesian(ylim = c(0.006, 0.055)) +
-  #geom_path(data = data.frame(x = c(11.5, 9), y = c(0.005, 0.005)), aes(x = x, y = y), linejoin = "mitre") +
-  labs(x = "Time of Day", y = "Activity Patterns", title = "B) Variability in time of activity peak") +
+  labs(x = "Time of Day", y = "Probability of Activity", title = "B) Variability in \n time of activity peak") +
   theme_minimal()+
   theme(legend.position = "none", 
         axis.line = element_line(colour = 'black', linetype = 'solid'),
-        axis.ticks.x = element_line(colour = 'black', linetype = 'solid'),# element_blank(), 
-        axis.text.y = element_blank(), #element_text(size=8),
-        axis.title=element_text(size=10,face="bold"),
+        axis.ticks.x = element_line(colour = 'black', linetype = 'solid'), 
+        axis.text.y = element_blank(), 
+        axis.title=element_text(size=8,face="bold"),
+        plot.title=element_text(size=9,face="bold"),
         panel.grid.minor = element_blank(),
         panel.grid.major = element_blank()) +
   geom_segment(aes(x=12 - 0.75, y=max(p) + 0.02, xend=12 - 7, yend=max(p) + 0.02), arrow=arrow(length= unit(0.5, "cm")), 
@@ -135,12 +140,11 @@ pl_hor <- ggplot(p_df, aes(x = time, y = p, group = curvesID)) +
   geom_segment(aes(x=12 + 0.75, y=max(p) + 0.02, xend=12 + 7, yend=max(p) + 0.02), arrow=arrow(length= unit(0.5, "cm")), 
                size = 1, color = "orange", linejoin = "mitre") +
   scale_x_continuous(breaks=seq(0,24,length.out=7), labels=seq(0,24,4))+
-  guides(linetype=element_blank())
-pl_hor
+  guides(linetype=element_blank()))
+
 
 #' Join plots
 pl <- grid.arrange(pl_vert, pl_hor, ncol = 2)
-# ggsave(pl, filename = "figures/Fig1_Site_Variability_in_Activity_bimodal.jpg", device = "jpeg", units = "cm", width = 16, height = 8, dpi = 300)
 
 ```
 The dashed lines in panel B represent curves simulated using different values of $\gamma_i$ (darker to lighter colors from lower to higher in absolute values). Varying the random phaseshift $\gamma_i$ results in activity curves that are shifted horizontally. Because we are simulating data using two cosine terms, the cumulative effects of the two random phaseshifts (one per cosine term) also affect the intensity of site-use. Again, we will discuss in more details when illustrating the differences between conditional and marginal mean activity curves. 
