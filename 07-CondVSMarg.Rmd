@@ -6,7 +6,7 @@ Conditional and marginal mean activity patterns can be estimated in both the fre
 
 **Data simulation.** Using the approach introduced in \@ref(var) and \@ref(est), we simulate a bimodal activity pattern of a certain species and the associated encounter events collected via camera trapping at 100 sites during 30 days of sampling. In addition to simualting the data, the *sim_activity_* function also contains code to calculate the 'true' conditional and marginal mean activity patterns for the simulate dataset. These mean activity curves are showed in the figure below.
 
-```{r condvsmarg1}
+```{r condvsmarg1, message = FALSE, warnings = FALSE}
 #' Load libraries and function to simulate activity patterns
 library(tidyverse)
 library(GLMMadaptive)
@@ -146,19 +146,19 @@ $$
 
 ```{r condvsmarg5}
 betas <- matrix(c(t(GLMMadaptive::fixef(trig_rand_slope)), 
-                  t(GLMMadaptive::marginal_coefs(trig_rand_slope, std_errors = FALSE)$betas), 
-                  trig_rand_slope$D[1,], rep(NA, 4)), ncol=5, nrow = 3, byrow = TRUE)
+                  t(GLMMadaptive::marginal_coefs(trig_rand_slope, std_errors = FALSE)$betas)), 
+                  ncol=5, nrow = 2, byrow = TRUE)
 colnames(betas) <- colnames(t(GLMMadaptive::fixef(trig_rand_slope)))
-rownames(betas) <- c("Conditional", "Marginal", rownames(trig_rand_slope$D))
+rownames(betas) <- c("Conditional", "Marginal")
 
 betas <- as.data.frame(betas) %>% dplyr::mutate(GLMM = "Rand_Intercept_and_Slope")
 
 cond <- plogis(betas[1,1] +
-               betas[1,2] * cos(2*pi*seq_time_aggreg/24) +
-               betas[1,3] * sin(2*pi*seq_time_aggreg/24) +
-               betas[1,4] * cos(2*pi*seq_time_aggreg/12) +
-               betas[1,5] * sin(2*pi*seq_time_aggreg/12))
-phat_cond <- data.frame(Time = seq_time_aggreg,
+               betas[1,2] * cos(2*pi*time/24) +
+               betas[1,3] * sin(2*pi*time/24) +
+               betas[1,4] * cos(2*pi*time/12) +
+               betas[1,5] * sin(2*pi*time/12))
+phat_cond <- data.frame(Time = time,
                         pred = cond,
                         low = NA,
                         upp = NA,
@@ -166,11 +166,11 @@ phat_cond <- data.frame(Time = seq_time_aggreg,
                         Mean = "Conditional")
 
 marg <- plogis(betas[2,1] +
-               betas[2,2] * cos(2*pi*seq_time_aggreg/24) +
-               betas[2,3] * sin(2*pi*seq_time_aggreg/24)+
-               betas[2,4] * cos(2*pi*seq_time_aggreg/12) +
-               betas[2,5] * sin(2*pi*seq_time_aggreg/12))
-phat_marg <- data.frame(Time = seq_time_aggreg,
+               betas[2,2] * cos(2*pi*time/24) +
+               betas[2,3] * sin(2*pi*time/24)+
+               betas[2,4] * cos(2*pi*time/12) +
+               betas[2,5] * sin(2*pi*time/12))
+phat_marg <- data.frame(Time = time,
                         pred = marg,
                         low = NA,
                         upp = NA,
@@ -203,9 +203,26 @@ res <- rbind(cond_true, marg_true, cond_eff, marg_eff, phat_cond, phat_marg)
 
 
 ggplot(res, aes(x = Time, y= pred, col = Method)) +
-  geom_ribbon(aes(ymin = low, ymax = upp, fill = Method), alpha = 0.3) +
-  geom_line() +
-  facet_wrap(~Mean)
+  geom_ribbon(aes(ymin = low, ymax = upp, fill = Method), alpha = 0.1) +
+  geom_line(linewidth = 1) +
+  labs(x = "Time of Day (Hour)", y = "Activity Pattern \n (probability)")+
+  theme_minimal()+
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        legend.text = element_text(size=10,face="bold"),
+        legend.margin=margin(0,0,0,0),
+        legend.box.margin=margin(-5,-10,-10,-10),
+        plot.title = element_text(size=10,face="bold"),
+        axis.line = element_line(colour = 'black', linetype = 'solid'),
+        axis.ticks = element_line(colour = 'black', linetype = 'solid'),
+        axis.title = element_text(size=9,face="bold"),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
+        panel.grid.minor.x = element_blank(),
+        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
+  scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4)) +
+  facet_wrap(~Mean) 
       
 ```
 
