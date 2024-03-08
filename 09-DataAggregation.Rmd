@@ -6,7 +6,7 @@ In \@ref(kdes), the estimates were all calculated after aggregating the data in 
 
 ## Estimating activity
 
-```{r}
+```{r aggr1, message = FALSE, warnings = FALSE}
 
 # Specify the format of the column Time
 dat$Time <- hms(dat$Time) 
@@ -63,7 +63,7 @@ res_area4 <- res_circ_NonAggr %>% filter(x>temp1$zeros[2,1]/(2*pi)*24*60 & x<tem
 
 We now plot the results based on the aggregated and non-aggregated data and visually compare them.
 
-```{r KDEboth, fig.cap='Activity patterns based on Kernel Density Estimates of American black bear camera-trap data collected in northern-Minnesota between mid-May and mid-July 2017. Estimates were obtained using R-package: A) overlap (Ridout and Linkie 2009); B) activity (Rowcliffe et al. 2014); C) circular (Agostinelli and Lund 2017). Non-aggregated data included all photographic records; in the aggregated data, we removed records less than 30 minutes apart to minimize short-term correlation in detection due to animals lingering in front of the cameras. Lines represent mean estimates. Shaded areas represent 95% confidence intervals in B, and activity range cores (50% isopleth) in C.', out.width='100%', fig.asp=.75, fig.align='center'}
+```{r aggr2, fig.cap='Activity patterns based on Kernel Density Estimates of American black bear camera-trap data collected in northern-Minnesota between mid-May and mid-July 2017. Estimates were obtained using R-package: A) overlap (Ridout and Linkie 2009); B) activity (Rowcliffe et al. 2014); C) circular (Agostinelli and Lund 2017). Non-aggregated data included all photographic records; in the aggregated data, we removed records less than 30 minutes apart to minimize short-term correlation in detection due to animals lingering in front of the cameras. Lines represent mean estimates. Shaded areas represent 95% confidence intervals in B, and activity range cores (50% isopleth) in C.', out.width='100%', fig.asp=.75, fig.align='center'}
 
 # plot OVERLAP
 # Join results and plot
