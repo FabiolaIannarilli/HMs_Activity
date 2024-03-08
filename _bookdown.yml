@@ -1,0 +1,12 @@
+book_filename: "GLMMsActivity"
+language:
+  ui:
+    chapter_name: "Chapter "
+delete_merged_file: true
+rmd_files:
+  html: ["index.Rmd", "01-SimulatedData.Rmd", "02-EstimatingAP.RMD", 
+  "03-DataPrep.Rmd", "04-UniVSBimodal.Rmd", "05-IntroToCovs.Rmd", "06-SpeciesInteractions.Rmd", 
+  "07-CondVSMarg.Rmd", "08-KDEs.Rmd", "09-DataAggregation.Rmd", "10-Bayesian.Rmd", "references.Rmd"]
+  pdf: ["index.Rmd", "01-SimulatedData.Rmd", "02-EstimatingAP.RMD", 
+  "03-DataPrep.Rmd", "04-UniVSBimodal.Rmd", "05-IntroToCovs.Rmd", "06-SpeciesInteractions.Rmd", 
+  "07-CondVSMarg.Rmd", "08-KDEs.Rmd", "09-DataAggregation.Rmd", "10-Bayesian.Rmd", "references.Rmd"]
