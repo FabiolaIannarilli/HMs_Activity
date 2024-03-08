@@ -1,20 +1,16 @@
 --- 
 title: "An “How to” guide on estimating Activity Patterns from Camera-Trap Data using a Hierarchical Modeling approach:\n tutorials"
 author: 
-  - Fabiola Iannarilli:
-      email: fabiola.iannarilli@gmail.com
-      institute: [umn]
-      correspondence: true
-  - John Erb:
-      institute: [dnr] 
-  - John R Fieberg:
-      institute: [umn]
-institute: 
-  - umn: Department of Fisheries, Wildlife and Conservation Biology, St. Paul, MN, USA
-  - dnr: Minnesota Department of Natural Resources, Grand Rapids, MN, USA
-date: "`r Sys.Date()`"
+  - name: "Fabiola Iannarilli"
+    email: fabiola.iannarilli@gmail.com
+    affiliation: Department of Fisheries, Wildlife and Conservation Biology, St. Paul, Minnesota, USA
+    correspondence: true
+  - name: "John Erb"
+    affiliation:  Minnesota Department of Natural Resources, Grand Rapids, Minnesota, USA
+  - name: "John R Fieberg"
+    affiliation: Department of Fisheries, Wildlife and Conservation Biology, St. Paul, Minnesota, USA
 site: bookdown::bookdown_site
-output: bookdown::gitbook
+output: distill::distill_article
 documentclass: book
 bibliography: [book.bib, packages.bib, articles.bib]
 biblio-style: apalike
