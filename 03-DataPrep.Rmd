@@ -11,15 +11,15 @@ The next two sections explain the details of both preparatory steps. These will 
 
 We start by loading the data and showing a preview of what the data look like. Here, we select camera-trap records of coyotes (*Canis latrans*) collected at all the 100 locations sampled between 2016 and 2018 in Northern Minnesota, USA (@Iannarilliea2020). We also load some libraries that are needed to wrangle the data in the desired format.
 
-```{r prep1}
+```{r prep1, message = FALSE, warnings = FALSE}
 # Load libraries
 library(tidyverse)
 library(lubridate)
 
 
 # Load data
-coy <- read.csv("data_input/AllRecords_allSpecies_allSessions_0min_deltaT.csv") %>% 
-  filter(Species == "Coyote" & Station != ".dtrash") %>% 
+coy <- read.csv("data_input/species_records.csv") %>% 
+  filter(Species == "Coyote") %>% 
   droplevels %>% 
   select(-X)
 head(coy)

@@ -10,7 +10,7 @@ Traditionally, diel activity patterns are usually classified as:
 
 Here, we build and compare model structures that represent these three different diel activity patterns. We use independent camera-trap records of coyotes (*Canis latrans*) collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021], with the data organized as described in \@ref(dataprep). 
 
-``` {r univsbim1, echo = FALSE}
+``` {r univsbim1, message = FALSE, warnings = FALSE}
 # Load libraries
 library(tidyverse)
 library(lubridate)
@@ -18,8 +18,8 @@ library(GLMMadaptive)
 library(lmtest)
 
 # Load data: Coyote 
-dat <- read.csv("data_input/AllRecords_allSpecies_allSessions_0min_deltaT.csv", as.is = TRUE) %>% 
-  filter(c(Species == "Coyote" ) & Station != ".dtrash") %>% droplevels %>%  
+dat <- read.csv("data_input/species_records.csv", as.is = TRUE) %>% 
+  filter(Species == "Coyote") %>% droplevels %>%  
   mutate(DateTimeOriginal = ymd_hms(DateTimeOriginal))
 cov <- read.csv("data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv", as.is = TRUE) %>% 
   select(c(Session, Site, Date_setup, Date_retr, Problem1_from, Problem1_to)) %>% 
@@ -140,7 +140,7 @@ We can also compare the models using a Likelihood Ratio Test.
 lrtest(null_mod, unimodal, bimodal)
 ```
 
-Both comparisons show that the XXXX is the most supported model among those compared. We can, thus, conclude that coyotes have a XXX activity pattern.
+Both comparisons show that the bimodal is the most supported model among those compared. We can, thus, conclude that coyotes have a bimodal activity pattern.
 
 We can also visually compare predicted activity curves based on these models. As in other examples, we first use the function _GLMMadaptive::effectPlotData_ to predict the activity curve throughout the 24-hour cycle and then use _ggplot_ to plot the results.
 

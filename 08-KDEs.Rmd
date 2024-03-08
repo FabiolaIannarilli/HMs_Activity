@@ -13,7 +13,7 @@ In this chapter, we illustrate how to estimate activity patterns based on KDEs u
 ## Data preparation
 We start by loading the three R libraries listed above along with other packages necessary to wrangling the data. We also load the data itself and show a preview of what the data look like.
 
-```{r kde1}
+```{r kde1, message = FALSE, warnings = FALSE}
 # Load libraries
 library(tidyverse)
 library(tictoc)
@@ -27,7 +27,7 @@ library(circular)
 library(MESS)
 
 # Load data
-dat <- read.csv("data_input/AllRecords_allSpecies_allSessions_0min_deltaT.csv") %>% 
+dat <- read.csv("data_input/species_records.csv") %>% 
   filter(Species == "BlackBear" & Session == "Spring2017") %>% 
   droplevels %>% 
   select(-X)

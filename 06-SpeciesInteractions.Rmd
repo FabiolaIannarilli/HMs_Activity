@@ -4,7 +4,7 @@ Another common question related to activity patterns often asked by ecologists i
 
 As an example, we analyze temporal partitioning between coyotes and wolves. We format the data as usual.  
 
-``` {r temp1}
+``` {r temp1, message = FALSE, warnings = FALSE}
 library(tidyverse) 
 library(lubridate) 
 library(GLMMadaptive)
@@ -14,8 +14,8 @@ library(tictoc)
 library(activity)
 
 #' Load data: Coyote/Wolf Species interactions
-dat <- read.csv("data_input/AllRecords_allSpecies_allSessions_0min_deltaT.csv", as.is = TRUE) %>% 
-  filter(c(Species == "Coyote" | Species == "Wolf") & Station != ".dtrash") %>% droplevels %>%  
+dat <- read.csv("data_input/species_records.csv", as.is = TRUE) %>% 
+  filter(c(Species == "Coyote" | Species == "Wolf")) %>% droplevels() %>%  
   mutate(DateTimeOriginal = ymd_hms(DateTimeOriginal))
 cov <- read.csv("data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv", as.is = TRUE) %>% 
   select(c(Session, Site, Date_setup, Date_retr, Problem1_from, Problem1_to)) %>% 
@@ -134,7 +134,7 @@ summary(mod_trig_Co)
 ```
 We repeate the same steps for wolves. For this species, we had 176 (out of 56 928) and 348 (out of 514 248) hourly intervals with at least 1 record of wolves at site-sessions in which coyotes were and were not recorded.
 
-``` {r temp5}
+``` {r temp6}
 #' Store captures
 dat_Wo <- dat %>% filter(Species == "Wolf")
 for(i in 1:nrow(dat_Wo)){
@@ -170,7 +170,7 @@ summary(mod_trig_Wo)
 ```
 We now plot the results both for coyotes and wolves in the presence and absence of the other species.
 
-``` {r temp6}
+``` {r temp7}
 # coyote
 newdat <- with(occasions_Co_cbind, expand.grid(Time = seq(min(Time), 24, length.out = 48), 
                                          oth_sp = as.factor(c(0,1))))
@@ -208,7 +208,7 @@ cond_eff <- rbind(cond_eff_Co, cond_eff_Wo)
 ```
 This figure and a comment on the results are presented in the main manuscript (Figure 3). Here we proceed instead with addressing the same question using a cyclic cubic spline GLMM (without general smoother) for each species and then plotting the estimates of activity patterns to visually inspect the results.
 
-``` {r temp7}
+``` {r temp8}
 #' Cyclic cubic spline (without general smoother)
 #' Coyote
 mod_cycl_Co <- bam(cbind(success, failure) ~ s(Time, bs = "cc", k = 12, by = oth_sp, m = 1) +

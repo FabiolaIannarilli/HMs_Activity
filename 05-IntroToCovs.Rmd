@@ -8,19 +8,23 @@ The task of comparing activity patterns among different levels of a categorical 
 
 Again, we use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021]. This time, we use records of American black bear (*Ursus americanus*) and explore differences in activity patterns of this species between spring and fall. We format the data as done in \ref{dataprep}, but this time we also create an additional column that contains the information about the season (i.e. Spring or Fall) or each record collected. We use this covariate as an additional grouping criterion. 
 
-```{r cat1}
+```{r cat1, message = FALSE, warnings = FALSE}
 # Load Libraries
 library(tidyverse)
 library(lubridate)
 library(GLMMadaptive)
 library(mgcv)
+library(activity)
+library(ggpubr)
+library(rstoat)
+library(terra) # to convert UTM in lat long
 
 # Load data
-dat <- read.csv("data_input/AllRecords_allSpecies_allSessions_0min_deltaT.csv") %>% 
-  filter(Species == "BlackBear" & Station != ".dtrash") %>% droplevels %>% 
+dat <- read.csv("data_input/species_records.csv") %>% 
+  filter(Species == "BlackBear") %>% droplevels() %>% 
   mutate(DateTimeOriginal = ymd_hms(DateTimeOriginal))
 cov <- read.csv("data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv", as.is = TRUE) %>% 
-  select(c(Session, Site, Date_setup, Date_retr, Problem1_from, Problem1_to)) %>% 
+  select(c(Session, Site, Date_setup, Date_retr, Problem1_from, Problem1_to, Xcoords, Ycoords)) %>% 
   mutate(Date_setup = mdy(Date_setup),
          Date_retr = mdy(Date_retr),
          Problem1_from = mdy(Problem1_from),
@@ -48,7 +52,6 @@ dat <- dat %>%
   select("Station", "Species", "DateTimeOriginal", "Date", "Time", "Session")
 
 # Merge time of deployment and retrieval + problems
-#site <- left_join(site, cov, by = c("Session" = "Session", "Station" = "Site"))  
 site <- cov
 site$end <- ymd("2000-01-01")
 for(i in 1:nrow(site)){
@@ -88,10 +91,11 @@ occasions_cbind <- occasions %>%
 
 ```
 
+We obtained 523 (out of 348 696) and 232 (out of 222 480) hourly occasions with at least 1 positive record of a bear in the spring and fall sessions, respectively.
 
 ### Trigonometric GLMMs
 
-Extending the trigonometric GLMMs to explore the effect of a covariate on activity patterns only requires to add that covariate to the model. We start again by fitting and visualizing the estimate based on a random-intercept only model:
+Extending the trigonometric GLMMs to explore the effect of a covariate on activity patterns only requires to include interactions between the trigonometric terms and the covariate. The interactions allow the coefficients of the trigonometric terms to vary by treatment group, that is season levels. We start again by fitting and visualizing the estimate based on a random-intercept only model in which the random intercept for *Site* accounts for repeated measures and varying levels of activity at each site:
 
 ```{r cat2}
 trig_rand_int <- mixed_model(fixed = cbind(success, failure) ~ 
@@ -107,13 +111,12 @@ newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), 24, length.out
                                             Season = levels(Season)))
 pred_rand_int <- effectPlotData(trig_rand_int, newdat, marginal = FALSE) 
 
-ggplot(pred_rand_int, aes(Time, plogis(pred))) +
+(pl_trig <- ggplot(pred_rand_int, aes(Time, plogis(pred))) +
   geom_ribbon(aes(ymin = plogis(low), ymax = plogis(upp), color = Season, fill = Season), alpha = 0.3, linewidth = 0.25) +
-  geom_line(aes(color = Season), size = 1) +
+  geom_line(aes(color = Season), linewidth = 1) +
   scale_color_manual(values = c("orange", "darkgreen")) +
   scale_fill_manual(values = c("orange", "darkgreen")) +
-  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "Trigonometric GLMM (random-intercept only)")+
-  #coord_cartesian(ylim = c(0, 0.005)) +
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "A: Trigonometric GLMM (random-intercept only)")+
   theme_minimal()+
   theme(legend.position = "bottom",
         legend.title = element_blank(),
@@ -129,9 +132,7 @@ ggplot(pred_rand_int, aes(Time, plogis(pred))) +
         panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
         panel.grid.minor.x = element_blank(),
         strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
-  #panel.grid.minor.x = element_line(colour='deepskyblue4', linetype = 'dotted', size=0.35))+
-  scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4)) 
-
+  scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4))) 
 
 ```
 
@@ -190,7 +191,7 @@ However, this model is likely to be too computational demanding for most laptop.
 
 ### Cyclic cubic spline GLMMs
 
-Similar to trigonometric GLMMs, cyclic cubic spline GLMMs can also be used to model activity patterns as a function of a categorical covariate. As we explained in \ref{est}, this class of models are highly flexible and offer a pletora of options when it comes to choose which structure to fit. Here we focus on two. The first resembles a trigonometric random-intercept only GLMM and contains a cubic cyclic smoother for Time which varies by Season, Season as a fixed term, and a smoother for Site as random effect. The second that also has a general smoother for Time and resembles a trigonometric GLMM with random intercept and slope.
+Similar to trigonometric GLMMs, cyclic cubic spline GLMMs can also be used to model activity patterns as a function of a categorical covariate. As we explained in \ref{est}, this class of models are highly flexible and offer a pletora of options when it comes to choose which structure to fit. Here we focus on two. The first resembles a trigonometric random-intercept only GLMM and contains a cubic cyclic smoother for Time which varies by Season, Season as a fixed term, and a smoother for Site as random effect. The second has an additional term, a general smoother for Time, and resembles a trigonometric GLMM with random intercept and slope.
 
 We first ran the two models, then predict and plot their estimates.
 
@@ -206,9 +207,9 @@ mod_cycl1 <- bam(cbind(success, failure) ~
                  data = occasions_cbind)
 
 
-# With general smoother for Time
+# With common smoother for Time
 mod_cycl2 <- bam(cbind(success, failure) ~ 
-                   s(Time, bs = "cc", k = 12) + # general smoother
+                   s(Time, bs = "cc", k = 12) + # common smoother
                    s(Time, bs = "cc", k = 12, by = Season, m = 1) +
                    Season + 
                    s(Site, bs="re"), 
@@ -230,12 +231,12 @@ cycl_pred2 <- cbind(newdat, fit=cycl_pred2$fit, se.fit=cycl_pred2$se.fit, Model 
 
 cycl_pred <- rbind(cycl_pred1, cycl_pred2)
 
-ggplot(cycl_pred, aes(Time, fit)) +
+(pl_cycl <- ggplot(cycl_pred, aes(Time, fit)) +
   geom_ribbon(aes(ymin = fit-1.96*se.fit, ymax = fit+1.96*se.fit, color = Season, fill = Season), alpha = 0.3, size = 0.25) +
   geom_line(aes(color = Season), size = 1) +
   scale_color_manual(values = c("orange", "darkgreen")) +
   scale_fill_manual(values = c("orange", "darkgreen")) +
-  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "Cyclic cubic spline GLMMs")+
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "C: Cyclic cubic spline GLMMs")+
   coord_cartesian(ylim = c(0, 0.005)) +
   theme_minimal()+
   theme(legend.position = "bottom",
@@ -249,37 +250,11 @@ ggplot(cycl_pred, aes(Time, fit)) +
         axis.title = element_text(size=9,face="bold"),
         panel.grid.minor.y = element_blank(),
         panel.grid.major.y = element_blank(),
-        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', size=0.5),
+        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
         panel.grid.minor.x = element_blank(),
         strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
   scale_x_continuous(breaks=seq(0,max(cycl_pred$Time),length.out=7), labels=seq(0,24,4)) +
-  facet_grid(~Model)
-
-# ggplot(cycl_pred, aes(Time, fit)) +
-#   geom_ribbon(aes(ymin = fit-1.96*se.fit, ymax = fit+1.96*se.fit, color = Model, fill = Model), alpha = 0.3, size = 0.25) +
-#   geom_line(aes(color = Model), size = 1) +
-#   scale_color_manual(values = c("orange", "darkgreen")) +
-#   scale_fill_manual(values = c("orange", "darkgreen")) +
-#   labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "Cyclic cubic spline GLMMs")+
-#   coord_cartesian(ylim = c(0, 0.005)) +
-#   theme_minimal()+
-#   theme(legend.position = "bottom",
-#         legend.title = element_blank(),
-#         legend.text = element_text(size=10,face="bold"),
-#         legend.margin=margin(0,0,0,0),
-#         legend.box.margin=margin(-5,-10,-10,-10),
-#         plot.title = element_text(size=10,face="bold"),
-#         axis.line = element_line(colour = 'black', linetype = 'solid'),
-#         axis.ticks = element_line(colour = 'black', linetype = 'solid'),
-#         axis.title = element_text(size=9,face="bold"),
-#         panel.grid.minor.y = element_blank(),
-#         panel.grid.major.y = element_blank(),
-#         panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', size=0.5),
-#         panel.grid.minor.x = element_blank(),
-#         strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
-#   #scale_y_continuous(breaks = seq(0.000, 0.002, 0.001), labels = seq(0.000, 0.002, 0.001)) +
-#   scale_x_continuous(breaks=seq(0,max(cycl_pred$Time),length.out=7), labels=seq(0,24,4)) +
-#   facet_grid(~Season)
+  facet_grid(~Model))
 ```
 
 In this analysis, the patterns estimated by the two models structure is close to identical. To confirm these results, we can also compare the two models using AIC, which are almost identical.
@@ -289,6 +264,239 @@ AIC(mod_cycl1, mod_cycl2)
 AIC(mod_cycl2) - AIC(mod_cycl1)
 ```
 
+### KDEs
+
+We use this example to compare results based on KDEs and the two GLMM approaches. The steps necessary to run KDEs are detailed in \@ref(kdes). Here, we split the dataset by Season and run KDEs for the two groups.
+
+```{r cat6}
+# Estimate activity using KDE
+dat$Time <- hms(dat$Time)
+dat$Time_Rad <- (hour(dat$Time)*60 + minute(dat$Time))/(60*24)*2*pi 
+
+# Split by Season
+dat$Season <- as.factor(substr(dat$Session, 1, 1))
+table(dat$Season)
+
+dat_ls <- dat %>% group_by(Species, Season) %>% group_split()
+
+KDE_ls <- vector("list", length = length(dat_ls))
+for(i in 1:length(dat_ls)){
+  KDE_ls[[i]] <- as.data.frame(fitact(dat_ls[[i]]$Time_Rad, reps = 999, sample = "model", show = FALSE)@pdf[,1:3]) 
+  KDE_ls[[i]]$Species <- unique(dat_ls[[i]]$Species)
+  KDE_ls[[i]]$Season <- unique(dat_ls[[i]]$Season)
+}
+KDE <- do.call(rbind.data.frame, KDE_ls)
+
+(pl_KDE <- ggplot(KDE, aes(x = x/(2*pi)*24, y = y)) +
+  geom_ribbon(aes(ymin = y - 1.96*se, ymax = y +1.96*se, color = Season, fill = Season), alpha = 0.3, size = 0.25) +
+  geom_line(aes(color = Season), size = 1) +
+  theme_minimal() +
+  scale_color_manual(values = c("orange", "darkgreen")) +
+  scale_fill_manual(values = c("orange", "darkgreen")) +
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (density) \n", title = "B: KDE (splitting data)")+
+  theme_minimal()+
+  theme(legend.position = "none",
+        legend.title = element_blank(),
+        legend.text = element_text(size=10,face="bold"),
+        legend.margin=margin(0,0,0,0),
+        legend.box.margin=margin(-5,-10,-10,-10),
+        plot.title = element_text(size=10,face="bold"),
+        axis.line = element_line(colour = 'black', linetype = 'solid'),
+        axis.ticks = element_line(colour = 'black', linetype = 'solid'),
+        axis.title = element_text(size=9,face="bold"),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', size=0.5),
+        panel.grid.minor.x = element_blank())+
+  scale_x_continuous(breaks=seq(0,24,4), labels=seq(0,24,4)))
+```
+
+We now bring together the results based on the three methods.
+
+``` {r cat7}
+ggarrange(ggarrange(pl_trig, pl_KDE, ncol = 2, common.legend = TRUE, legend = "none"), pl_cycl, nrow = 2, common.legend = TRUE, legend = "bottom") 
+```
+Both the GLMM-based approaches and the KDEs were able to quantify differences in activity patterns across the 2 seasons, but the GLMM-based approaches were also able to quantify differential levels of activity between spring and fall. Likely owing to the assumption of independence, KDE curves tend to be more wiggly than model-based estimates, and this might be especially the case when there are only few independent records.
+
 ## Continuous covariates
 
-## ADD EXAMPLE?? rstoat not working
+We use the same data to illustrate how these model structures can be used to assess the effect of continuous covariates. Specifically, we explore how bear diel activity changes in response to anthropogenic modifications of the landscape quantified through the Global Human Modification index (GHM; @Kennedyea2020; @Kennedyea2019), a continuous metric ranging between 0 and 1 which is a cumulative measure of human modification of terrestrial landscapes.
+
+We first extract the values of GHM at each site. This requires converting the site coordinates from UTM to latitude/longitude.
+
+```{r cont1}
+# add Global Modification Index to cov
+cov_temp <- cov %>% 
+  mutate(lng = Xcoords,
+         lat = Ycoords,
+         date = Date_setup,
+  )
+p1 <- vect(cov, geom=c("Xcoords", "Ycoords"), crs="epsg:26915")
+p2 <- project(p1, "+proj=longlat")
+lonlat <- geom(p2)[, c("x", "y")]
+cov_temp <- cbind(cov, lonlat) %>% 
+  mutate(lng = x,
+         lat = y,
+         date = Date_setup,
+  ) %>% 
+  select(Session, Site, lng, lat, date)
+ghm <- start_annotation_simple(
+  events = cov_temp,
+  layers = "tncghm-modification-1000-0",
+  coords = c("lng", "lat"),
+  date = "date"
+)
+cov$ghm <- ghm$value
+
+```
+We now have to link this information to independent encounter events already defined at the beginning of this tutorial and stored in the object _dat_. 
+
+```{r cont2}
+dat_ghm <- left_join(dat, 
+                 cov %>% select(Session, Site, ghm), 
+                 by = c("Session" = "Session", "Station" = "Site")) 
+```
+and then proceed with the arranging the data in the format required to run the GLMM-based models, as we have done before in other examples.  
+
+```{r cont3}
+# Create dataframe to store captures 
+occasions <- vector("list", length = nrow(site))
+for(i in 1:nrow(site)){
+  occasions[[i]] <- data.frame(Session = site$Session[i],
+                               Site = site$Site[i],
+                               start = seq(from = ymd_hms(paste(site$Date_setup[i], "00:00:00", sep = " ")), 
+                                           to = ymd_hms(paste(site$end[i], "23:59:59", sep = " ")), by = '60 min')) %>% 
+    mutate(end = c(start[2:length(start)], start[length(start)]+minutes(60))) 
+}
+occasions <- do.call(rbind.data.frame, occasions)
+occasions$capt <- 0
+
+#' Store captures
+for(i in 1:nrow(dat)){
+  occasions[occasions$Session == as.character(dat$Session[i]) & occasions$Site == as.character(dat$Station[i]) &
+              occasions$start <= dat$DateTimeOriginal[i] & occasions$end > dat$DateTimeOriginal[i], "capt"] <- 1
+}
+
+#' Format data 
+occasions$Time <- ymd_hms(occasions$start) 
+occasions$Time <- hour(occasions$Time)
+
+#' Add covariate info
+occasions <- left_join(occasions, 
+                       cov %>% select(Session, Site, ghm)) 
+
+head(table(occasions$ghm, occasions$capt))
+occasions$Site <- as.factor(occasions$Site)
+
+# format data for cbind(success, failure)
+occasions_cbind <- occasions %>% 
+  group_by(Site, Time, ghm) %>% 
+  summarize(success = sum(capt),
+            failure = n() - success)
+
+```
+We can now fit the model structure we prefer. As an example, we report a trigonometric random-intercept only model and a cyclic cubic spline GLMM without common smoother.
+
+```{r cont4}
+# random-intercept only trigonometric GLMM
+mod_trig_cont <- mixed_model(fixed = cbind(success, failure) ~ cos(2 * pi * Time/24) * ghm + sin(2 * pi * Time/24) * ghm +
+                                                               sin(2 * pi * Time/12) * ghm + cos(2 * pi * Time/12) * ghm,
+                             random = ~  1  |   Site,
+                             data = occasions_cbind, family = binomial(), iter_EM = 0)
+summary(mod_trig_cont)
+
+# cyclic cubic spline GLMM without common smoother for Time
+mod_cycl1_cont <- bam(cbind(success, failure) ~ 
+                   s(Time, bs = "cc", k = 12, by = ghm, m = 1) +
+                   ghm + 
+                   s(Site, bs="re"), 
+                 knots = list(Time=c(0,23)),
+                 family = "binomial", 
+                 data = occasions_cbind)
+summary(mod_cycl1_cont)
+
+```
+Comparing the two models' outputs is not easy. We can instead compare the predicted estimates visually. 
+
+``` {r cont5}
+# create a new dataset for the estimates
+newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), 24, length.out = 48),
+                                            ghm = quantile(ghm, probs = c(0.025, 0.5, 0.975)),
+                                            Site = "7B")) %>% # Site does not matter
+  mutate(ghm_ft = as.factor(ghm),
+         ghm_ft = fct_recode(ghm_ft, 
+                              "Low GHM" = levels(ghm_ft)[1], 
+                              "Intermediate GHM" = levels(ghm_ft)[2], 
+                              "High GHM" = levels(ghm_ft)[3]))
+
+# trigonometric estimates
+cond_eff_cont <- effectPlotData(mod_trig_cont, newdat, marginal = FALSE) %>% 
+  mutate(pred = plogis(pred),
+         low = plogis(low),
+         upp = plogis(upp),
+         Model = "Trig GLMM")
+
+# cyclic cubic spline estimates
+cycl_pred1_cont <- predict.bam(mod_cycl1_cont, newdata = newdat,  exclude = "s(Site)", se.fit = TRUE, type = "response") 
+cycl_pred1_cont <- cbind(newdat, 
+                    pred = cycl_pred1_cont$fit, 
+                    low = cycl_pred1_cont$fit - 1.95*cycl_pred1_cont$se.fit, 
+                    upp = cycl_pred1_cont$fit + 1.95*cycl_pred1_cont$se.fit, 
+                    Model = "CC spline GLMM")
+
+# bring together the estimates based on the two approaches
+pred_cont <- rbind(cond_eff_cont, cycl_pred1_cont)
+
+# plot results
+ggplot(pred_cont, aes(Time, pred)) +
+    geom_ribbon(aes(ymin = low, ymax = upp, color = ghm_ft, fill = ghm_ft), alpha = 0.3, linewidth = 0.25) +
+    geom_line(aes(color = ghm_ft), linewidth = 1) +
+    scale_color_viridis_d() +
+    scale_fill_viridis_d() +
+    labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)",
+         title = "A: trigonometric GLMM")+
+    #coord_cartesian(ylim = c(0, 0.005)) +
+    theme_minimal()+
+    theme(legend.position = "none",
+          legend.title = element_blank(),
+          legend.text = element_text(size=10,face="bold"),
+          legend.margin=margin(0,0,0,0),
+          legend.box.margin=margin(-5,-10,-10,-10),
+          plot.title = element_text(size=10,face="bold"),
+          axis.line = element_line(colour = 'black', linetype = 'solid'),
+          axis.ticks = element_line(colour = 'black', linetype = 'solid'),
+          axis.title = element_text(size=9,face="bold"),
+          panel.grid.minor.y = element_blank(),
+          panel.grid.major.y = element_blank(),
+          panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
+          panel.grid.minor.x = element_blank(),
+          strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
+    scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4)) +
+    facet_grid(Model~ghm_ft)
+```
+These results seem not conclusive. We can further explore the effect of GHM on activity by comparing these models with their relative null model (i.e. a version of the model without the covariate of interest) using AIC (or LRT).
+
+``` {r cont6}
+# null random-intercept only trigonometric GLMM
+mod_trig_cont_null <- mixed_model(fixed = cbind(success, failure) ~ cos(2 * pi * Time/24) + sin(2 * pi * Time/24) +
+                                                               sin(2 * pi * Time/12) + cos(2 * pi * Time/12),
+                             random = ~  1  |   Site,
+                             data = occasions_cbind, family = binomial(), iter_EM = 0)
+
+
+# null cyclic cubic spline GLMM without common smoother for Time
+mod_cycl1_cont_null <- bam(cbind(success, failure) ~ 
+                   s(Time, bs = "cc", k = 12, m = 1) +
+                   s(Site, bs="re"), 
+                 knots = list(Time=c(0,23)),
+                 family = "binomial", 
+                 data = occasions_cbind)
+
+# Comparing trig GLMMs
+AIC(mod_trig_cont, mod_trig_cont_null)
+
+# Comparing cyclic cubic spline GLMMs
+AIC(mod_cycl1_cont, mod_cycl1_cont_null)
+```
+
+## ADD CONCLUSIONS
