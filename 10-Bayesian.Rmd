@@ -1,4 +1,4 @@
-# Activity patterns in the Bayesian framework
+# Activity patterns in the Bayesian framework {#bay}
 
 As we mentioned in \@ref(est), it is not possible to directly model activity patterns as specified in equation 1 in \@ref(var) (and in the main manuscript) due to the lack of ready-to-use tools to fit non-linear models in a frequentist framework. Working in the Bayesian framework allows analysts to overcome this limitations.
 
