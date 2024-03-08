@@ -251,7 +251,7 @@ pl_hor_uni <- ggplot(p_df, aes(x = time, y = p, group = curvesID)) +
 
 
 #' Join plots
-pl <- grid.arrange(pl_vert_uni, pl_hor_uni, ncol = 2)
+pl_uni <- grid.arrange(pl_vert_uni, pl_hor_uni, ncol = 2)
 ```
 This second example clearly illustrate how varying $\gamma_i$ (while keeping all the other parameters constant) leads to the horizontal shift of the curves, with peaks in activity equal across time but occurring at different times of the diel cycle.
 

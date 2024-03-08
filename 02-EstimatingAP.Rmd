@@ -69,7 +69,7 @@ sample_sites <- as.data.frame(sample_sites) %>%
   
 (pl_sites <- ggplot() +
   geom_line(data = sample_sites, aes(x = as.numeric(time), y = prob, group = sites, color = as.factor(sites)), 
-            linewidth = 0.5, alpha = 0.3, linetype = 2) +
+            linewidth = 0.5, alpha = 0.7, linetype = 2) +
   geom_line(data = dat$Conditional, aes(x = time, y = p), linewidth = 1, color = "red", inherit.aes = TRUE) +
   geom_line(data = dat$Marginal, aes(x = time, y = p), linewidth = 1, color = "black", inherit.aes = TRUE) +
   labs(x = "Time of Day", y = "Probability of Activity", title = "C) Var. in frequency of site use and \n time of activity peak", 
