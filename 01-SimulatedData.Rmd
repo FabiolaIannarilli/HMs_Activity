@@ -147,6 +147,7 @@ p_df <- rbind(p_df, as.data.frame(p_df2))
 pl <- grid.arrange(pl_vert, pl_hor, ncol = 2)
 
 ```
+
 The dashed lines in panel B represent curves simulated using different values of $\gamma_i$ (darker to lighter colors from lower to higher in absolute values). Varying the random phaseshift $\gamma_i$ results in activity curves that are shifted horizontally. Because we are simulating data using two cosine terms, the cumulative effects of the two random phaseshifts (one per cosine term) also affect the intensity of site-use. Again, we will discuss in more details when illustrating the differences between conditional and marginal mean activity curves. 
 
 For completeness, we present also the example of a unimodal pattern. We can simulate this activity pattern setting $\beta_2 = 0$ (see main text) and re-running the code above. Setting $\beta_2 = 0$ eliminates the second cosine term and returns a curve with only one peak in activity within the 24-hour cycle.
