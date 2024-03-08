@@ -1,0 +1,239 @@
+# Activity patterns in the Bayesian framework
+
+As we mentioned in \@ref(est), it is not possible to directly model activity patterns as specified in equation 1 in \@ref(var) (and in the main manuscript) due to the lack of ready-to-use tools to fit non-linear models in a frequentist framework. Working in the Bayesian framework allows analysts to overcome this limitations.
+
+Here we first use simulated data to illustrate how to run random intercept-only and randon intercept and random slope trigonometric GLMMs. Then, we explore again the seasonal change in activity patterns of black bears. 
+
+## Random intercept-only trigonometric GLMM in Bayesian
+
+We simulate data using the same approach and the same parameters presented in \@ref(est). As such, the simulated data are generated from the same 'true' activity patterns. 
+
+``` {r bay1, message = FALSE, warnings = FALSE}
+# Load libraries and function to simulate activity patterns
+library(tidyverse)
+library(nimble)
+library(tidyr)
+source("source_functions/sim_activity.R")
+source("source_functions/sim_to_minute.R")
+set.seed(129)
+
+# Set equations' parameters
+M = 100
+J = 30
+wavelength = 24
+n_peak = 2
+b0 = -3
+b1 = 1 
+b2 = 0.7
+theta0 = 3
+theta1 = 2 
+sd_tau = 1
+sd_gamma = 0.3
+time <- seq(0, wavelength, wavelength/512)
+
+dat <- sim_activity(M = M, 
+                     J = J, 
+                     wavelength = wavelength, 
+                     n_peak = n_peak, 
+                     n_sim = 1, 
+                     b0 = -3, 
+                     b0_constant = TRUE, # common intercept
+                     tau_constant = FALSE, 
+                     sdtau = sd_tau, # ~site-specific intercept
+                     b1 = b1, 
+                     b2 = b2, # amplitude of the cosine terms 
+                     theta0 = theta0, 
+                     theta1 = theta1, # common phaseshifts for the cosine terms
+                     phaseshift_constant = FALSE, 
+                     sd_phaseshift = sd_gamma, # site-specific phaseshift (equal for both cosine terms)
+                     plot_true_act = TRUE)
+
+# The data
+sim_data <- as.data.frame(dat$sim_data)
+dim(sim_data)
+
+```
+We now create a matrix, _time_, that specifies the time of each interval and that has the same dimension of the matrix *sim_data* containing the simulated hourly encounter/nonencounter events.
+
+``` {r bay2}
+#' Bundle data
+time <- matrix(rep(1:ncol(dat$sim_data[[1]]), nrow(dat$sim_data[[1]])), 
+               ncol = ncol(dat$sim_data[[1]]), nrow = nrow(dat$sim_data[[1]]), byrow = TRUE)
+time[1:10, 1:10]
+```
+
+We now specifies a model that exactly mirrors the structure of equation 1. To note that we incorporated the site-level random intercept $\tau_i$ into the intercept $\beta_0$.  
+
+``` {r bay3}
+#' Specify model
+Act_bay <-nimbleCode({
+  
+  # Priors
+  mu.beta0 ~ dt(0, pow(2.5,-2), 1) #dunif(0,1) #dnorm(0, 1/sqrt(3)) dlogis(0,1)
+  tau.beta0 <- pow(sd.beta0, -2)
+  sd.beta0 ~ dunif(0,2) 
+  
+  #beta1t ~ dt(0, pow(2.5,-2),1)
+  #beta2t ~ dt(0, pow(2.5,-2),1)
+  #beta1<-exp(beta1t)
+  #beta2<-exp(beta2t)
+  beta1~ dt(0, pow(2.5,-2),1) #T(dt(0, pow(2.5,-2),1),0,) #truncated at 0
+  beta2~ dt(0, pow(2.5,-2),1) #T(dt(0, pow(2.5,-2),1),0,) # truncated at 0
+  mean.theta0 ~ dunif(0,2*pi)
+  mean.theta1 ~ dunif(0,2*pi)
+  tau.theta <- pow(sd.theta, -2)
+  sd.theta ~ dunif(0, pi/2)
+  
+  
+  # Likehood
+  for(i in 1:M){
+    beta0[i] ~ dnorm(mu.beta0, tau.beta0)
+    theta0[i] ~ dnorm(mean.theta0, sd.theta)
+    theta1[i] ~ dnorm(mean.theta1, sd.theta)
+    for(j in 1:J){
+      y[i,j] ~ dbern(p[i,j])
+      #logit(p[i,j]) <- beta0[i] + beta1*cos((pi*2*time[i,j])/12 + theta[i]) + beta2*sin((pi*2*time[i,j])/24 + theta[i])
+      logit(p[i,j]) <- beta0[i] + beta1*cos((pi*2*time[i,j])/24 + theta0[i]) + beta2*cos((pi*2*time[i,j])/12 + theta1[i])
+      
+    }
+  }
+  
+}
+)
+```
+We also specify the initial values and  MCMC settings and run the model using _nimble_ [@nimble1, @nimble2, @nimble3].
+
+``` {r bay4, cache=TRUE, cache.path="cache/"}
+#' Other settings
+inits <- function() list(beta0 = runif(nrow(sim_data), 0, 3), theta0 = runif(nrow(sim_data), 0, 2*pi),
+                         theta1 = runif(nrow(sim_data), 0, 2*pi))
+params <- c("mu.beta0", "sd.beta0", "beta1", "beta2", "mean.theta0", "mean.theta1", "sd.theta")
+ni <- 120000; nt <- 1; nb <- 5000; nc <- 3;   n.adapt = 500
+#ni <- 200; nt <- 1; nb <- 1; nc <- 3;   n.adapt = 500
+
+nimble.constants <- list(time=time, M=nrow(sim_data), J=ncol(sim_data), pi=pi)
+nimble.data<-list(y=sim_data)
+
+#' Run model
+res.nimble <- nimbleMCMC(constants = nimble.constants, 
+                         data = nimble.data, 
+                         inits = inits, 
+                         monitors = params, 
+                         code = Act_bay, 
+                         nchains = nc, niter = ni, nburnin = nb, thin = nt)
+```
+We explore the traceplots to assess convergence of the model.
+
+``` {r bay5}
+samplesSummary(res.nimble$chain1)
+samplesSummary(res.nimble$chain2)
+samplesSummary(res.nimble$chain3)
+
+# traceplots
+par(mfrow=c(2,4))
+for(i in 1:7){
+  plot(res.nimble$chain1[,i], type="l", main=colnames(res.nimble$chain1)[i], col="green")
+  lines(res.nimble$chain2[,i], type="l", col="red")
+  lines(res.nimble$chain3[,i], type="l", col="blue")
+}
+dev.off()
+
+# Density plots
+par(mfrow=c(2,4))
+for(i in 1:7){
+  plot(density(res.nimble$chain1[,i]), type="l", main=colnames(res.nimble$chain1)[i], col="green")
+  lines(density(res.nimble$chain2[,i]), type="l", col="red")
+  lines(density(res.nimble$chain3[,i]), type="l", col="blue")
+}
+dev.off()
+```
+Then combine the MCMC samples to explore the results (i.e. the posterior distributions). We compare estimated and true conditional and marginal mean activity patterns.
+
+``` {r bay6}
+# Combine 3 chains and plot
+res.nimbleall<-rbind(res.nimble$chain1, res.nimble$chain2, res.nimble$chain3)
+samplesSummary(res.nimbleall)
+
+# Plot the posterior distributions
+tim<-seq(0, 24,length=1000)
+parms<-apply(res.nimbleall, 2, mean) 
+
+# Plot true and estimated conditional and marginal means
+# True conditional
+truecond<- plogis(b0 + b1*cos((pi*2*tim)/24 + theta0) + b2*cos((pi*2*tim)/12 + theta1))
+
+# Estimated conditional
+logitp<- parms[4] + parms[1]*cos((pi*2*tim)/24 + parms[3]) + parms[2]*cos((pi*2*tim)/12 + parms[3])
+conditionalmean<-plogis(logitp)
+
+# True and Estimated Marginal mean
+pm <- matrix(NA, 10000, length(tim)) # hold marginal mean for each time
+ps <- rnorm(10000, parms[3], parms[6]) # random phase shifts
+beta0s <- rnorm(10000, parms[4], parms[5]) # random intercepts
+
+pmt <- matrix(NA, 10000, length(tim)) # hold marginal mean for each time
+pst0 <- rnorm(10000, theta0, sd_gamma) # random phase shifts
+pst1 <- rnorm(10000, theta1, sd_gamma) # random phase shifts
+beta0st <- rnorm(10000, b0, sd_tau) # random intercepts
+
+for(i in 1:length(tim)){
+  pm[,i] <- plogis(beta0s + parms[1]*cos((pi*2*tim[i])/24 + ps) + parms[2]*cos((pi*2*tim[i])/12 + ps))
+  pmt[,i] <- plogis(beta0st + b1*cos((pi*2*tim[i])/24 + pst0) + b2*cos((pi*2*tim[i])/12 + pst1))
+}
+# lines(tim, plogis(logitp), type="l")
+
+marginalmean <- apply(pm, 2, mean)
+truemarginalmean <- apply(pmt, 2, mean)
+```
+
+
+``` {r bayend, eval = FALSE}
+par(mfrow=c(2,2))
+# TRUE
+plot(tim, truecond, type="l", xlab="hour", ylab="Activity Label Not Scaled", col="red", main="TRUE")
+lines(tim, truemarginalmean, type="l", col="blue", lty=2)
+legend(0, 0.001, bty="n", c("Conditional", "Marginal"), col=c("red", "blue"), lty=c(1,2))
+
+# Rescale and plot
+sc.tcondmean<-truecond/MESS::auc(tim, truecond)
+sc.tmarginalmean<-truemarginalmean/MESS::auc(tim, truemarginalmean)
+plot(tim, sc.tcondmean, type="l", xlab="hour", ylab="Activity Label  Scaled", col="red", main="TRUE")
+lines(tim, sc.tmarginalmean, type="l", col="blue", lty=2)
+
+#EStimated
+plot(tim, conditionalmean, type="l", xlab="hour", ylab="Activity Label Not Scaled", 
+     col="red", main="Estimated")
+lines(tim, marginalmean, type="l", col="blue", lty=2)
+legend(0, 0.001, bty="n",c("Conditional", "Marginal"), col=c("red", "blue"), lty=c(1,2))
+
+#' Rescale and plot
+sc.condmean<-conditionalmean/MESS::auc(tim, conditionalmean)
+sc.marginalmean<-marginalmean/MESS::auc(tim, marginalmean)
+plot(tim, sc.condmean, type="l", xlab="hour", ylab="Activity Label  Scaled", 
+     col="red", main="Estimated")
+lines(tim, sc.marginalmean, type="l", col="blue", lty=2)
+
+
+#' Estimated conditional mean with uncertainty included (for marginal mean, would
+#' need a double loop)
+condmeans<-matrix(NA, nrow(res.nimbleall), length(tim))
+#margmeans<-matrix(NA, nrow(res.nimbleall), length(tim))
+for(i in 1:length(time)){
+  condmeans[,i]<-plogis(res.nimbleall[,4] + res.nimbleall[,1]*cos((pi*2*tim[i])/24 + res.nimbleall[,3]) + res.nimbleall[,2]*cos((pi*2*tim[i])/12 + res.nimbleall[,3]))
+  
+}
+lowcond<-apply(condmeans,2,quantile, prob=0.025)
+upcond<-apply(condmeans,2,quantile, prob=0.975)
+
+par(mfrow=c(1,1))
+plot(tim, conditionalmean, type="l", xlab="hour", ylab="Activity Label Not Scaled", 
+     col="red",  ylim=c(0, max(upcond)))
+lines(tim, upcond, type="l", lty=2, col="red")
+lines(tim, lowcond, type="l", lty=2, col="red")
+lines(tim, truecond, type="l", col="black")
+legend(0, 0.002,  c("Estimated", "True"), lty=c(1,1), col="red", "black",bty="n")
+
+
+```
+
+Models defined in a Bayesian framework can better mirror the structure in equation 1 and accommodate variability in both frequency of use and timing of peak in activity but require longer computational times than frequentist approaches and may be impractical when applied to large camera-trap datasets.
