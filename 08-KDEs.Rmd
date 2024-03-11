@@ -6,9 +6,9 @@ editor_options:
 
 # Comparison among KDE estimators {#kdes}
 
-Kernel Density Estimators are currently the main approach to estimate activity patterns from camera-trap data. At the time of writing, we are aware of three packages available in R to estimate activity patterns based on the KDE approach. The three packages return similar estimates of activity, with some differences. The *overlap* package [@RidoutLinkie2009; @R-overlap] converts estimates so that the area under the curve is equal to one. The *activity* package [@Rowcliffeea2014; @activity2022] has the additional option to estimate 95% confidence intervals using bootstrap approaches; the main function implemented in this package, named activity::fitact, has also an argument to correct for differences in detection probability (e.g., between day and night) while the function activity::solartime enable double-anchoring procedures to adjust the timestamp associated with the different records based on sunrise and sunset times (see [@Vazquezea2019] for details). Finally, the circular package [@circular2022] can identify periods of higher levels of activity using an isopleth approach similar to that applied in the analysis of telemetry data to identify core areas in home-range estimates [@Oliveira-Santosea2013].
+Kernel Density Estimators are currently the main approach to estimate activity patterns from camera-trap data. At the time of writing, we are aware of three packages available in R to estimate activity patterns based on the KDE approach. The three packages return similar estimates of activity, with some differences. The *overlap* package [@RidoutLinkie2009; @R-overlap] converts estimates so that the area under the curve is equal to one. The *activity* package [@Rowcliffeea2014; @activity2022] has the additional option to estimate 95% confidence intervals using bootstrap approaches; the main function implemented in this package, named _activity::fitact_, has also an argument to correct for differences in detection probability (e.g., between day and night) while the function _activity::solartime_ enable double-anchoring procedures to adjust the timestamp associated with the different records based on sunrise and sunset times (see [@Vazquezea2019] for details). Finally, the *circular* package [@circular2022; @Oliveira-Santosea2013] can identify periods of higher levels of activity using an isopleth approach similar to that applied in the analysis of telemetry data to identify core areas in home-range estimates.
 
-In this chapter, we illustrate how to estimate activity patterns based on KDEs using these three packages. We show the consequences of not aggregating data when estimating activity patterns in section \@ref(dataaggr). As an example, we use camera-trap data of American black bears (*Ursus americanus*) collected in northern-Minnesota between mid-May and mid-July 2017 [@Iannarilliea2021].
+In this chapter, we illustrate how to estimate activity patterns based on KDEs using these three packages. In chapter \@ref(dataaggr), we show the consequences of not aggregating data when estimating activity patterns. As an example, we use the subset of the camera-trap data of American black bears collected in northern-Minnesota between mid-May and mid-July 2017 @Iannarilliea2021.
 
 ## Data preparation
 We start by loading the three R libraries listed above along with other packages necessary to wrangling the data. We also load the data itself and show a preview of what the data look like.
@@ -24,7 +24,6 @@ library(lubridate)
 library(activity)
 library(overlap)
 library(circular)
-library(MESS)
 
 # Load data
 dat <- read.csv("data_input/species_records.csv") %>% 
@@ -60,7 +59,7 @@ dat_event <- dat_event %>%
   select("Station", "Species", "DateTimeOriginal", "Date", "Time", "Session")
 ```
 
-All of the three packages require time values provided as radians. Thus, the next step is trasforming the time values from the HH:MM:SS format to radians. This requires some multiplications. Since there are $2*\pi$ radians in a circle and $60 minutes x 24 hours in a day$, we can estimate minutes in terms of radians by dividing the minutes corresponding to a certain time of the day by the total number of minutes in a day (equal to 60x24) and multiplying the resulting value by $2*\pi$. For simplicity, we do not consider seconds here.
+All of the three packages require time values provided as radians. Thus, the next step is trasforming the time values from the HH:MM:SS format to radians. This requires some multiplications. Since there are $2*\pi$ radians in a circle and $60 minutes * 24 hours in a day$, we can estimate minutes in terms of radians by dividing the minutes corresponding to a certain time of the day by the total number of minutes in a day (equal to 60x24) and multiplying the resulting value by $2*\pi$. For simplicity, we do not consider seconds here.
 
 ```{r kde3}
 # Specify the format of the column Time
@@ -76,7 +75,7 @@ The plot above shows the 1:1 match in time of the records expressed as minutes (
 
 ## Estimating activity patterns
 
-We can now proceed to estimating the activity patterns using each of the three packages available in R. We will first run the code for each package and then visually compare the results of all of them.
+We can now proceed to estimating the activity patterns using each of these three packages. We will first run the code for each package and then visually compare the results of all of them.
 
 ### Using the overlap package
 
@@ -122,8 +121,7 @@ head(res_over)
 
 ### Using the activity package
 
-The *fitact* function within the *activity* package allows users to estimates uncertainty (i.e. confidence intervals) around the activity
-patterns using bootstrap approaches. Following the recommendations available in the function's help-file and based on the number of events available in the dataset, `r nrow(dat_event)`, we resample from the  data (argument *sample = "data"*). Some tricks are needed to store the estimates returned by the *fitact* function in a R object.
+The *fitact* function within the *activity* package allows users to estimates uncertainty (i.e. confidence intervals) around the activity patterns using bootstrap approaches. Following the recommendations available in the function's help-file and based on the number of events available in the dataset, `r nrow(dat_event)`, we resample from the  data (argument *sample = "data"*). Some tricks are needed to store the estimates returned by the *fitact* function in a R object.
 
 ```{r kde5}
 # Estimate activity patterns and store values in an object 
@@ -217,7 +215,7 @@ head(res_circ)
 
 ```
 
-## Joining the results and plotting
+## Comparing the results and plotting
 
 We now can visually compare the estimates of activity patterns returned by the three packages. 
 

@@ -105,7 +105,7 @@ The plot shows that there is great variability in the frequency of use of the di
 We bring together this plot and the two produced in the previous chapter to create Figure 1 in the main manuscript. 
 ``` {r ms_fig1}
 ggarrange(pl, pl_sites, widths = c(66, 34)) %>%   
-ggsave(pl, filename = "ms_figures/Fig1_Site_Variability_in_Activity_bimodal.jpg", device = "jpeg", units = "cm", width = 24, height = 10, dpi = 600)
+ggsave(filename = "ms_figures/Fig1_Site_Variability_in_Activity_bimodal.jpg", device = "jpeg", units = "cm", width = 24, height = 10, dpi = 600)
 ```
 
 ## Data preparation
@@ -279,7 +279,6 @@ ggplot(cond_eff, aes(Time, pred)) +
   scale_color_manual(values = c("blue", "red")) +
   scale_fill_manual(values = c("blue", "red")) +
   labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "Estimated vs Simulated Activity Patterns")+
-  #coord_cartesian(ylim = c(0, 0.005)) +
   theme_minimal()+
   theme(legend.position = "bottom",
         legend.title = element_blank(),
@@ -295,7 +294,6 @@ ggplot(cond_eff, aes(Time, pred)) +
         panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
         panel.grid.minor.x = element_blank(),
         strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
-  #panel.grid.minor.x = element_line(colour='deepskyblue4', linetype = 'dotted', size=0.35))+
   scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4))
 
 ```
@@ -311,6 +309,7 @@ We fit a hierarchical cyclic cubic spline GLMM using the *bam* function in packa
 ### SHOULD TIME BE CODED AS FACTOR?
 
 ```{r est10}
+# run model
 cycl_rand_int <- bam(cbind(success, failure) ~ s(Time, bs = "cc", k = wavelength) + 
                                           s(Site, bs="re"), 
                                           family = "binomial", 
@@ -318,6 +317,7 @@ cycl_rand_int <- bam(cbind(success, failure) ~ s(Time, bs = "cc", k = wavelength
                                           knots = list(Time=c(0,23))) 
 summary(cycl_rand_int)
 
+# build estimated activity curves
 newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), max(Time), 1),
                                             Site = "A1")) #Site doesn't matter
 temp <- predict.bam(cycl_rand_int, newdata = newdat,  exclude = "s(Site)", se.fit = TRUE, type = "response") 
@@ -328,17 +328,16 @@ cycl_pred <- newdat  %>%
          Mod = "Estimated: Random Intercept-only") %>% 
   select(-Site)
 
-# combine the two for visualization  purposes
+# combine true and estimated curves for visualization  purposes
 cond_eff <- rbind(cond_true, cycl_pred)
 
-
+# plot
 ggplot(cond_eff, aes(Time, pred)) +
   geom_ribbon(aes(ymin = low, ymax = upp, color = Mod, fill = Mod), alpha = 0.3, linewidth = 0.25) + #
   geom_line(aes(color = Mod), size = 1) + #
   scale_color_manual(values = c("blue", "red")) +
   scale_fill_manual(values = c("blue", "red")) +
   labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "Estimated vs Simulated Activity Patterns")+
-  #coord_cartesian(ylim = c(0, 0.005)) +
   theme_minimal()+
   theme(legend.position = "bottom",
         legend.title = element_blank(),
@@ -354,27 +353,17 @@ ggplot(cond_eff, aes(Time, pred)) +
         panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
         panel.grid.minor.x = element_blank(),
         strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
-  #panel.grid.minor.x = element_line(colour='deepskyblue4', linetype = 'dotted', size=0.35))+
   scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4))
   
 ```
-This model corresponds, in general terms, to the trigonometric random intercept-only model we ran earlier and similarly accommodate only for variability in the frequency of site use. We can add complexity to this model and include a random slope component that allows the site-specific estimates to vary also in the timing of peak activity. In *mgcv*, there is no need to explicitly force the independence between the random intercept and the random slope (as done before for the trigonometric-based model) because there is no covariance term between two random effects.
 
-## STRUCTURE CYCLIC RANDOM SLOPE
+This model corresponds, in general terms, to the trigonometric random intercept-only model we ran earlier and similarly accommodate only for variability in the frequency of site use. The model captures the general shape of the simulated activity curves, but the mean activity estimated for the first peak is quite low compared to the simulated pattern. 
+
+We can add complexity to this model and include a random slope component that allows the site-specific estimates to vary also in the timing of peak activity. In *mgcv*, there is no need to explicitly force the independence between the random intercept and the random slope (as done before for the trigonometric-based model) because there is no covariance term between two random effects.
 
 ```{r est11, cache=TRUE, cache.path="cache/"}
-# occasions_cbind$Time_fct <- as.factor(occasions_cbind$Time)
-# 
-# cycl_rand_slope <- bam(cbind(success, failure) ~ s(Time, bs = "cc", k = wavelength) + 
-#                                           s(Site, bs="re"),
-#                                           #s(Site, Time_fct, bs="re"),
-#                                           #s(Site, Time, k = 12, bs = "fs"),
-#                                           s(Time, by=Site, m=1, bs="tp"),
-#                                           family = "binomial", 
-#                                           data = occasions_cbind, 
-#                                           knots = list(Time=c(0,23), Time_fct = levels(occasions_cbind$Time_fct))) 
 
-# With general smoother for Time
+# Fit model with general smoother for Time
 cycl_rand_slope <- bam(cbind(success, failure) ~ 
                    s(Time, bs = "cc", k = 12) + # general smoother
                    s(Time, bs = "cc", k = 12, by = Site, m = 1) +
@@ -382,8 +371,9 @@ cycl_rand_slope <- bam(cbind(success, failure) ~
                  knots = list(Time=c(0,23)),
                  family = "binomial", 
                  data = occasions_cbind)
-summary(cycl_rand_slope)
+# summary(cycl_rand_slope)
 
+# build the estimated activity patterns
 newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), max(Time), 1),
                                             Site = "A1")) #Site doesn't matter
 temp <- predict.bam(cycl_rand_slope, newdata = newdat,  exclude = "s(Site)", se.fit = TRUE, type = "response") 
@@ -394,17 +384,16 @@ cycl_pred <- newdat  %>%
          Mod = "Estimated: Random Slope") %>% 
   select(-Site)
 
-# combine the two for visualization  purposes
+# combine the true and estimated curves for visualization  purposes
 cond_eff <- rbind(cond_true, cycl_pred)
 
-
+# plot
 ggplot(cond_eff, aes(Time, pred)) +
   geom_ribbon(aes(ymin = low, ymax = upp, color = Mod, fill = Mod), alpha = 0.3, linewidth = 0.25) + #
   geom_line(aes(color = Mod), size = 1) + #
   scale_color_manual(values = c("blue", "red")) +
   scale_fill_manual(values = c("blue", "red")) +
   labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "Estimated vs Simulated Activity Patterns")+
-  #coord_cartesian(ylim = c(0, 0.005)) +
   theme_minimal()+
   theme(legend.position = "bottom",
         legend.title = element_blank(),
@@ -420,12 +409,11 @@ ggplot(cond_eff, aes(Time, pred)) +
         panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
         panel.grid.minor.x = element_blank(),
         strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
-  #panel.grid.minor.x = element_line(colour='deepskyblue4', linetype = 'dotted', size=0.35))+
   scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4))
   
 ```
 
-
+Adding a component that allows for variability in timing of peak activity seems to improve the model fit and provide an estimated activity pattern that more closely resembles the one used to simulated the data. 
 
 
 

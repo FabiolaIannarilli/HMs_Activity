@@ -1,12 +1,12 @@
 # Activity patterns in the Bayesian framework {#bay}
 
-As we mentioned in \@ref(est), it is not possible to directly model activity patterns as specified in equation 1 in \@ref(var) (and in the main manuscript) due to the lack of ready-to-use tools to fit non-linear models in a frequentist framework. Working in the Bayesian framework allows analysts to overcome this limitations.
+As we mentioned in chapter \@ref(est), it is not possible to directly model activity patterns as specified in equation 1 in section \@ref(var) (and in the main manuscript) due to the lack of ready-to-use tools to fit non-linear models in a frequentist framework. Working in the Bayesian framework allows analysts to overcome this limitation.
 
 Here we first use simulated data to illustrate how to run random intercept-only and randon intercept and random slope trigonometric GLMMs. Then, we explore again the seasonal change in activity patterns of black bears. 
 
 ## Random intercept-only trigonometric GLMM in Bayesian
 
-We simulate data using the same approach and the same parameters presented in \@ref(est). As such, the simulated data are generated from the same 'true' activity patterns. 
+We simulate data using the same approach and the same parameters presented in section \@ref(est). As such, the simulated data are generated from the same 'true' activity patterns. 
 
 ``` {r bay1, message = FALSE, warnings = FALSE}
 # Load libraries and function to simulate activity patterns
@@ -53,10 +53,10 @@ sim_data <- as.data.frame(dat$sim_data)
 dim(sim_data)
 
 ```
-We now create a matrix, _time_, that specifies the time of each interval and that has the same dimension of the matrix *sim_data* containing the simulated hourly encounter/nonencounter events.
+We now create a matrix, _time_, that specifies the time of each interval and that has the same dimensions of the matrix *sim_data* containing the simulated hourly encounter/nonencounter events.
 
 ``` {r bay2}
-#' Bundle data
+# Bundle data
 time <- matrix(rep(1:ncol(dat$sim_data[[1]]), nrow(dat$sim_data[[1]])), 
                ncol = ncol(dat$sim_data[[1]]), nrow = nrow(dat$sim_data[[1]]), byrow = TRUE)
 time[1:10, 1:10]
@@ -65,7 +65,7 @@ time[1:10, 1:10]
 We now specifies a model that exactly mirrors the structure of equation 1. To note that we incorporated the site-level random intercept $\tau_i$ into the intercept $\beta_0$.  
 
 ``` {r bay3}
-#' Specify model
+# Specify model
 Act_bay <-nimbleCode({
   
   # Priors
@@ -104,7 +104,7 @@ Act_bay <-nimbleCode({
 We also specify the initial values and  MCMC settings and run the model using _nimble_ [@nimble1, @nimble2, @nimble3].
 
 ``` {r bay4, cache=TRUE, cache.path="cache/"}
-#' Other settings
+# Other settings
 inits <- function() list(beta0 = runif(nrow(sim_data), 0, 3), theta0 = runif(nrow(sim_data), 0, 2*pi),
                          theta1 = runif(nrow(sim_data), 0, 2*pi))
 params <- c("mu.beta0", "sd.beta0", "beta1", "beta2", "mean.theta0", "mean.theta1", "sd.theta")
@@ -114,7 +114,7 @@ ni <- 120000; nt <- 1; nb <- 5000; nc <- 3;   n.adapt = 500
 nimble.constants <- list(time=time, M=nrow(sim_data), J=ncol(sim_data), pi=pi)
 nimble.data<-list(y=sim_data)
 
-#' Run model
+# Run model
 res.nimble <- nimbleMCMC(constants = nimble.constants, 
                          data = nimble.data, 
                          inits = inits, 

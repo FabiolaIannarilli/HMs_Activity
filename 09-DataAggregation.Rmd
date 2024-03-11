@@ -2,7 +2,7 @@
 
 Building on the previous chapter, here, we illustrate with a specific example the effect that aggregating data for reducing short-time correlation has on estimates of activity curves. As in the previous chapter, we use camera-trap data of American black bears (_Ursus americanus_) collected in northern-Minnesota between mid-May and mid-July 2017.
 
-In \@ref(kdes), the estimates were all calculated after aggregating the data in events (i.e., group of pictures taken at the same location within a short time frame). This aggregation is usually applied to minimize temporal autocorrelation among records capture at a certain location. To illustrate the consequences of non aggregating the data, we now re-run the same code as in \@ref(kdes), this time using all the original records.
+In chapter \@ref(kdes), the estimates were all calculated after aggregating the data in events (i.e., group of pictures taken at the same location within a short time frame). This aggregation is usually applied to minimize temporal autocorrelation among records capture at a certain location. To illustrate the consequences of non aggregating the data, we now re-run the same code as in \@ref(kdes), this time using all the original records.
 
 ## Estimating activity
 
@@ -13,8 +13,6 @@ dat$Time <- hms(dat$Time)
 
 # Convert time values to radians
 dat$Time_Rad <- (hour(dat$Time)*60 + minute(dat$Time))/(60*24)*2*pi 
-
-
 
 # OVERLAP
 # To avoid plotting

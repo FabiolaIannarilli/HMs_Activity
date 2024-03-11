@@ -6,9 +6,9 @@ Traditionally, diel activity patterns are usually classified as:
 
 * **unimodal**: the species is mostly active during a restricted portion of the 24-hour cycle, and not (or almost not) active in the remaining time. The activity pattern curve is characterized by only one peak, and it is typical of species that are either diurnal or nocturnal.
 * **bimodal**: the species is mostly active during two specific times of 24-hour cycle, often corresponding to sunrise and sunset (i.e., crepuscular species), and inactive (or mostly inactive) during the rest of the time. The activity pattern curve is characterized by having two peaks.
-* **cathemeral**: the species is equally active throughout the 24-hour cycle and and activity pattern curve approximates a flat line.
+* **cathemeral**: the species is equally active throughout the 24-hour cycle and the activity pattern curve approximates a flat line.
 
-Here, we build and compare model structures that represent these three different diel activity patterns. We use independent camera-trap records of coyotes (*Canis latrans*) collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021], with the data organized as described in \@ref(dataprep). 
+Here, we build and compare model structures that represent these three different diel activity patterns. We use independent camera-trap records of coyotes (*Canis latrans*) collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021], with the data organized as described in the previous section \@ref(dataprep). 
 
 ``` {r univsbim1, message = FALSE, warnings = FALSE}
 # Load libraries
@@ -90,7 +90,7 @@ head(occasions_cbind)
 
 ```
 
-We start by fitting a model that describes a *unimodal* activity pattern. This structure includes only the first of the two cosine terms in equation 1 (which translates in the first and second terms of equation 2), and random intercept and slope as described in \ref(est).   
+We start by fitting a model that describes a *unimodal* activity pattern. This structure includes only the first of the two cosine terms in equation 1 (which translates in the first and second terms of equation 2), and random intercept and slope as described in section \@ref(est).   
 
 ``` {r univsbim2}
 # Unimodal 
@@ -126,7 +126,7 @@ null_mod <- mixed_model(fixed = cbind(success, failure) ~ 1,
 summary(null_mod)
 ```
 
-We can now proceed to compare the different module structures and associated hypotheses. We can do this using the Akaike Information Criterion (AIC; @AIC).
+We can now proceed to compare the different modul structures and associated hypotheses. We can do this using the Akaike Information Criterion (AIC; @AIC).
 
 ``` {r univsbim5}
 # AIC comparison
@@ -138,11 +138,12 @@ We can also compare the models using a Likelihood Ratio Test.
 
 ``` {r univsbim6}
 lrtest(null_mod, unimodal, bimodal)
+lrtest(unimodal, bimodal)
 ```
 
 Both comparisons show that the bimodal is the most supported model among those compared. We can, thus, conclude that coyotes have a bimodal activity pattern.
 
-We can also visually compare predicted activity curves based on these models. As in other examples, we first use the function _GLMMadaptive::effectPlotData_ to predict the activity curve throughout the 24-hour cycle and then use _ggplot_ to plot the results.
+We can also visually compare predicted activity curves based on these models. As in other examples, we first use the function _GLMMadaptive::effectPlotData_ to predict the activity curves throughout the 24-hour cycle and then use _ggplot_ to plot the results.
 
 ``` {r univsbim7}
 # build a new dataset 
@@ -183,4 +184,4 @@ rbind(predict_unimodal, predict_bimodal, predict_cathemeral) %>%
 
 ```
 
-We can test other hypotheses related to shape of the activity pattern curve for our target species (e.g. three or more peaks in the activity pattern) by simply adding additional cosine terms to the model structure and than comparing the different structures using AIC or a Likelihood Ratio Test. However, going beyond two peaks might be computationally intense, especially when a random slope is included. In these cases, an option would be to reduce model complexity by only including a random intercept.
+We can test other hypotheses related to the shape of the activity pattern curve for our target species (e.g. three or more peaks in the activity pattern) by simply adding additional cosine terms to the model structure and than comparing the different structures using AIC or a Likelihood Ratio Test. However, going beyond two peaks might be computationally intense, especially when a random slope is included. In these cases, an option would be to reduce model complexity by only including a random intercept.

@@ -2,9 +2,10 @@
 
 Another common question related to activity patterns often asked by ecologists is whether a species changes its activity due to the co-occurrence of another species. In this section, we illustrate how GLMMs can be used to also address this set of questions. 
 
-As an example, we analyze temporal partitioning between coyotes and wolves. We format the data as usual.  
+As an example, we analyze temporal partitioning between coyotes and wolves (_C. lupus_). We format the data as usual.  
 
 ``` {r temp1, message = FALSE, warnings = FALSE}
+# Load libraries
 library(tidyverse) 
 library(lubridate) 
 library(GLMMadaptive)
@@ -13,7 +14,7 @@ library(mgcv)
 library(tictoc)
 library(activity)
 
-#' Load data: Coyote/Wolf Species interactions
+# Load data: Coyote/Wolf Species interactions
 dat <- read.csv("data_input/species_records.csv", as.is = TRUE) %>% 
   filter(c(Species == "Coyote" | Species == "Wolf")) %>% droplevels() %>%  
   mutate(DateTimeOriginal = ymd_hms(DateTimeOriginal))
@@ -28,7 +29,7 @@ cov <- read.csv("data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv", 
 # Set the threshold that define independence independence between subsequent records
 independence_interval <- 30 #minutes
 
-#' Aggregate data (30-minute threshold based on lorelogram results for camera-trap sampling design paper)
+# Aggregate data (30-minute threshold based on lorelogram results for camera-trap sampling design paper)
 dat <- dat %>% 
   mutate(DateTimeOriginal = ymd_hms(DateTimeOriginal)) %>% 
   group_by(Species, Station) %>%      # group by species and location
@@ -45,10 +46,10 @@ dat <- dat %>%
   slice(1) %>% 
   select("Station", "Species", "DateTimeOriginal", "Date", "Time", "Session")
 ```
-However, before organizing the data using the _cbind(success, failure)_ approach we need to additional information on whether the other species was also detected at least once at a certain site during a sampling session. We thus create two lists of _site X session_ (hereafter, site-session) in which either wolves or coyotes have been encountered and then look at the overlap between these two lists. 
+However, before organizing the data using the _cbind(success, failure)_ approach we need to include the additional information on whether the other species was also detected at least once at a certain site during a sampling session. We thus create two lists of _site X session_ (hereafter, _site-session_) in which either wolves or coyotes have been encountered and then look at the overlap between these two lists. 
 
 ``` {r temp2}
-#' Where both species were detected at the same site during a session?
+# Where both species were detected at the same site during a session?
 # List sites with at least a detection on a given session
 site_Co <- dat %>% filter(Species == "Coyote") %>% group_by(Session, Station) %>% 
   summarize(n = n()) 
@@ -57,8 +58,7 @@ site_Wo <- dat %>% filter(Species == "Wolf") %>% group_by(Session, Station) %>%
 site <- semi_join(site_Co, site_Wo, by = c("Session", "Station")) %>% 
   mutate(Sess_site = paste(Session, Station, sep = "_"))
 ```
-Wolves and coyotes have been detected at `r nrow(site_Wo)` and `r nrow(site_Co)` site-session, `r nrow(site)` were the same.
-
+Wolves and coyotes have been detected at `r nrow(site_Wo)` and `r nrow(site_Co)` site-sessions, `r nrow(site)` of which were the same.
 
 ``` {r temp3}
 # Add binary variable for presence of other species
@@ -68,11 +68,11 @@ for(i in 1:nrow(dat)){
 }
 table(dat$Species, dat$oth_sp)
 ```
-For each species (e.g., coyote), we used a dummy variable called oth_sp to describe whether the other species (e.g., wolf) was photographed at least once (oth_sp = 1; 0 otherwise) at the same site during the same site-session. This resulted in 129 and 124 records of coyotes at sites where wolves were and were not recorded, and 177 and 362 records of wolf at sites where coyotes were and were not recorded. With this additional piece of information we can now proceed on organizing the data as number of successes and failures, starting with coyotes. 
+For each species (e.g., coyote), we used a dummy variable called _oth_sp_ to describe whether the other species (e.g., wolf) was photographed at least once (oth_sp = 1; 0 otherwise) at the same site during the same site-session. This resulted in 129 and 124 records of coyotes at sites where wolves were and were not recorded, and 177 and 362 records of wolf at sites where coyotes were and were not recorded. With this additional piece of information we can now proceed on organizing the data as number of successes and failures, starting with coyotes. 
 
 ``` {r temp4}
-#' Prepare data for model-based methods
-#' Coyote data:
+# Prepare data for model-based methods
+# Coyote data:
 # Merge time of deployment and retrieval + problems
 #site_Co2 <- left_join(site_Co, cov, by = c("Session" = "Session", "Station" = "Site"))  
 site_Co2 <- cov
@@ -94,14 +94,14 @@ occasions_Co <- do.call(rbind.data.frame, occasions_Co)
 occasions_Co$capt <- 0
 occasions_Wo <- occasions_Co
 
-#' Store captures
+# Store captures
 dat_Co <- dat %>% filter(Species == "Coyote")
 for(i in 1:nrow(dat_Co)){
   occasions_Co[occasions_Co$Session == as.character(dat_Co$Session[i]) & occasions_Co$site == as.character(dat_Co$Station[i]) &
                  occasions_Co$start <= dat_Co$DateTimeOriginal[i] & occasions_Co$end > dat_Co$DateTimeOriginal[i], "capt"] <- 1
 }
 
-#' Format data 
+# Format data 
 occasions_Co$Time <- ymd_hms(occasions_Co$start) 
 occasions_Co$Time <- hour(occasions_Co$Time)
 occasions_Co$oth_sp <- NA
@@ -118,7 +118,7 @@ occasions_Co_cbind <- occasions_Co %>%
   summarize(success = sum(capt),
             failure = n() - success)
 ```
-We had 127 hourly intervals (out of 56 928) and 115 hourly intervals (out of 514 133) in which coyotes were recorded at a site-session where wolves were and were not photographed.
+We had 127 hourly intervals (out of 56 928) and 115 hourly intervals (out of 514 248) in which coyotes were recorded at a site-session where wolves were and were not photographed.
 
 For convenience, here we run a trigonometric random-intercept only model, but more complex models or cyclic cubic spline GLMMs can also be used, as we show below. 
 
@@ -132,7 +132,7 @@ mod_trig_Co <- mixed_model(fixed = cbind(success, failure) ~ cos(2*pi*Time/24)*o
 summary(mod_trig_Co)
 
 ```
-We repeate the same steps for wolves. For this species, we had 176 (out of 56 928) and 348 (out of 514 248) hourly intervals with at least 1 record of wolves at site-sessions in which coyotes were and were not recorded.
+We repeat the same steps for wolves. For this species, we had 176 (out of 56 928) and 348 (out of 514 248) hourly intervals with at least 1 record of wolves at site-sessions in which coyotes were and were not recorded.
 
 ``` {r temp6}
 #' Store captures
@@ -204,6 +204,8 @@ cond_eff <- rbind(cond_eff_Co, cond_eff_Wo)
         strip.text = element_blank())+
   scale_x_continuous(breaks=seq(0,24,4), labels=seq(0,24,4)) +
   facet_wrap(~oth_sp, scales = "fixed"))
+ggsave(pl_trig + theme(plot.title = element_blank()), 
+       filename = "ms_figures/Fig3_Coyote_Wolf_patterns.jpg", device = "jpeg", units = "cm", width = 24, height = 10, dpi = 600)
 
 ```
 This figure and a comment on the results are presented in the main manuscript (Figure 3). Here we proceed instead with addressing the same question using a cyclic cubic spline GLMM (without general smoother) for each species and then plotting the estimates of activity patterns to visually inspect the results.
@@ -257,6 +259,6 @@ pl_cycl <- ggplot(cycl_pred, aes(Time, fit, color=Species, group=Species)) +
   scale_x_continuous(breaks=seq(0,24,4), labels=seq(0,24,4)) +
   facet_wrap(~oth_sp, scales = "fixed")
 
-ggarrange(pl_trig, pl_cycl)
+ggarrange(pl_trig, pl_cycl, nrow = 2, ncol = 1)
 ```
 We see that the trigonometric and the cyclic cubic spline GLMMs return the same pattern.

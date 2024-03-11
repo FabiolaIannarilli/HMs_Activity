@@ -6,7 +6,7 @@ Many researchers exploring activity patterns from camera-trap data sooner or lat
 
 The task of comparing activity patterns among different levels of a categorical variable can be achieved also using KDE approaches. However, the process can be particularly cumbersome, especially when comparing more than two levels. It requires splitting the dataset of the independent records depending on the levels of the variable of interest, run a KDE for each groups of records, and then comparing the results using an ad-hoc test. Conversely, the same task can be accomplished by fitting a model-based approach on the whole dataset, as we describe here.
 
-Again, we use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021]. This time, we use records of American black bear (*Ursus americanus*) and explore differences in activity patterns of this species between spring and fall. We format the data as done in \ref{dataprep}, but this time we also create an additional column that contains the information about the season (i.e. Spring or Fall) or each record collected. We use this covariate as an additional grouping criterion. 
+Again, we use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021]. This time, we use records of American black bear (*Ursus americanus*) and explore differences in activity patterns of this species between spring and fall. We format the data similar to how is done in \@ref{dataprep}, but this time we also create an additional column that contains the information about the season (i.e. Spring or Fall) in which each record was collected. We use this covariate, _Season_, as an additional grouping criterion. 
 
 ```{r cat1, message = FALSE, warnings = FALSE}
 # Load Libraries
@@ -95,9 +95,10 @@ We obtained 523 (out of 348 696) and 232 (out of 222 480) hourly occasions with 
 
 ### Trigonometric GLMMs
 
-Extending the trigonometric GLMMs to explore the effect of a covariate on activity patterns only requires to include interactions between the trigonometric terms and the covariate. The interactions allow the coefficients of the trigonometric terms to vary by treatment group, that is season levels. We start again by fitting and visualizing the estimate based on a random-intercept only model in which the random intercept for *Site* accounts for repeated measures and varying levels of activity at each site:
+Extending the trigonometric GLMMs to explore the effect of a covariate on activity patterns only requires to include interactions between the trigonometric terms and the covariate. The interactions allow the coefficients of the trigonometric terms to vary by treatment group, that is season levels. We start by fitting and visualizing the estimate based on a random-intercept only model in which the random intercept for *Site* accounts for repeated measures and varying levels of activity at each site:
 
 ```{r cat2}
+# run model
 trig_rand_int <- mixed_model(fixed = cbind(success, failure) ~ 
                                               cos(2 * pi * Time/24) * Season +
                                               sin(2 * pi * Time/24) * Season +
@@ -107,10 +108,12 @@ trig_rand_int <- mixed_model(fixed = cbind(success, failure) ~
             data = occasions_cbind, family = binomial(), iter_EM = 0)
 summary(trig_rand_int)
 
+# build estimate of activity
 newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), 24, length.out = 48), 
                                             Season = levels(Season)))
 pred_rand_int <- effectPlotData(trig_rand_int, newdat, marginal = FALSE) 
 
+# plot
 (pl_trig <- ggplot(pred_rand_int, aes(Time, plogis(pred))) +
   geom_ribbon(aes(ymin = plogis(low), ymax = plogis(upp), color = Season, fill = Season), alpha = 0.3, linewidth = 0.25) +
   geom_line(aes(color = Season), linewidth = 1) +
@@ -191,7 +194,7 @@ However, this model is likely to be too computational demanding for most laptop.
 
 ### Cyclic cubic spline GLMMs
 
-Similar to trigonometric GLMMs, cyclic cubic spline GLMMs can also be used to model activity patterns as a function of a categorical covariate. As we explained in \ref{est}, this class of models are highly flexible and offer a pletora of options when it comes to choose which structure to fit. Here we focus on two. The first resembles a trigonometric random-intercept only GLMM and contains a cubic cyclic smoother for Time which varies by Season, Season as a fixed term, and a smoother for Site as random effect. The second has an additional term, a general smoother for Time, and resembles a trigonometric GLMM with random intercept and slope.
+Similar to trigonometric GLMMs, cyclic cubic spline GLMMs can also be used to model activity patterns as a function of a categorical covariate. As we explained in \@ref{est}, this class of models are highly flexible and offer a pletora of options when it comes to choosing which structure to fit. Here we focus on two. The first resembles a trigonometric random-intercept only GLMM and contains a cubic cyclic smoother for _Time_ which varies by _Season_, _Season_ as a fixed term, and a smoother for _Site_ as random effect. The second has an additional term, a general smoother for _Time_, and resembles a trigonometric GLMM with random intercept and slope.
 
 We first ran the two models, then predict and plot their estimates.
 
@@ -257,16 +260,16 @@ cycl_pred <- rbind(cycl_pred1, cycl_pred2)
   facet_grid(~Model))
 ```
 
-In this analysis, the patterns estimated by the two models structure is close to identical. To confirm these results, we can also compare the two models using AIC, which are almost identical.
+In this analysis, the patterns estimated by the two models structure is close to identical. To confirm these results, we can also compare the two models using AIC, which show that the two models have almost equal support.
 
 ```{r cat5}
 AIC(mod_cycl1, mod_cycl2)
 AIC(mod_cycl2) - AIC(mod_cycl1)
 ```
 
-### KDEs
+### Comparison with KDEs {#compkde}
 
-We use this example to compare results based on KDEs and the two GLMM approaches. The steps necessary to run KDEs are detailed in \@ref(kdes). Here, we split the dataset by Season and run KDEs for the two groups.
+We use this example to compare results based on KDEs and the two GLMM approaches. The steps necessary to run KDEs are detailed in \@ref(kdes). Here, we split the dataset by _Season_ and run KDEs for the two groups.
 
 ```{r cat6}
 # Estimate activity using KDE
@@ -289,7 +292,7 @@ KDE <- do.call(rbind.data.frame, KDE_ls)
 
 (pl_KDE <- ggplot(KDE, aes(x = x/(2*pi)*24, y = y)) +
   geom_ribbon(aes(ymin = y - 1.96*se, ymax = y +1.96*se, color = Season, fill = Season), alpha = 0.3, size = 0.25) +
-  geom_line(aes(color = Season), size = 1) +
+  geom_line(aes(color = Season), linewidth = 1) +
   theme_minimal() +
   scale_color_manual(values = c("orange", "darkgreen")) +
   scale_fill_manual(values = c("orange", "darkgreen")) +
@@ -314,9 +317,11 @@ KDE <- do.call(rbind.data.frame, KDE_ls)
 We now bring together the results based on the three methods.
 
 ``` {r cat7}
-ggarrange(ggarrange(pl_trig, pl_KDE, ncol = 2, common.legend = TRUE, legend = "none"), pl_cycl, nrow = 2, common.legend = TRUE, legend = "bottom") 
+ggarrange(ggarrange(pl_trig, pl_KDE, ncol = 2, common.legend = TRUE, legend = "none"), pl_cycl, nrow = 2, common.legend = TRUE, legend = "bottom") %>% 
+ggsave(filename = "ms_figures/Fig2_Covariates_Method_comparison.jpg", device = "jpeg", units = "cm", width = 24, height = 10, dpi = 600)
 ```
-Both the GLMM-based approaches and the KDEs were able to quantify differences in activity patterns across the 2 seasons, but the GLMM-based approaches were also able to quantify differential levels of activity between spring and fall. Likely owing to the assumption of independence, KDE curves tend to be more wiggly than model-based estimates, and this might be especially the case when there are only few independent records.
+
+Both the GLMM-based approaches and the KDEs were able to quantify differences in activity patterns across the 2 seasons, but the GLMM-based approaches were also able to quantify differential levels of activity between Spring and Fall. Likely owing to the assumption of independence, KDE curves tend to be more wiggly than model-based estimates, and this might be especially the case when there are only few independent records (see section \@ref(dataaggr)).
 
 ## Continuous covariates
 
@@ -349,7 +354,7 @@ ghm <- start_annotation_simple(
 cov$ghm <- ghm$value
 
 ```
-We now have to link this information to independent encounter events already defined at the beginning of this tutorial and stored in the object _dat_. 
+We now have to link this information to the independent encounter events already defined at the beginning of this tutorial and stored in the object _dat_, 
 
 ```{r cont2}
 dat_ghm <- left_join(dat, 
@@ -474,7 +479,9 @@ ggplot(pred_cont, aes(Time, pred)) +
     scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4)) +
     facet_grid(Model~ghm_ft)
 ```
-These results seem not conclusive. We can further explore the effect of GHM on activity by comparing these models with their relative null model (i.e. a version of the model without the covariate of interest) using AIC (or LRT).
+These results seem not conclusive. The estimates based on the cyclic cubic spline GLMM show a clear progression in the shape of black bears' activity pattern, from having an almost cathemeral pattern at low level of GHM to a well-defined  bimodal patterns at high level of GHM. This trend is less evindent in the estimates based on trigonometric GLMM. 
+
+We can further explore the effect of GHM on activity by comparing these models with their relative null model (i.e. a version of the model without the covariate of interest) using AIC (or LRT).
 
 ``` {r cont6}
 # null random-intercept only trigonometric GLMM
@@ -494,9 +501,11 @@ mod_cycl1_cont_null <- bam(cbind(success, failure) ~
 
 # Comparing trig GLMMs
 AIC(mod_trig_cont, mod_trig_cont_null)
+AIC(mod_trig_cont) - AIC(mod_trig_cont_null)
 
 # Comparing cyclic cubic spline GLMMs
 AIC(mod_cycl1_cont, mod_cycl1_cont_null)
+AIC(mod_cycl1_cont) - AIC(mod_cycl1_cont_null)
 ```
 
-## ADD CONCLUSIONS
+Both AIC comparisons strongly support the hypothesis that GHM has an effect on the activity patterns of American black bear.
