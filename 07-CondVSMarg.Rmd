@@ -1,13 +1,25 @@
 # Conditional and Marginal Mean Activity Patterns {#condvsmarg}
 
-GLMMs allow users to explore two metrics of diel activity patterns, one that describes the temporal use of a ‘typical site’ (e.g., a site with average characteristics) and the other that describes the pattern of activity averaged across the population of sites sampled, a ‘population averaged’ estimate (see Box 1 in the main text). 
+GLMMs allow users to estimate both site-specific diel activity patterns and population-level activity patterns formed by averaging activity levels across sites in the population (see Box 1 in the main text). Site-specific estimates are frequently referred to as *conditional means* since they are formed by conditioning on a set of site-specific parameters; population-level means are often referred to as *marginal means*. Although one can estimate the condition mean associated with any of the sampled sites, it is also common to plot the conditional mean for a ‘typical site’ (i.e., a site with average characteristics), formed by setting all of the random coefficients to their mean values [@Fieberg_ea_2009]. 
 
-Conditional and marginal mean activity patterns can be estimated in both the frequentist and Bayesian frameworks. The frequentist framework is generally accessible by more users than the Bayesian framework thanks to the availability of many ready-to-use R packages that implement GLMMs, so we will first focus on this framework. An example of the same approach in the Bayesianframework is provided in section \@(bay). 
+Conditional and marginal mean activity patterns can be estimated in both the frequentist and Bayesian frameworks. The frequentist framework is generally accessible by more users than the Bayesian framework thanks to the availability of many ready-to-use R packages that implement GLMMs, so we will first focus on this framework. An example of the same approach in the Bayesian framework is provided in section \@(bay). 
 
 We use simulated data to illustrate how random-intercept only and random intercept and slope models are able to return differences in conditional and marginal mean activity patterns. 
 
-**Data simulation.** Using the approach introduced in sections \@ref(var) and \@ref(est), we simulate a bimodal activity pattern the associated encounter events of a certain species collected via camera trapping at 100 sites during 30 days of sampling. In addition to simulating the data, the *sim_activity* function also returns the 'true' conditional and marginal mean activity patterns for the simulate dataset. These mean activity curves are showed in the figure below.
+**Data simulation.** Using the approach introduced in sections \@ref(var) and \@ref(est), we simulate  encounter events for a species with a bimodal activity pattern using camera traps set at 100 sites with 30 days of sampling at each site. In addition to simulating the data, the *sim_activity* function also returns the 'true' conditional activity pattern for a typical site (one with random effects $\tau_i = 0$ and $\gamma_i = 0$) at each of 513 equally spaced points $j$ between 0 and 24 hours (i.e., covering the diel activity pattern) using: 
 
+$$E[Y_{it} |\tau_i=0,\gamma_i=0] =  \frac{exp^{\beta_0 + \beta_1*cos(\frac{2\pi t}{24} + \theta_0) + \beta_2*cos(\frac{2\pi t}{12} + \theta_1)}}{1+exp^{\beta_0 + \beta_1*cos(\frac{2\pi t}{24} + \theta_0) + \beta_2*cos(\frac{2\pi t}{12} + \theta_1)}}$$
+
+where $\beta_0$, $\beta_1$, $\beta_2$, $\theta_0$, and $\theta_1$ corresponded to the parameter values used to simulate the data (see Section \@ref(est)).
+
+In addition, the *sim_activity* function returns the  'true' marginal mean activity pattern, which is formed by averaging activity patterns across sites. To determine marginal means, we have to integrate over the distribution of the random effects: 
+
+$$E[Y_{t}] =  \left[\int_{-\infty}^{\infty}\int_{-\infty}^{\infty} \frac{\exp^{\beta_0 + \beta_1cos(\frac{2\pi t}{24} + (\theta_0 + \gamma_i)) + \beta_2cos(\frac{2\pi t}{12} + (\theta_1 + \gamma_i))+ \tau_i}}{1+\exp^{\beta_0 + \beta_1cos(\frac{2\pi t}{24} + (\theta_0+\gamma_i)) + \beta_2cos(\frac{2\pi t}{12} + (\theta_1+\gamma_i))+ \tau_i}} \frac{\exp^{\frac{-\tau^{2}}{2\sigma_{\tau}^2}}}{\sqrt{2\pi}\sigma_{\tau}} \frac{\exp^{\frac{-\gamma^{2}}{2\sigma_{\gamma}^2}}}{\sqrt{2\pi}\sigma_{\gamma}} \; d\tau d\gamma\right]$$
+Because this integral has no closed-form solutions, the *sim_activity* function estimates the marginal mean curve using a simulation approach in which it randomly selects 100,000 sites and their associated values of $\tau_i$ and $\gamma_i$, determines site-specific activity patterns for these sites on the probability scale, and then averages these site-specific activity patterns at each of the 513 reference points $j$ between 0 and 24 hours.
+
+If we plot the estimated conditional and marginal mean activity curves (Figure \@ref(fig:condvsmarg1), we see that for this set of parameter values, the two means have a similar shape. However, marginal mean is higher than the conditional mean, suggesting a higher level of overall activity when measured at the population level compared to the activity level at a typical site.
+
+(ref:condvsmargcap) Conditional activity pattern for a typical site (one with random effects $\tau_i = 0$ and $\gamma_i = 0$) and marginal mean activity pattern formed by averaging site-specific activity patterns across a population of sites. 
 ```{r condvsmarg1, message = FALSE, warnings = FALSE}
 #' Load libraries and function to simulate activity patterns
 library(tidyverse)
@@ -50,24 +62,25 @@ dat <- sim_activity(M = M,
                      plot_true_act = TRUE)
 
 ```
-Internally, the *sim_activity* function computes the true conditional mean for a ‘typical site’ (one with random effects $\tau_i=0$ and $\gamma_i$ equal to 0) at each of 513 equally spaced points j between 0 and 24 hours (i.e., covering the diel activity pattern) using: 
 
-$$
-E[y_j |\tau_i=0,\gamma_i=0] =  \frac{exp^{\beta_0 + \beta_1*cos(\frac{2\pi t}{24} + \theta_0) + \beta_2*cos(\frac{2\pi t}{12} + \theta_1)}}{1+exp^{\beta_0 + \beta_1*cos(\frac{2\pi t}{24} + \theta_0) + \beta_2*cos(\frac{2\pi t}{12} + \theta_1)}}
 
-$$
-where $\beta_0$, $\beta_1$, $\beta_2$, $\theta_0$, and $\theta_1$ corresponded to the parameter values used to simulate the data (see \@ref(est)). 
+ 
 
-To determine marginal means, we have to integrate over the distribution of the random effects: 
+## Estimating Conditional and Marginal Mean Activity Patterns
 
-$$
-E[y_j] =  \left[\int_{-\infty}^{\infty} \frac{\beta_0 + \beta_1*cos(\frac{2\pi t}{24} + (\theta_0 + \gamma_i)) + \beta_2*cos(\frac{2\pi t}{12} + (\theta_1 + \gamma_i))+ \tau_i}{1+exp^{\beta_0 + \beta_1*cos(\frac{2\pi t}{24} + (\theta_0+\gamma_i)) + \beta_2*cos(\frac{2\pi t}{12} + (\theta_1+\gamma_i))+ \tau_i}} \frac{exp^{\frac{-\tau^{2}}{2\sigma_{\tau}^2}}}{\sqrt{2\pi}\sigma_{\tau}} \frac{exp^{\frac{-\gamma^{2}}{2\sigma_{\gamma}^2}}}{\sqrt{2\pi}\sigma_{\gamma}} \; d\tau d\gamma\right]
-$$
-Because this integral has no closed-form solutions, the *sim_activity* function estimates the marginal mean curve using a simulation approach in which it randomly selects values of $\tau_i$ or $\gamma_i$ to simulate activity patterns at 100 000 sites. It then back-transforms the site-specific values from logit to the probability scale and averages across sites at each of the 513 reference points j between 0 and 24 hours.
+<!---ASK JOHN IF EQ. IS correct for random intercept + slope
 
-## ASK JOHN IF EQ. IS correct for random intercept + slope
+JF:  I'm not sure which equation you are referring to, but I think both are now correct.--->
 
-**Data preparation.** Using the code explained in section \@ref(est), we organize the simulate encounter data in the format required to fit trigonometric and cyclic cubic spline GLMMs.
+Before fitting models, we need to prepare the data. We will use the code from Section \@ref(est) to aggregate the data by site, resulting in a data set with the following variables:
+
+- `Site` = ID for each surveyed site
+- `Time` = hour of day
+- `success` = number of encounters at the particular `Site` and `Time`
+- `n_events` = number of observation intervals associated with the particular `Site` and `Time`
+- `failure` = number of observation intervals without an encounters at the particular `Site` and `Time` 
+
+ 
 
 ```{r condvsmarg2}
 # The data
@@ -98,6 +111,7 @@ occasions_cbind <- y_long %>%
 We are now ready to estimate conditional and marginal mean activity in the frequentist framework.
 
 ## The frequentist framework
+
 When using **trigonometric GLMMs**, we can quantify the conditional mean by setting all the random effects in the GLMM as equal to 0 and the marginal mean by integrating over the distribution of the random effects (@Fieberg_ea_2009). Among the many packages available in R to model GLMMs, GLMMadaptive (@Rizopoulos2022) has the advantage of providing estimates of parameters describing both conditional and marginal mean response curves. 
 
 We start by fitting the model, similar to how we have done it in previous sections of this tutorial.
