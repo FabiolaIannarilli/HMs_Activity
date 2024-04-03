@@ -4,7 +4,7 @@ In this section, we introduce two alternative, model-based approaches to estimat
  * _trigonometric generalized linear mixed models_ and
  * _cyclic cubic spline generalized linear mixed models_. 
 
-To keep the focus on estimating activity pattern, we encapsulate the code to simulate the data in the function *sim_activity*, that we source after loading the necessary libraries. 
+To keep the focus on estimating activity pattern, we encapsulate the code to simulate the data in the function *sim_activity*, that we source after loading the necessary libraries. The function simulates true and realized site-specific activity patterns and conditional and marginal mean activity patterns. It is based on equation 1 which is introduced in section \@ref(var) of this tutorial and in the main text (@Iannarilliea2024). A full description of the *sim_activity* function and its arguments is provided in section \@ref(app).
 
 ```{r est1, message = FALSE, warnings = FALSE}
 # Load libraries and function to simulate activity patterns
@@ -19,7 +19,7 @@ set.seed(129)
 
 ```
 
-We now simulate bimodal activity patterns for 100 sites (M) based on equation 1 reported in section \@ref(var) and the parameters defined in the code below. We set $\tau_i$ and $\gamma_i$ as drawn from the distributions $\tau_i \sim N(0,\sigma_\tau)$ and $\gamma_i \sim N(0,\sigma_\gamma)$, respectively, with $\sigma_\tau = 1$ and $\sigma_\gamma = 0.3$. 
+We simulate bimodal activity patterns for 100 sites (M) using the parameters defined in the code below. We set $\tau_i$ and $\gamma_i$ as drawn from the distributions $\tau_i \sim N(0,\sigma_\tau)$ and $\gamma_i \sim N(0,\sigma_\gamma)$, respectively, with $\sigma_\tau = 1$ and $\sigma_\gamma = 0.3$. 
 
 ```{r est2}
 # Set equations' parameters
@@ -34,7 +34,7 @@ theta0 = 3
 theta1 = 2 
 sd_tau = 1
 sd_gamma = 0.3
-time <- seq(0, wavelength, wavelength/512)
+time <- seq(0, 23, length.out = 100)
 
 # simulate data
 dat <- sim_activity(M = M, 
@@ -42,7 +42,7 @@ dat <- sim_activity(M = M,
                      wavelength = wavelength, 
                      n_peak = n_peak, 
                      n_sim = 1, 
-                     b0 = -3, 
+                     b0 = b0, 
                      b0_constant = TRUE, # common intercept
                      tau_constant = FALSE, 
                      sdtau = sd_tau, # ~site-specific intercept
@@ -52,11 +52,12 @@ dat <- sim_activity(M = M,
                      theta1 = theta1, # common phaseshifts for the cosine terms
                      phaseshift_constant = FALSE, 
                      sd_phaseshift = sd_gamma, # site-specific phaseshift (equal for both cosine terms)
-                     plot_true_act = TRUE)
+                     plot_true_act = FALSE)
+str(dat)
 
 ```
 
-The *sim_activity* function returns a list containing several objects, including the true values of conditional and marginal mean probability of activity used to build the plot above. The list also contains the activity patterns simulated for each of the 100 sites. We can access the information for a randomly selected set of these sites and plot their activity patterns, along with the conditional and marginal mean activity patterns (the red and black curves, respectively, in the following plot). 
+The *sim_activity* function returns a list containing several objects, including the true activity patterns simulated for each of the 100 sites and the associated realized patterns (i.e. the encounter data). The list also contains the values of the conditional and marginal means probability of activity. We can access the information for a randomly selected set of these sites and plot their true activity patterns, along with the conditional and marginal mean activity patterns (the red and black curves, respectively, in the following plot). 
 
 ```{r est3}
 # plot true conditional and marginal with 5 simulated sites
@@ -71,14 +72,12 @@ sample_sites <- as.data.frame(sample_sites) %>%
             linewidth = 0.5, alpha = 0.7, linetype = 2) +
   geom_line(data = dat$Conditional, aes(x = time, y = p), linewidth = 1, color = "red", inherit.aes = TRUE) +
   geom_line(data = dat$Marginal, aes(x = time, y = p), linewidth = 1, color = "black", inherit.aes = TRUE) +
-  labs(x = "Time of Day", y = "Probability of Activity", title = "C) Var. in frequency of site use and \n time of activity peak", 
+  labs(x = "Time of Day", y = "Probability of Activity", title = "C) Variability in frequency of site use and \n timing of activity peaks", 
        color = "Site_ID")+
   theme_minimal()+
   theme(legend.position = "none",
         legend.title = element_text(size=10,face="bold"),
         legend.text = element_text(size=10,face="bold"),
-        #legend.margin=margin(0,0,0,0),
-        #legend.box.margin=margin(-5,-10,-10,-10),
         axis.line = element_line(colour = 'black', linetype = 'solid'),
         axis.ticks.x = element_line(colour = 'black', linetype = 'solid'),
         axis.title = element_text(size=8,face="bold"),
@@ -114,7 +113,7 @@ The first step to analyze these activity patterns is to arrange in a specific fo
 $$
 y_{it} \sim Bernoulli(p_{it})
 $$ 
-and are stored in one of the object of the list created by the *sim_activity* function. We access the encounter data and store them in an object called *y*, which has a number of rows equal to the number of simulated sites and a number of columns equal to 24 (hours) times the length (in days) of the simulated sampling period (e.g. $24 hour * 30 days = 720 encounter occasions$). We add a column which contain an unique identifier for each site (e.g. *id = A1*) and assigned a name to each column that represent the time occasion (e.g. from 1 to 720), then convert the data in long format using the *id* column as reference.
+and are stored in the object *sim_data* in the output created by the *sim_activity* function. We access the encounter data and store them in an object called *y*, which has a number of rows equal to the number of simulated sites and a number of columns equal to 24 (hours) times the length (in days) of the simulated sampling period (e.g. $24 hour \times 30 days = 720 encounter occasions$). We add a column which contain an unique identifier for each site (e.g. *id = A1*) and assigned a name to each column that represent the time occasion (e.g. from 1 to 720), then convert the data in long format using the *id* column as reference.
 
 ```{r est4}
 # The data
@@ -137,9 +136,9 @@ y_long$hour <- sim_to_minute(y_long$time, group = wavelength)
 knitr::kable(head(y_long))
 ```
 
-We obtain a dataset in which each row specify the outcome (i.e. encounter or non-encounter of the target species) at a certain site during a specific hour of a certain day of sampling.
+We obtain a dataset in which each row specifies the outcome (i.e. encounter or non-encounter of the target species) at a certain site during a specific hour of a certain day of sampling.
 
-To optimize computational time, we can reduce the number of rows in the dataset but counting the number of hourly-long occasions in which the species was observed (i.e. successes) and the number of occasion in which the species was not observed (i.e. failures) for each hourly time interval and camera site.
+To optimize computational time, we can reduce the number of rows in the dataset by counting the number of hourly-long occasions in which the species was observed (i.e. successeses) and the number of occasion in which the species was not observed (i.e. failures) for each hourly time interval and camera site.
 
 ```{r est5}
 # count successes and failures at each site-occasion
@@ -155,19 +154,19 @@ occasions_cbind <- y_long %>%
 knitr::kable(head(occasions_cbind))
 ```
 
-Each row in this dataset specify how many time a species was (0 times) and was not (30 times) detected at a certain site (A1) during a certain time interval (0, that is from 00:00 to 00:59). We can now use this dataframe to estimate activity patterns using trigonometric Generalized Linear Mixed Models.
+Each row in this dataset specifies how many time a species was (0 times) and was not (30 times) detected at a certain site (A1) during a certain time interval (0, that is from 00:00 to 00:59). We can now use this dataframe to estimate activity patterns using trigonometric Generalized Linear Mixed Models.
 
 ## Trigonometric GLMMs
 
-Equation 1 in section \@ref(var) is non linear due the present of the phaseshift parameters. Currently there is no out-of-the-box option in R to code non linear model using a frequentist approach. To overcome this challenge, we rewrite equation 1 using compound angle formula (see also main text):
+Equation 1 in section \@ref(var) is non-linear due the presence of the phaseshift parameters. Currently there is no out-of-the-box option in R to code non-linear model using a frequentist approach. To overcome this challenge, we rewrite equation 1 using compound angle formulas (see also main text @Iannarilliea2024):
 $$
 
-logit(p_t) = \beta_0 + \alpha_1*cos(\frac{2\pi t}{24}) + \alpha_2*sin(\frac{2\pi t}{24}) + \alpha_3*cos(\frac{2\pi t}{12}) + \alpha_4*sin(\frac{2\pi t}{12}) + \tau_i
+logit(p_t) = \beta_0 + \alpha_1 \times cos(\frac{2\pi t}{24}) + \alpha_2 \times sin(\frac{2\pi t}{24}) + \alpha_3 \times cos(\frac{2\pi t}{12}) + \alpha_4 \times sin(\frac{2\pi t}{12}) + \tau_i
 
 $$
-where $\alpha_1= \beta_1*cos(\theta_0 + \gamma_i)$, $\alpha_2= -\beta_1*sin(\theta_0 + \gamma_i)$, $\alpha_3= \beta_2*cos(\theta_1 + \gamma_i)$, $\alpha_4= -\beta_2*sin(\theta_1 + \gamma_i)$. 
+where $\alpha_1 = \beta_1 \times cos(\theta_0 + \gamma_i)$, $\alpha_2= -\beta_1 \times sin(\theta_0 + \gamma_i)$, $\alpha_3= \beta_2 \times cos(\theta_1 + \gamma_i)$, $\alpha_4= -\beta_2 \times sin(\theta_1 + \gamma_i)$. 
 
-In this version (labeled as equation 2 in the main text), we can model activity patterns with any packages commonly used to fit GLMMs. Here, we choose the *GLMMadaptive* library \@ref(Rizopoulos2022) because it give us the option to also explore conditional and marginal mean activity patterns (see section \@ref(condvsmarg)).
+In this version (labeled as equation 2 in the main text), we can model activity patterns with any packages commonly used to fit GLMMs. Here, we choose the *GLMMadaptive* library \@ref(Rizopoulos2022) because it gives us the option to also explore conditional and marginal mean activity patterns (see section \@ref(condvsmarg)).
 
 The simplest trigonometric GLMM we can run is one that includes only a random intercept. In the context of estimating activity patterns, a random intercept-only model accounts for variability in the frequency of use of the sites (i.e. vertical shifts among the curves), but not variability in the timing of peak activity (i.e. horizontal shift).   
 
@@ -183,7 +182,7 @@ trig_rand_int <- mixed_model(fixed = cbind(success, failure) ~
 summary(trig_rand_int)
 
 ```
-For trigonometric models, interpreting the model results looking at the coefficient estimates could be daunting. An easier and effective way to explore the results is to visually check the activity patterns predicted based on the model itself. Thus, we predict the estimated activity patterns, backtrasform the results in the probability scale, and plot the estimated activity pattern along with the true simulated conditional activity patterns.
+For trigonometric models, interpreting the model's results looking at the coefficient estimates could be daunting. An easier and effective way to explore these results is to visually check the activity patterns predicted based on the model itself. Thus, we predict the estimated activity patterns, backtrasform the results in the probability scale, and plot the estimated activity pattern along with the true simulated conditional activity patterns.
 
 ```{r est7}
 # estimated activity pattern
@@ -233,7 +232,7 @@ ggplot(cond_eff, aes(Time, pred)) +
 
 The activity pattern estimated based on a random-only trigonometric GLMM (in blue) resembles very closely the simulated conditional probability (in red). 
 
-In same cases, we can also suspect that site-specific activity patterns present differences in the timing the sites are used the most by our target species. We can explore this hypothesis by adding a random slope to the model. The choice of the structure of the random slope effect is not trivial; we can include only parameters linked to the first cosine term in equation 1 (i.e. first two terms in equation 2), only terms for the second cosine term in equation 2 (i.e. third and forth terms in equation 2) or both. When possible, based on computational time and the information contained in the data, we recommend to include all the terms and allow for the random intercept to vary independently of the random slope. In *GLMMadaptive*, we ensure this independence by using the syntax || when specifying the random effect component of the model. 
+In same cases, we can also suspect that site-specific activity patterns present differences in the timing the sites are used the most by our target species, that is, in timing of activity peaks. We can explore this hypothesis by adding a random slope to the model. The choice of the structure of the random slope effect is not trivial; we can include only parameters linked to the first cosine term in equation 1 (i.e. first two terms in equation 2), only terms for the second cosine term in equation 2 (i.e. third and forth terms in equation 2) or both. When possible, based on computational time and the information contained in the data, we recommend to include all the terms and allow for the random intercept to vary independently of the random slope. In *GLMMadaptive*, we ensure this independence by using the syntax || when specifying the random effect component of the model. 
 
 ```{r est8, cache=TRUE, cache.path="cache/"}
 # run model
@@ -302,11 +301,9 @@ The estimated activity curve closely matches the true activity that was used to 
 
 ## Cyclic cubic spline GLMMs
 
-In this section, we illustrate how hierarchical cyclic cubic spline GLMMs can be used to explore activity patterns. Generalized Additive Mixed Models (GAMMs), of which cyclic cubic spline GLMMs are a special case, are complex functions that allow analysts to model non-linear relationship. These models are highly flexible - often computationally intensive for large datasets - and can be used to model a wide array of model structures and related hypotheses. This high flexibility can make these models intimidating at first. A complete review of the different proprieties of these models is beyond the scope of this work (but see (@Pederson2019) and @Wood2017). Here, we present a selection of model structures that, in our opinion, are the most useful when addressing the most common ecological questions related to activity patterns.
+In this section, we illustrate how cyclic cubic spline Hierarchical Generalized Additive Models (HGAMs) can be used to explore activity patterns. HGAMs, of which cyclic cubic spline HMs are a special case, are complex functions that allow analysts to model non-linear relationship. These models are highly flexible, often computationally intensive for large datasets, and can be used to model a wide array of model structures and related hypotheses. This high flexibility can make these models intimidating at first. A complete review of the different proprieties of these models is beyond the scope of this work (but see @Pedersen2019 and @Wood2017). Here, we present two model structures that, in our opinion, are useful when addressing the most common ecological questions related to activity patterns.
 
-We fit a hierarchical cyclic cubic spline GLMM using the *bam* function in package *mgcv* [@Wood2017]. We start with a model that resemble a trigonometric random intercept-only model. We use the argument $bs="re"$ in the smooth $s(Site, bs="re")$ to specifies _Site_ as a random intercept. We also have a cyclic cubic smooth for _Time_. As before, we run the model, predict the estimated activity pattern using the *predict.bam* function available in the *mgcv* package (Wood 2017), and visually compare it with the simulated conditional mean activity pattern. 
-
-### SHOULD TIME BE CODED AS FACTOR?
+We fit a hierarchical cyclic cubic spline HM using the *bam* function in package *mgcv* [@Wood2017]. We start with a model that resembles a trigonometric random intercept-only model. We use the argument $bs="re"$ in the smoother $s(Site, bs="re")$ to specify _Site_ as a random intercept. We also have a cyclic cubic smoother for _Time_. As before, we run the model, predict the estimated activity pattern using the *predict.bam* function available in the *mgcv* package (Wood 2017), and visually compare it with the simulated conditional mean activity pattern. 
 
 ```{r est10}
 # run model
@@ -359,7 +356,7 @@ ggplot(cond_eff, aes(Time, pred)) +
 
 This model corresponds, in general terms, to the trigonometric random intercept-only model we ran earlier and similarly accommodate only for variability in the frequency of site use. The model captures the general shape of the simulated activity curves, but the mean activity estimated for the first peak is quite low compared to the simulated pattern. 
 
-We can add complexity to this model and include a random slope component that allows the site-specific estimates to vary also in the timing of peak activity. In *mgcv*, there is no need to explicitly force the independence between the random intercept and the random slope (as done before for the trigonometric-based model) because there is no covariance term between two random effects.
+We can add complexity and include a smoother that shrinks the site-specific esitmates toward a common smooth. This model structure resembles the random slope component in trigonometric random intercept and random slope models and allows the site-specific estimates to vary also in the timing of peak activity. In *mgcv*, there is no need to explicitly force the independence between the random intercept and the random slope (as done before for the trigonometric HMs) because there is no covariance term between two random effects.
 
 ```{r est11, cache=TRUE, cache.path="cache/"}
 
@@ -414,14 +411,3 @@ ggplot(cond_eff, aes(Time, pred)) +
 ```
 
 Adding a component that allows for variability in timing of peak activity seems to improve the model fit and provide an estimated activity pattern that more closely resembles the one used to simulated the data. 
-
-
-
-
-
-
-
-
-
-
-
