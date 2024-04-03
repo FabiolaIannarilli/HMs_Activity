@@ -1,0 +1,121 @@
+# Appendix {#app}
+
+## The *sim_activity* function
+Throughout the tutorial we use the *sim_activity* function for simulating activity patterns. This function simulate realized activity patterns based on a 'true' activity pattern distribution density build as specific in equation 1 reported in section \@ref(var) and introduced in the main text. The arguments of the function specify the following:
+
+*  M: Numeric. Number of sampling units (e.g. sites).
+*  J: Numeric. Number of cycles (e.g. days).
+*  wavelength: Numeric. Length of a period (i.e. distance between identical points in a trigonometric function)
+*  b0: Numeric. Intercept.
+*  b0_constant: Logic. If TRUE (default), b0 is held constant; otherwise time-varying.
+*  tau_constant: Logic. If TRUE (default), random intercept is equal to 0 and there is no variability in use among sampling units
+*  sdtau: Numeric. Only if \code{tau_constant} = FALSE. Random intercept describing variability in use among sampling units coded as a Normal distribution N(0,sdtau).
+*  b1: Numeric. Wave amplitude of first cosinusoidal curve.
+*  b2: Numeric. Wave amplitude of second cosinusoidal curve.
+*  theta0: Numeric. Curve-specific phaseshift for the first cosinusoidal curve.
+*  theta1: Numeric. Curve-specific phaseshift for the second cosinusoidal curve.
+*  n_peak: Numeric. Number of peak in activity during a period - a day - (e.g. unimodal = 1, bimodal = 2). Must be a positive integer.
+*  phaseshift_constant: Logic. Should all the sites have a peak at the same time? (Default = TRUE).
+*  sd_phaseshift: Numeric. Variability in timing of peak actvity among sites  (i.e. standard deviation of the phaseshift in the sinusoidal curve that determines an horizonthal shift).
+*  n_sim: Numeric. Number of datasets of realized detections to create.
+*  plot_true_act: Logic. If TRUE (default), a plot of the conditional and marginal means probability of activity by occasion is returned.
+
+When the goal is simulating diel activity patterns, \code{wavelength} can be specified either as number of hours (i.e. \code{wavelength} = 24) or number of minutes (i.e. \code{wavelength} = 1440) in the diel cycle. When \code{b2} = 0, the function will return a curve governed only by the first cosine term, and thus a curve with a unimodal pattern (the frequency of the first cosine term is set to 24). 
+```{r app1}
+# Load function
+source("source_functions/sim_activity.R")
+
+# Set equations' parameters
+M = 100
+J = 30
+wavelength = 24
+n_peak = 2
+b0 = -3
+b1 = 1 
+b2 = 0
+theta0 = 3
+theta1 = 2 
+sd_tau = 1
+sd_gamma = 0.3
+time <- seq(0, 23, length.out = 100)
+
+# simulate data
+dat <- sim_activity(M = M, 
+                     J = J, 
+                     wavelength = wavelength, 
+                     n_peak = n_peak, 
+                     n_sim = 1, 
+                     b0 = b0, 
+                     b0_constant = TRUE, # common intercept
+                     tau_constant = FALSE, 
+                     sdtau = sd_tau, # ~site-specific intercept
+                     b1 = b1, 
+                     b2 = b2, # amplitude of the cosine terms 
+                     theta0 = theta0, 
+                     theta1 = theta1, # common phaseshifts for the cosine terms
+                     phaseshift_constant = FALSE, 
+                     sd_phaseshift = sd_gamma, # site-specific phaseshift (equal for both cosine terms)
+                     plot_true_act = TRUE)
+
+```
+
+
+When \code{b2} differs from zero, the function returns a bimodal pattern. The presence of two cosine terms allows us to simulate curves with the two peaks having different heights and, thus, resembling real activity patterns.
+
+```{r app2}
+# Set equations' parameters (all others as used before)
+n_peak = 2
+b1 = 0.2
+b2 = 0.6
+theta0 = 1
+theta1 = 2 
+
+# simulate data
+dat <- sim_activity(M = M, 
+                     J = J, 
+                     wavelength = wavelength, 
+                     n_peak = n_peak, 
+                     n_sim = 1, 
+                     b0 = b0, 
+                     b0_constant = TRUE, # common intercept
+                     tau_constant = FALSE, 
+                     sdtau = sd_tau, # ~site-specific intercept
+                     b1 = b1, 
+                     b2 = b2, # amplitude of the cosine terms 
+                     theta0 = theta0, 
+                     theta1 = theta1, # common phaseshifts for the cosine terms
+                     phaseshift_constant = FALSE, 
+                     sd_phaseshift = sd_gamma, # site-specific phaseshift (equal for both cosine terms)
+                     plot_true_act = TRUE)
+
+```
+
+Activity patterns having the two peaks to be of the same height can be simulated setting \code{b1} = 0, \code{n_peak} = 2, and \code{b2} other than zero. This silence the first cosine term that has a frequency of 24 and impose a frequency of 12 on the second cosine term. 
+
+```{r app3}
+# Set equations' parameters (all others as used before)
+n_peak = 2
+b1 = 0 
+b2 = 3
+theta0 = 2
+theta1 = 2 
+
+# simulate data
+dat <- sim_activity(M = M, 
+                     J = J, 
+                     wavelength = wavelength, 
+                     n_peak = n_peak, 
+                     n_sim = 1, 
+                     b0 = b0, 
+                     b0_constant = TRUE, # common intercept
+                     tau_constant = FALSE, 
+                     sdtau = sd_tau, # ~site-specific intercept
+                     b1 = b1, 
+                     b2 = b2, # amplitude of the cosine terms 
+                     theta0 = theta0, 
+                     theta1 = theta1, # common phaseshifts for the cosine terms
+                     phaseshift_constant = FALSE, 
+                     sd_phaseshift = sd_gamma, # site-specific phaseshift (equal for both cosine terms)
+                     plot_true_act = TRUE)
+
+```
