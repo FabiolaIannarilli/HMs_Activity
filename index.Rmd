@@ -3,8 +3,10 @@ title: "A “How to” guide on estimating Activity Patterns from Camera-Trap Da
 author: 
   - name: "Fabiola Iannarilli"
     email: fabiola.iannarilli@gmail.com
-    affiliation: Department of Fisheries, Wildlife and Conservation Biology, St. Paul, Minnesota, USA
+    affiliation: Department of Fisheries, Wildlife and Conservation Biology, St. Paul, Minnesota, USA; Max Planck Institute of Animal Behavior, Konstanz, Germany 
     correspondence: true
+  - name: "Brian Gerber"
+    affiliation:  USGS, Colorado Cooperative Fish and Wildlife Research Unit, Colorado State University, Fort Collins, Colorado, USA
   - name: "John Erb"
     affiliation:  Minnesota Department of Natural Resources, Grand Rapids, Minnesota, USA
   - name: "John R Fieberg"
