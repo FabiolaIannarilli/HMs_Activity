@@ -1,11 +1,11 @@
-# Unimodal versus binomial activity {#unibim}
+# Evaluating Hypotheses on the Shape of Activity Curves {#unibim}
 
-In this first example based on real data, we illustrate how trigonometric GLMMs can be used to describe different structures of diel activity patterns. Contrary to trigonometric GLMMs, cyclic cubic spline GLMMs cannot easily be constrain to accommodate a specific shape of the resulting activity pattern. Thus, if the interest is in determining which general shape of the activity curve that best describe the data collected we recommend to rely on trigonometric GLMMs, as illustrated here.
+In this first example based on real data, we illustrate how trigonometric HMs can be used to describe different structures of diel activity patterns. Contrary to trigonometric HMs, cyclic cubic spline GLMMs cannot easily be constrain to accommodate a specific shape of the resulting activity pattern. Thus, when the interest is in determining which general shape of the activity curve best describes the data collected, we recommend to rely on trigonometric HMs, as illustrated here.
 
 Traditionally, diel activity patterns are usually classified as:
 
 * **unimodal**: the species is mostly active during a restricted portion of the 24-hour cycle, and not (or almost not) active in the remaining time. The activity pattern curve is characterized by only one peak, and it is typical of species that are either diurnal or nocturnal.
-* **bimodal**: the species is mostly active during two specific times of 24-hour cycle, often corresponding to sunrise and sunset (i.e., crepuscular species), and inactive (or mostly inactive) during the rest of the time. The activity pattern curve is characterized by having two peaks.
+* **bimodal**: the species is mostly active during two specific times of 24-hour cycle, often corresponding to sunrise and sunset (i.e. crepuscular species) and inactive (or mostly inactive) during the rest of the time. The activity pattern curve is characterized by having two peaks.
 * **cathemeral**: the species is equally active throughout the 24-hour cycle and the activity pattern curve approximates a flat line.
 
 Here, we build and compare model structures that represent these three different diel activity patterns. We use independent camera-trap records of coyotes (*Canis latrans*) collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021], with the data organized as described in the previous section \@ref(dataprep). 
@@ -18,7 +18,7 @@ library(GLMMadaptive)
 library(lmtest)
 
 # Load data: Coyote 
-dat <- read.csv("data_input/species_records.csv", as.is = TRUE) %>% 
+dat <- read.csv("data_input/species_records.csv") %>% 
   filter(Species == "Coyote") %>% droplevels %>%  
   mutate(DateTimeOriginal = ymd_hms(DateTimeOriginal))
 cov <- read.csv("data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv", as.is = TRUE) %>% 
@@ -27,26 +27,6 @@ cov <- read.csv("data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv", 
          Date_retr = mdy(Date_retr),
          Problem1_from = mdy(Problem1_from),
          Problem1_to = mdy(Problem1_to)) 
-
-# Set the threshold that define independence independence between subsequent records
-independence_interval <- 30 #minutes
-
-#' Aggregate data (30-minute threshold based on lorelogram results for camera-trap sampling design paper)
-dat_event <- dat %>% 
-  mutate(DateTimeOriginal = ymd_hms(DateTimeOriginal)) %>% 
-  group_by(Species, Station) %>%      # group by species and location
-  arrange(DateTimeOriginal, .by_group = TRUE) %>% # arrange record temporally within each group
-  mutate(timediff = as.numeric(difftime(DateTimeOriginal, lag(DateTimeOriginal), units="mins")), # calculate time difference (in minutes) between consecutive events
-         timediff = replace_na(timediff, 0),
-         grp = ifelse(timediff >= independence_interval, 1, 0), # create events
-         grp_ind = cumsum(grp) + 1) # assign a group number to each event
-
-# group by camera site and event group
-# summarize: calculate median time for each event
-dat_event <- dat_event %>%
-  group_by(Species, Station, grp_ind) %>%
-  slice(1) %>% 
-  select("Station", "Species", "DateTimeOriginal", "Date", "Time", "Session")
 
 # Merge time of deployment and retrieval + problems
 #site <- left_join(site, cov, by = c("Session" = "Session", "Station" = "Site"))
@@ -90,7 +70,7 @@ head(occasions_cbind)
 
 ```
 
-We start by fitting a model that describes a *unimodal* activity pattern. This structure includes only the first of the two cosine terms in equation 1 (which translates in the first and second terms of equation 2), and random intercept and slope as described in section \@ref(est).   
+We start by fitting a model that describes a *unimodal* activity pattern. This structure includes only the first of the two cosine terms in equation 1 (which translates in the first and second terms of equation 2), and a random intercept and a random slope as described in section \@ref(est).   
 
 ``` {r univsbim2}
 # Unimodal 
@@ -126,7 +106,7 @@ null_mod <- mixed_model(fixed = cbind(success, failure) ~ 1,
 summary(null_mod)
 ```
 
-We can now proceed to compare the different modul structures and associated hypotheses. We can do this using the Akaike Information Criterion (AIC; @AIC).
+We can now proceed to compare the different model structures and associated hypotheses. We can do this using the Akaike Information Criterion (AIC; @AIC).
 
 ``` {r univsbim5}
 # AIC comparison
@@ -134,11 +114,10 @@ AIC(null_mod, unimodal, bimodal)
 
 ```
 
-We can also compare the models using a Likelihood Ratio Test.
+We can also compare the models using a Likelihood Ratio Test (LRT).
 
 ``` {r univsbim6}
 lrtest(null_mod, unimodal, bimodal)
-lrtest(unimodal, bimodal)
 ```
 
 Both comparisons show that the bimodal is the most supported model among those compared. We can, thus, conclude that coyotes have a bimodal activity pattern.
@@ -159,10 +138,10 @@ predict_cathemeral <- effectPlotData(null_mod, newdat, marginal = FALSE) %>%
 
 # join and plot results
 rbind(predict_unimodal, predict_bimodal, predict_cathemeral) %>% 
-  ggplot(., aes(x = Time, y = pred, group = Model, color = Model, fill = Model)) +
+  ggplot(., aes(x = Time, y = plogis(pred), group = Model, color = Model, fill = Model)) +
   geom_line() +
-  geom_ribbon(aes(ymin = low, ymax = upp), alpha = 0.3) +
-  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "Estimated Activity Patterns")+
+  geom_ribbon(aes(ymin = plogis(low), ymax = plogis(upp)), alpha = 0.3) +
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)")+
   #coord_cartesian(ylim = c(0, 0.005)) +
   theme_minimal()+
   theme(legend.position = "bottom",
@@ -170,7 +149,7 @@ rbind(predict_unimodal, predict_bimodal, predict_cathemeral) %>%
         legend.text = element_text(size=10,face="bold"),
         legend.margin=margin(0,0,0,0),
         legend.box.margin=margin(-5,-10,-10,-10),
-        plot.title = element_text(size=10,face="bold"),
+        plot.title = element_blank(),
         axis.line = element_line(colour = 'black', linetype = 'solid'),
         axis.ticks = element_line(colour = 'black', linetype = 'solid'),
         axis.title = element_text(size=9,face="bold"),
@@ -184,4 +163,4 @@ rbind(predict_unimodal, predict_bimodal, predict_cathemeral) %>%
 
 ```
 
-We can test other hypotheses related to the shape of the activity pattern curve for our target species (e.g. three or more peaks in the activity pattern) by simply adding additional cosine terms to the model structure and than comparing the different structures using AIC or a Likelihood Ratio Test. However, going beyond two peaks might be computationally intense, especially when a random slope is included. In these cases, an option would be to reduce model complexity by only including a random intercept.
+We can test other hypotheses related to the shape of the activity pattern curve for our target species (e.g. three or more peaks in the activity pattern) by simply adding additional cosine terms to the model structure and than comparing the different structures using AIC or LRT. However, going beyond two peaks might be computationally intense, especially when a random slope is included. In these cases, an option would be to reduce model complexity by only including a random intercept.
