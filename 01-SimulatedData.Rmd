@@ -38,18 +38,18 @@ time <- seq(0, 23, length.out = 100)
 
 ## Variability in frequency of site-use
 
-To create examples of *variability in frequency of site-use*, we keep all the parameters constant (with $\gamma_i = 0$) except for $\tau_i$, which varies from -1.5 to 1.5 in increments of 0.5. For illustrative purposes, we assign these predefined values to $\tau_i$, instead of drawing random values from the distribution $N(0,\sigma_\tau)$. We create the curves in logit scale but trasform them in the probability scale, for easiness in interpretation. We also include code to calculate conditional and marginal mean activity curves (red and black curves in the following plots); we cover this aspect in detail in section \@ref(condvsmarg) and in Box 1 in the main text. Here, we briefly say that the conditional mean curve describes the activity pattern at a typical site, whereas the marginal mean curve describes the population-average mean, the activity patterns averaged across all the sites.  
+To create examples of *variability in frequency of site-use*, we keep all the parameters constant (with $\gamma_i = 0$) except for $\tau_i$, which varies from -1.5 to 1.5 in increments of 0.5. For illustrative purposes, we assign these predefined values to $\tau_i$, instead of drawing random values from the distribution $N(0,\sigma_\tau)$. We create the curves in logit scale but trasform them in the probability scale, for easiness in interpretation. We also include code to calculate conditional and marginal mean activity curves (red and black curves in the following plots); we cover this aspect in detail in section \@ref(condvsmarg) and in Box 1 in the main text. Here, we briefly say that the conditional mean curve describes the activity pattern at a typical site and is obtained by setting all the random effects equal to zero (i.e. setting $\tau_i = 0$ and $\gamma_i = 0$ in equation 1), whereas the marginal mean curve describes the population-average mean and can be calculated by integrating the activity patterns across a range of simulated the sites.  
 
 ```{r sim2}
 # create the curves
 p_df <- data.frame(p = c(
-  boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[1]),
-  boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[2]),
-  boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[3]),
-  boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[4]),
-  boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[5]),
-  boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[6]),
-  boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[7])
+  plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[1]),
+  plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[2]),
+  plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[3]),
+  plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[4]),
+  plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[5]),
+  plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[6]),
+  plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[7])
 ), time = rep(time, 7), 
 mean = c(rep(rep("off", length(time)),3), rep("on", length(time)), rep(rep("off", length(time)),3)),
 curvesID = as.factor(rep(1:7, each = length(time))),
@@ -98,13 +98,13 @@ To create examples of *variability in timing of activity peak*, we set the rando
 ```{r sim3}
 # create the curves
 p_df <- data.frame(p = c(
-  boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[1]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[1]) + tau_i[4]),
-  boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[2]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[2]) + tau_i[4]),
-  boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[3]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[3]) + tau_i[4]),
-  boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[4]) + tau_i[4]),
-  boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[5]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[5]) + tau_i[4]),
-  boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[6]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[6]) + tau_i[4]),
-  boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[7]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[7]) + tau_i[4])
+  plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[1]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[1]) + tau_i[4]),
+  plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[2]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[2]) + tau_i[4]),
+  plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[3]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[3]) + tau_i[4]),
+  plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[4]) + tau_i[4]),
+  plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[5]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[5]) + tau_i[4]),
+  plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[6]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[6]) + tau_i[4]),
+  plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[7]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[7]) + tau_i[4])
 ), time = rep(time, 7), 
 mean = c(rep(rep("off", length(time)),3), rep("on", length(time)), rep(rep("off", length(time)),3)),
 curvesID = as.factor(rep(1:7, each = length(time))),
@@ -159,13 +159,13 @@ b2 = 0
 # change in frequency of site-use
 # create the curves
 p_df <- data.frame(p = c(
-  boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[1]),
-  boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[2]),
-  boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[3]),
-  boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[4]),
-  boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[5]),
-  boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[6]),
-  boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[7])
+  plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[1]),
+  plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[2]),
+  plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[3]),
+  plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[4]),
+  plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[5]),
+  plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[6]),
+  plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+theta0 + gamma_i[4]) + tau_i[7])
 ), time = rep(time, 7), 
 mean = c(rep(rep("off", length(time)),3), rep("on", length(time)), rep(rep("off", length(time)),3)),
 curvesID = as.factor(rep(1:7, each = length(time))),
@@ -205,13 +205,13 @@ pl_vert_uni <- ggplot(p_df, aes(x = time, y = p, group = curvesID)) +
 # change in timing of activity peak
 # creating the curves
 p_df <- data.frame(p = c(
-  boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[1]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[1]) + tau_i[4]),
-  boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[2]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[2]) + tau_i[4]),
-  boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[3]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[3]) + tau_i[4]),
-  boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[4]) + tau_i[4]),
-  boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[5]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[5]) + tau_i[4]),
-  boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[6]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[6]) + tau_i[4]),
-  boot::inv.logit(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[7]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[7]) + tau_i[4])
+  plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[1]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[1]) + tau_i[4]),
+  plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[2]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[2]) + tau_i[4]),
+  plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[3]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[3]) + tau_i[4]),
+  plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[4]) + tau_i[4]),
+  plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[5]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[5]) + tau_i[4]),
+  plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[6]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[6]) + tau_i[4]),
+  plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[7]) + b2*cos(2*pi*time/(12)+ theta1 + gamma_i[7]) + tau_i[4])
 ), time = rep(time, 7), 
 mean = c(rep(rep("off", length(time)),3), rep("on", length(time)), rep(rep("off", length(time)),3)),
 curvesID = as.factor(rep(1:7, each = length(time))),
