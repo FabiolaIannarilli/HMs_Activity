@@ -4,19 +4,22 @@ editor_options:
     wrap: 72
 ---
 
-# Comparison among KDE estimators {#kdes}
+# Kernel Density Estimators (KDEs) {#kdes}
 
-Kernel Density Estimators are currently the main approach to estimate activity patterns from camera-trap data. At the time of writing, we are aware of three packages available in R to estimate activity patterns based on the KDE approach. The three packages return similar estimates of activity, with some differences. The *overlap* package [@RidoutLinkie2009; @R-overlap] converts estimates so that the area under the curve is equal to one. The *activity* package [@Rowcliffeea2014; @activity2022] has the additional option to estimate 95% confidence intervals using bootstrap approaches; the main function implemented in this package, named _activity::fitact_, has also an argument to correct for differences in detection probability (e.g., between day and night) while the function _activity::solartime_ enable double-anchoring procedures to adjust the timestamp associated with the different records based on sunrise and sunset times (see [@Vazquezea2019] for details). Finally, the *circular* package [@circular2022; @Oliveira-Santosea2013] can identify periods of higher levels of activity using an isopleth approach similar to that applied in the analysis of telemetry data to identify core areas in home-range estimates.
+Kernel Density Estimators are currently the main approach to estimate activity patterns from camera-trap data. At the time of writing, we are aware of three packages available in R to estimate activity patterns based on the KDEs approach: *overlap* [@RidoutLinkie2009; @R-overlap]; *activity* package [@Rowcliffeea2014; @activity2022]; *circular* package [@circular2022; @Oliveira-Santosea2013]. 
 
-In this chapter, we illustrate how to estimate activity patterns based on KDEs using these three packages. In chapter \@ref(dataaggr), we show the consequences of not aggregating data when estimating activity patterns. As an example, we use the subset of the camera-trap data of American black bears collected in northern-Minnesota between mid-May and mid-July 2017 @Iannarilliea2021.
+In this section, we illustrate how to estimate activity patterns based on KDEs using these three packages and show the consequences of not aggregating data when using KDEs. We also compare a KDE-based estimate with results obtained based on model-based approaches for the analysis of seasonal activity patterns of black bears presented in \@ref(cat). 
 
-## Data preparation
-We start by loading the three R libraries listed above along with other packages necessary to wrangling the data. We also load the data itself and show a preview of what the data look like.
 
-```{r kde1, message = FALSE, warnings = FALSE}
+## Data preparation for KDEs {#dataprepkdes}
+
+In section \@ref(dataprep), we introduce the concept of data aggregation, that is, grouping images of a species taken at a certain location within a short time frame in an independent encounter event. This process reduces short-term correlation in the data and it is often recommended as a preparatory step before applying KDEs (but see @Peral2022 for a different point of view on this subject). We, thus, start our KDE-based analysis by aggregating our data from a raw format to independent encounter events.  
+
+We load the three R libraries listed above along with other packages necessary to wrangling the data. We also load the data itself and show a preview of what the data look like. In this first part of the section on KDEs, we use the subset of the camera-trap data of American black bears collected in northern-Minnesota between mid-May and mid-July 2017 @Iannarilliea2021.
+
+```{r prepkde1, message = FALSE, warnings = FALSE}
 # Load libraries
 library(tidyverse)
-library(tictoc)
 library(ggpubr)
 library(gridExtra)
 library(grid)
@@ -34,10 +37,11 @@ head(dat)
 
 ```
 
+The choice of how close in time two records have to be to belong to the same encounter event is not trivial. Here, we use a threshold of 30 minutes. This value is based on previous results obtained using the lorelogram approach applied to the same dataset ([@Iannarilliea2021; @Iannarilliea2019]). 
 
-We aggregate the data as described in section \@ref(dataprep).
+We set the correct date-time format for the column specifying when each picture was taken (_DateTimeOriginal_), group the records based on species and camera-trap site (_Station_), order the data within each group, and calculate the time difference (in minutes) between each record and the previous. When calculating these differences, NAs are assigned to the first record collected for a certain species at each location (there are no previous records in these cases). We replace those NAs with zeros, then proceed to assign a unique numeric identifier to each event. The next bit of code extract the date-time information of the first record of each group (alternatively, it is possible, for example, to calculate the median time of the records belonging to a certain event) and retain only the columns of interest.
 
-```{r kde2}
+```{r prepkde2}
 # Set the threshold that define independence independence between subsequent records
 independence_interval <- 30 #minutes
 
@@ -52,14 +56,46 @@ dat_event <- dat %>%
          grp_ind = cumsum(grp) + 1) # assign a group number to each event
 
 # group by camera site and event group
-# summarize: calculate median time for each event
+# summarize: consider time of first image as time of the independent event
 dat_event <- dat_event %>%
   group_by(Species, Station, grp_ind) %>%
   slice(1) %>% 
   select("Station", "Species", "DateTimeOriginal", "Date", "Time", "Session")
+head(dat_event)
+
+# alternative code
+# summarize: calculate median time for each event
+# dat_event2 <- dat_event %>%
+#  group_by(Species, Station, grp_ind) %>%
+#  summarise(median_time = median(DateTimeOriginal),
+#            photo_date = Date[1])
+```
+We can visually compare the data before and after aggregation.  
+
+```{r prepkde3, fig.cap='Numbers of records at each camera site before and after aggregating the data to reduce short-term autocorrelation', out.width='80%', fig.asp=.75, fig.align='center'}
+# Plot number of records by camera trap station before and after data aggregation
+dat_summary <- dat %>% 
+  group_by(Station) %>% 
+  summarize(n_records = n()) %>% 
+  mutate(Aggregation = "Before")
+dat_event_summary <- dat_event %>% 
+  group_by(Station) %>% 
+  summarize(n_records = n()) %>% 
+  mutate(Aggregation = "After")
+
+rbind(dat_summary, dat_event_summary)  %>% 
+  mutate(Aggregation = fct_relevel(Aggregation, "Before")) %>% 
+  ggplot(., aes(x = n_records, y = Station, group = Aggregation)) +
+  geom_col() +
+  labs(y = "Camera trap station", x = " Number of records") +
+  theme_bw() +
+  facet_wrap(~Aggregation, scales = "free_x")
+
 ```
 
-All of the three packages require time values provided as radians. Thus, the next step is trasforming the time values from the HH:MM:SS format to radians. This requires some multiplications. Since there are $2*\pi$ radians in a circle and $60 minutes * 24 hours in a day$, we can estimate minutes in terms of radians by dividing the minutes corresponding to a certain time of the day by the total number of minutes in a day (equal to 60x24) and multiplying the resulting value by $2*\pi$. For simplicity, we do not consider seconds here.
+Comparing the resulting number of records per location with and without data aggregation shows how most of images were taken within less than 30 minutes from a previous image. In the left panel, each record corresponds to an image, whereas, in the right panel, each record corresponds to an independent encounter event. In our specific case, aggregating data also removes duplicates recorded within the same trigger event. We will use the aggregated version of the dataset in the next sections of this tutorial.
+
+All of the three packages require time values provided as radians. Thus, the next step is to trasform the time values from the HH:MM:SS format to radians. This requires some multiplications. Since there are $2 \ times \pi$ radians in a circle and $60 minutes \times 24 hours$ in a day, we can estimate minutes in terms of radians by dividing the minutes corresponding to a certain time of the day by the total number of minutes in a day (equal to $1440 = 60 \times 24$) and multiplying the resulting value by $2 \times \pi$. For simplicity, we do not consider seconds here.
 
 ```{r kde3}
 # Specify the format of the column Time
@@ -70,18 +106,19 @@ dat_event$Time_Rad <- (hour(dat_event$Time)*60 + minute(dat_event$Time))/(60*24)
 
 plot((hour(dat_event$Time)*60 + minute(dat_event$Time)), dat_event$Time_Rad, xlab = "Original Timestamp (in minute in a day)", ylab = "Time in radians")
 ```
-The plot above shows the 1:1 match in time of the records expressed as minutes (x axis) and radians (y axis).
+The plot above shows the match in time of the records expressed as minutes (x axis) and radians (y axis).
 
+ and we can analyze them using the KDEs approach.
 
-## Estimating activity patterns
+## Comparison among KDE estimators {#kdespkg}
 
-We can now proceed to estimating the activity patterns using each of these three packages. We will first run the code for each package and then visually compare the results of all of them.
+Our data are now ready and we can proceed to estimating the activity patterns using each of these three packages available in R. We will first run the code for each package and then visually compare the results of all of them.
 
 ### Using the overlap package
 
-We start from the *overlap* package. To facilitate comparison of estimates based on the other two packages, we explicitly specify the values for the argument *n.grid*, which controls the number of points along the 24 hours cycle (in radians) at which density values are estimated. \_xscale = 24\*60\_ returns the values of these points in minutes, instead of the default radians.
+We start from the *overlap* package [@RidoutLinkie2009; @R-overlap]. To facilitate comparison of estimates based on the other two packages, we explicitly specify the values for the argument *n.grid*, which controls the number of points along the 24 hours cycle (in radians) at which density values are estimated. \text{xscale = 24 \times 60}\ returns the values of these points in minutes, instead of the default radians.
 
-```{r kde4}
+```{r kdespkg1}
 # To avoid plotting
 pdf(file = NULL) 
 
@@ -112,7 +149,7 @@ pl_over <- ggplot(res_over, aes(x=x, y=y, group=Data)) +
         panel.grid.minor.x = element_blank(),
         strip.text = element_text(size = 10, colour = "black", face = "bold")) +
   scale_x_continuous(breaks=seq(0,24*60,60*4), labels=seq(0,24,4), expand = expand_scale(mult = c(0.02,0.02)))+
-  scale_y_continuous(expand = expand_scale(mult = c(0.02, 0.02)))
+  scale_y_continuous(expand = expansion(mult = c(0.02, 0.02)))
 
 # print first rows of the output
 head(res_over)
@@ -121,9 +158,9 @@ head(res_over)
 
 ### Using the activity package
 
-The *fitact* function within the *activity* package allows users to estimates uncertainty (i.e. confidence intervals) around the activity patterns using bootstrap approaches. Following the recommendations available in the function's help-file and based on the number of events available in the dataset, `r nrow(dat_event)`, we resample from the  data (argument *sample = "data"*). Some tricks are needed to store the estimates returned by the *fitact* function in a R object.
+The *fitact* function within the *activity* package [@Rowcliffeea2014; @activity2022] allows users to estimates uncertainty (i.e. confidence intervals) around the activity patterns using bootstrap approaches. Following the recommendations available in the function's help-file and based on the number of events available in the dataset, `r nrow(dat_event)`, we resample from the  data (argument \sample = "data"text{}). Some tricks are needed to store the estimates returned by the *fitact* function in a R object.
 
-```{r kde5}
+```{r kdespkg2}
 # Estimate activity patterns and store values in an object 
 res_acti <- as.data.frame(fitact(dat_event$Time_Rad, reps = 999, sample = "data", show = FALSE)@pdf[,1:3]) %>% 
   mutate(x = x/(2*pi)*24*60, # to bring results back to the minute scale,
@@ -151,7 +188,7 @@ pl_acti <- ggplot(res_acti, aes(x=x, y=y, group=Data)) +
         panel.grid.minor.x = element_blank(),
         strip.text = element_text(size = 10, colour = "black", face = "bold")) +
   scale_x_continuous(breaks=seq(0,24*60,60*4), labels=seq(0,24,4), expand = expand_scale(mult = c(0.02,0.02)))+
-  scale_y_continuous(expand = expand_scale(mult = c(0.02, 0.02)))
+  scale_y_continuous(expand = expansion(mult = c(0.02, 0.02)))
 
 
 # print first rows of the output
@@ -160,9 +197,9 @@ head(res_acti)
 ```
 ### Using the circular package 
 
-We now estimate activity using the *circular* package.
+We now estimate activity using the *circular* package [@circular2022; @Oliveira-Santosea2013].
 
-```{r kde6}
+```{r kdespkg3}
 # prepare the specific format required by circular
 dat_event$Time_Rad_circ <- as.circular(dat_event$Time_Rad, units = "radians",
 template = "none", zero=0, type="angles", modulo = "2pi",
@@ -198,7 +235,6 @@ pl_circ <- ggplot(res_circ, aes(x=x, y=y, group=Data)) +
   theme(legend.position = c(0.25, 0.9),
         axis.line = element_line(colour = 'black', linetype = 'solid'),
         axis.ticks = element_line(colour = 'black', linetype = 'solid'),
-        #axis.title.y = element_blank(),
         axis.text = element_text(size=8),
         axis.title.y = element_text(size=10,face="bold"),
         axis.title.x = element_blank(),
@@ -208,25 +244,410 @@ pl_circ <- ggplot(res_circ, aes(x=x, y=y, group=Data)) +
         panel.grid.minor.x = element_blank(),
         strip.text = element_text(size = 10, colour = "black", face = "bold")) +
   scale_x_continuous(breaks=seq(0,24*60,60*4), labels=seq(0,24,4), expand = expand_scale(mult = c(0.02,0.02)))+
-  scale_y_continuous(expand = expand_scale(mult = c(0.02, 0.02)))
+  scale_y_continuous(expand = expansion(mult = c(0.02, 0.02)))
 
 # print the first few rows of the output
 head(res_circ)
 
 ```
 
-## Comparing the results and plotting
+### Comparing the results and plotting
 
 We now can visually compare the estimates of activity patterns returned by the three packages. 
 
-```{r KDE7, fig.cap='Activity patterns based on Kernel Density Estimates of American black bear camera-trap data collected in northern-Minnesota between mid-May and mid-July 2017. Estimates were obtained using R-package: A) overlap (Ridout and Linkie 2009); B) activity (Rowcliffe et al. 2014); C) circular (Agostinelli and Lund 2017). We removed records less than 30 minutes apart to minimize short-term correlation in detection due to animals lingering in front of the cameras. Lines represent mean estimates. Shaded areas represent 95% confidence intervals in B, and activity range cores (50% isopleth) in C.', out.width='80%', fig.asp=.75, fig.align='center', message = FALSE}
+```{r kdespkg4, fig.cap='Activity patterns based on Kernel Density Estimates of American black bear camera-trap data collected in northern-Minnesota between mid-May and mid-July 2017. Estimates were obtained using R-package: A) overlap (Ridout and Linkie 2009); B) activity (Rowcliffe et al. 2014); C) circular (Agostinelli and Lund 2017). We removed records less than 30 minutes apart to minimize short-term correlation in detection due to animals lingering in front of the cameras. Lines represent mean estimates. Shaded areas represent 95% confidence intervals in B, and activity range cores (50% isopleth) in C.', out.width='80%', fig.asp=.75, fig.align='center', message = FALSE}
 
 # Combine results of the 3 methods
 (pl <- grid.arrange(pl_over, pl_acti, pl_circ, nrow = 1, bottom=textGrob("Time of day (Hour)", gp=gpar(fontsize=10, fontface="bold")),
                     top = textGrob("KDE-based estimates of activity patterns using:",gp=gpar(fontsize=20,font=3))))
+```
+
+The three packages return patterns in activity that match in the timing of peaks and overall shape of the curves. However, there are some differences. The *overlap* package [@RidoutLinkie2009; @R-overlap] converts estimates so that the area under the curve is equal to one. The *activity* package [@Rowcliffeea2014; @activity2022] has the additional option to estimate 95% confidence intervals using bootstrap approaches; the main function implemented in this package, named _activity::fitact_, has also an argument to correct for differences in detection probability (e.g., between day and night) while the function _activity::solartime_ enable double-anchoring procedures to adjust the timestamp associated with the different records based on sunrise and sunset times (see [@Vazquezea2019] for details). Finally, the *circular* package [@circular2022; @Oliveira-Santosea2013] can identify periods of higher levels of activity using an isopleth approach similar to that applied in the analysis of telemetry data to identify core areas in home-range estimates. Notably, the y-axis associated to the estimates produced using *overlap* differs from those returned by the other two packages. These differences are due to an additional step that takes place within the _densityPlot_ function and converts estimates so that the area under the curve is equal to one.
+
+## Aggregating _versus_ non-aggregating data in KDEs {#kdedataaggr}
+
+Building on the previous section \@ref(kdespkg), here, we illustrate the consequences that aggregating or non-aggregating the records has on estimates based on KDEs. We re-run the same code as in \@ref(kdespkg), but using all the original records.
+
+```{r kdedataaggr1, message = FALSE, warnings = FALSE}
+# Specify the format of the column Time
+dat$Time <- hms(dat$Time) 
+
+# Convert time values to radians
+dat$Time_Rad <- (hour(dat$Time)*60 + minute(dat$Time))/(60*24)*2*pi 
+
+# OVERLAP
+# To avoid plotting
+pdf(file = NULL) 
+
+# Estimate activity patterns and store values in an object 
+res_over_NonAggr <- densityPlot(dat$Time_Rad, rug = FALSE, adjust = 1, xscale = 24*60, n.grid = 513, extend = NULL) %>% 
+  mutate(se = NA,
+         Package = "Overlap", 
+         Data = "Non-Aggregated") 
+dev.off()
+
+# ACTIVITY
+# Estimate activity patterns and store values in an object 
+res_acti_NonAggr <- as.data.frame(fitact(dat$Time_Rad, reps = 999, sample = "data", show = FALSE)@pdf[,1:3]) %>% 
+  mutate(x = x/(2*pi)*24*60, # to bring results back to the minute scale,
+         Package = "Activity", 
+         Data = "Non-Aggregated") 
+
+# CIRCULAR
+# prepare the specific format required by circular
+dat$Time_Rad_circ <- as.circular(dat$Time_Rad, units = "radians",
+template = "none", zero=0, type="angles", modulo = "2pi",
+rotation="counter")
+
+# determine bandwidth
+bw1 <- bw.cv.ml.circular(dat$Time_Rad_circ, kernel = "vonmises") 
+
+# estimate activity patterns
+temp1 <- modal.region.circular(dat$Time_Rad_circ, kernel = "vonmises", q = 0.5, adjust = 1, bw = bw1) 
+
+# organize the output in a datafram to match those of the other packages
+res_circ_NonAggr <- data.frame(x=temp1$density$x, 
+                       y=temp1$density$y) %>% 
+                mutate(x = x/(2*pi)*24*60, # to bring results back to the minute scale,
+                       se = NA, 
+                       Package = "Circular", 
+         Data = "Non-Aggregated")
+
+res_area3 <- res_circ_NonAggr %>% filter(x>temp1$zeros[1,1]/(2*pi)*24*60 & x<temp1$zeros[1,2]/(2*pi)*24*60)
+res_area4 <- res_circ_NonAggr %>% filter(x>temp1$zeros[2,1]/(2*pi)*24*60 & x<temp1$zeros[2,2]/(2*pi)*24*60)
 
 
 ```
+We plot the results based on the aggregated and non-aggregated data and visually compare them.
 
-The three packages return patterns in activity that match in the timing of peaks and overall shape of the curves. Notably, the y-axis associated to the estimates produced using *overlap* differs from those returned by the other two packages. These differences are due to an additional step that takes place within the _densityPlot_ function and converts estimates so that the area under the curve is equal to one.
+```{r kdedataaggr2, fig.cap='Activity patterns based on Kernel Density Estimates of American black bear camera-trap data collected in northern-Minnesota between mid-May and mid-July 2017. Estimates were obtained using R-package: A) overlap (Ridout and Linkie 2009); B) activity (Rowcliffe et al. 2014); C) circular (Agostinelli and Lund 2017). Non-aggregated data included all photographic records; in the aggregated data, we removed records less than 30 minutes apart to minimize short-term correlation in detection due to animals lingering in front of the cameras. Lines represent mean estimates. Shaded areas represent 95% confidence intervals in B, and activity range cores (50% isopleth) in C.', out.width='100%', fig.asp=.75, fig.align='center'}
+
+# plot OVERLAP
+# Join results and plot
+res_over_both <- rbind(res_over, res_over_NonAggr) 
+pl_over <- ggplot(res_over_both, aes(x=x, y=y, group=Data)) +
+  geom_line(aes(linetype=Data, color=Data), size=1) +
+  scale_color_manual(values = c("#CC79A7", "#0072B2")) +
+  labs(x = "", y = "Density", title = "A: Overlap pkg") +
+  theme_minimal() +
+  theme(legend.position = "none",
+        legend.background = element_rect(fill = "white", colour = "black"),
+        legend.title = element_text(size=8,face="bold"),
+        axis.line = element_line(colour = 'black', linetype = 'solid'),
+        axis.ticks = element_line(colour = 'black', linetype = 'solid'),
+        #axis.title.y = element_blank(),
+        axis.text = element_text(size=8),
+        axis.title.y = element_text(size=10,face="bold"),
+        axis.title.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', size=0.5),#element_line(colour = 'grey', linetype = 'solid', size=0.5),
+        panel.grid.minor.x = element_blank(),
+        strip.text = element_text(size = 10, colour = "black", face = "bold")) +
+  scale_x_continuous(breaks=seq(0,24*60,60*4), labels=seq(0,24,4), expand = expand_scale(mult = c(0.02,0.02)))+
+  scale_y_continuous(expand = expand_scale(mult = c(0.02, 0.02)))
+
+# plot ACTIVITY
+res_acti_both <- rbind(res_acti, res_acti_NonAggr)
+pl_acti <- ggplot(res_acti_both, aes(x=x, y=y, group=Data)) +
+  geom_ribbon(aes(ymin=y-1.96*se, ymax=y+1.96*se, color=Data, fill=Data), alpha=0.3) +
+  geom_line(aes(linetype=Data, color=Data), size=1) +
+  scale_color_manual(values = c("#CC79A7", "#0072B2")) +
+  scale_fill_manual(values = c("#CC79A7", "#0072B2")) +
+  labs(x = "", y = "Activity density", title = "B: Activity pkg") +
+  coord_cartesian(ylim = c(0,0.4)) +
+  theme_minimal() +
+  theme(legend.position = "none",
+        axis.line = element_line(colour = 'black', linetype = 'solid'),
+        axis.ticks = element_line(colour = 'black', linetype = 'solid'),
+        #axis.title.y = element_blank(),
+        axis.text = element_text(size=8),
+        axis.title.y = element_text(size=10,face="bold"),
+        axis.title.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', size=0.5),#element_line(colour = 'grey', linetype = 'solid', size=0.5),
+        panel.grid.minor.x = element_blank(),
+        strip.text = element_text(size = 10, colour = "black", face = "bold")) +
+  scale_x_continuous(breaks=seq(0,24*60,60*4), labels=seq(0,24,4), expand = expand_scale(mult = c(0.02,0.02)))+
+  scale_y_continuous(expand = expand_scale(mult = c(0.02, 0.02)))
+
+# plot CIRCULAR
+res_circ_both <- rbind(res_circ, res_circ_NonAggr) 
+pl_circ <- ggplot(res_circ_both, aes(x=x, y=y, group=Data)) +
+  geom_line(aes(linetype=Data, color=Data), size=1) +
+  geom_area(data=res_area1, aes(x=x, y=y), col="#CC79A7", fill="#CC79A7", alpha=0.3) +
+  geom_area(data=res_area2, aes(x=x, y=y), col="#CC79A7", fill="#CC79A7", alpha=0.3) +
+  geom_area(data=res_area3, aes(x=x, y=y), col="#0072B2", fill="#0072B2", alpha=0.3) +
+  geom_area(data=res_area4, aes(x=x, y=y), col="#0072B2", fill="#0072B2", alpha=0.3) +
+  scale_color_manual(values = c("#CC79A7", "#0072B2")) +
+  labs(x = "", y = "Kernel Density Estimate", title = "C: Circular pkg") +
+  coord_cartesian(ylim = c(0,0.4)) +
+  theme_minimal() +
+  theme(legend.position = c(0.25, 0.9),
+        axis.line = element_line(colour = 'black', linetype = 'solid'),
+        axis.ticks = element_line(colour = 'black', linetype = 'solid'),
+        #axis.title.y = element_blank(),
+        axis.text = element_text(size=8),
+        axis.title.y = element_text(size=10,face="bold"),
+        axis.title.x = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', size=0.5),#element_line(colour = 'grey', linetype = 'solid', size=0.5),
+        panel.grid.minor.x = element_blank(),
+        strip.text = element_text(size = 10, colour = "black", face = "bold")) +
+  scale_x_continuous(breaks=seq(0,24*60,60*4), labels=seq(0,24,4), expand = expand_scale(mult = c(0.02,0.02)))+
+  scale_y_continuous(expand = expand_scale(mult = c(0.02, 0.02)))
+
+#' Combine results of the 3 methods
+(pl_both <- grid.arrange(pl_over, pl_acti, pl_circ, nrow = 1, bottom=textGrob("Time of day (Hour)", gp=gpar(fontsize=10, fontface="bold")),
+                    top = textGrob("KDE-based estimates of activity patterns using:",gp=gpar(fontsize=20,font=3))))
+```
+
+This comparison shows that non-aggregating the data leads to KDE estimates of activity curves that are extremely wiggly. This could make the interpretation of the results particularly challenging and even lead to biased conclusions when results are driven by one or two individuals staying in front of a camera for an extensive amount of time (but see @Peralea2022 for a different perspective on this topic).
+
+## KDEs _versus_ HMs approaches {#compkde}
+
+In section \@ref(cat), we use the seasonal activity patterns of black bears as an example of exploring the effect of a categorical covariate on activity patterns. We repeat the same analysis here using KDEs and compare the results with the two HM approaches. We again use the full set of black bear camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021]. However, we re-run the HM-based analysis using the aggregated version of the dataset, to facilitate comparison with KDE-based results. 
+
+```{r compkde1, message = FALSE, warnings = FALSE}
+# Load additional Libraries
+library(GLMMadaptive)
+library(mgcv)
+
+# Load data
+dat <- read.csv("data_input/species_records.csv") %>% 
+  filter(Species == "BlackBear") %>% droplevels() %>% 
+  mutate(DateTimeOriginal = ymd_hms(DateTimeOriginal))
+cov <- read.csv("data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv", as.is = TRUE) %>% 
+  select(c(Session, Site, Date_setup, Date_retr, Problem1_from, Problem1_to, Xcoords, Ycoords)) %>% 
+  mutate(Date_setup = mdy(Date_setup),
+         Date_retr = mdy(Date_retr),
+         Problem1_from = mdy(Problem1_from),
+         Problem1_to = mdy(Problem1_to)) 
+
+# Extract Season information from Session column
+dat$Season <- as.factor(substr(dat$Session, 1, 1))
+
+# Aggregate data to reduce short-term temporal dependence
+independence_interval <- 30 # minutes
+dat <- dat %>% 
+  #mutate(DateTimeOriginal = ymd_hms(DateTimeOriginal)) %>% 
+  group_by(Species, Station, Season) %>%      # group by species, location, and season (to retain information in the dataset)
+  arrange(DateTimeOriginal, .by_group = TRUE) %>% # arrange record temporally within each group
+  mutate(timediff = as.numeric(difftime(DateTimeOriginal, lag(DateTimeOriginal), units="mins")), # calculate time difference (in minutes) between consecutive events
+         timediff = replace_na(timediff, 0),
+         grp = ifelse(timediff >= independence_interval, 1, 0), # create events
+         grp_ind = cumsum(grp) + 1) # assign a group number to each event
+
+# group by camera site and event group
+# summarize: consider time of first image as time of the independent event
+dat <- dat %>%
+  group_by(Species, Station, Season, grp_ind) %>%
+  slice(1) %>% 
+  select("Station", "Species", "DateTimeOriginal", "Date", "Time", "Session")
+table(dat$Season)
+
+# Merge time of deployment and retrieval + problems
+site <- cov
+site$end <- ymd("2000-01-01")
+for(i in 1:nrow(site)){
+  site$end[i] <-  min(site$Date_retr[i], site$Problem1_from[i], na.rm = TRUE)
+}
+
+# Create dataframe to store captures 
+occasions <- vector("list", length = nrow(site))
+for(i in 1:nrow(site)){
+  occasions[[i]] <- data.frame(Session = site$Session[i],
+                               Site = site$Site[i],
+                               start = seq(from = ymd_hms(paste(site$Date_setup[i], "00:00:00", sep = " ")), 
+                                           to = ymd_hms(paste(site$end[i], "23:59:59", sep = " ")), by = '60 min')) %>% 
+    mutate(end = c(start[2:length(start)], start[length(start)]+minutes(60))) 
+}
+occasions <- do.call(rbind.data.frame, occasions)
+occasions$capt <- 0
+
+# Store captures
+for(i in 1:nrow(dat)){
+  occasions[occasions$Session == as.character(dat$Session[i]) & occasions$Site == as.character(dat$Station[i]) &
+              occasions$start <= dat$DateTimeOriginal[i] & occasions$end > dat$DateTimeOriginal[i], "capt"] <- 1
+}
+
+# Format data 
+occasions$Time <- ymd_hms(occasions$start) 
+occasions$Time <- hour(occasions$Time)
+occasions$Season <- as.factor(substr(occasions$Session, 1, 1))
+table(occasions$Season, occasions$capt)
+occasions$Site <- as.factor(occasions$Site)
+
+# format data for cbind(success, failure)
+occasions_cbind <- occasions %>% 
+  group_by(Site, Time, Season) %>% 
+  summarize(success = sum(capt),
+            failure = n() - success)
+
+```
+
+There is a minor mismatch between the occasions with encounters (742 in the Spring, 232 in the Fall), and the number of independent encounters (809 in the Spring, 236 in the Fall). This is due to some independent encounters that are more than 30 minute apart (i.e. the time threshold used to define independence) but still fall within the same time interval (e.g. if their datetime values are '2021-04-15 13:06:08' and '2021-04-15 13:46:09').
+
+As before, for the KDEs analysis we convert the time stamp in radians. We also split the dataset by _Season_ and run KDEs for the two groups using a loop.
+
+```{r compkde2}
+# Estimate activity using KDE
+dat$Time <- hms(dat$Time)
+dat$Time_Rad <- (hour(dat$Time)*60 + minute(dat$Time))/(60*24)*2*pi 
+
+# Split by Season
+dat$Season <- as.factor(substr(dat$Session, 1, 1))
+
+dat_ls <- dat %>% group_by(Species, Season) %>% group_split()
+
+KDE_ls <- vector("list", length = length(dat_ls))
+for(i in 1:length(dat_ls)){
+  KDE_ls[[i]] <- as.data.frame(fitact(dat_ls[[i]]$Time_Rad, reps = 999, sample = "model", show = FALSE)@pdf[,1:3]) 
+  KDE_ls[[i]]$Species <- unique(dat_ls[[i]]$Species)
+  KDE_ls[[i]]$Season <- unique(dat_ls[[i]]$Season)
+}
+KDE <- do.call(rbind.data.frame, KDE_ls)
+
+# store plot
+pl_KDE <- ggplot(KDE, aes(x = x/(2*pi)*24, y = y)) +
+  geom_ribbon(aes(ymin = y - 1.96*se, ymax = y +1.96*se, color = Season, fill = Season), alpha = 0.3, size = 0.25) +
+  geom_line(aes(color = Season), linewidth = 1) +
+  theme_minimal() +
+  scale_color_manual(values = c("orange", "darkgreen")) +
+  scale_fill_manual(values = c("orange", "darkgreen")) +
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (density) \n", title = "B: KDE \n(splitting data by Season)")+
+  theme_minimal()+
+  theme(legend.position = "none",
+        legend.title = element_blank(),
+        legend.text = element_text(size=10,face="bold"),
+        legend.margin=margin(0,0,0,0),
+        legend.box.margin=margin(-5,-10,-10,-10),
+        plot.title = element_text(size=10,face="bold"),
+        axis.line = element_line(colour = 'black', linetype = 'solid'),
+        axis.ticks = element_line(colour = 'black', linetype = 'solid'),
+        axis.title = element_text(size=9,face="bold"),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth = 0.5),
+        panel.grid.minor.x = element_blank())+
+  scale_x_continuous(breaks=seq(0,24,4), labels=seq(0,24,4))
+```
+Next, we re-run the analysis using the HM approach. In particular, we fit a trigonometric random intercept-only model and cyclic cubic spline without a global smoother for _Time_. Both models account for variability in site-use, but not for variability in timing of activity peaks. We also fit a cyclic cubic spline with a global smoother for _Time_ to account for this second form of variability.
+
+```{r compkde3}
+# trig GLMM random intercept-only
+# run model
+trig_rand_int <- mixed_model(fixed = cbind(success, failure) ~ 
+                                              cos(2 * pi * Time/24) * Season +
+                                              sin(2 * pi * Time/24) * Season +
+                                              sin(2 * pi * Time/12) * Season +
+                                              cos(2 * pi * Time/12) * Season,
+            random = ~  1  |   Site,
+            data = occasions_cbind, family = binomial(), iter_EM = 0)
+summary(trig_rand_int)
+
+# build estimate of activity
+newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), 24, length.out = 48), 
+                                            Season = levels(Season)))
+pred_rand_int <- effectPlotData(trig_rand_int, newdat, marginal = FALSE) 
+
+# store plot
+pl_trig <- ggplot(pred_rand_int, aes(Time, plogis(pred))) +
+  geom_ribbon(aes(ymin = plogis(low), ymax = plogis(upp), color = Season, fill = Season), alpha = 0.3, linewidth = 0.25) +
+  geom_line(aes(color = Season), linewidth = 1) +
+  scale_color_manual(values = c("orange", "darkgreen")) +
+  scale_fill_manual(values = c("orange", "darkgreen")) +
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "A: Trigonometric GLMM \n(random-intercept only)")+
+  theme_minimal()+
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        legend.text = element_text(size=10,face="bold"),
+        legend.margin=margin(0,0,0,0),
+        legend.box.margin=margin(-5,-10,-10,-10),
+        plot.title = element_text(size=10,face="bold"),
+        axis.line = element_line(colour = 'black', linetype = 'solid'),
+        axis.ticks = element_line(colour = 'black', linetype = 'solid'),
+        axis.title = element_text(size=9,face="bold"),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
+        panel.grid.minor.x = element_blank(),
+        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
+  scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4))
+
+# Cyclic cubic spline HGAMs 
+# Without a global smoother for Time
+mod_cycl1 <- bam(cbind(success, failure) ~ 
+                   s(Time, bs = "cc", k = 12, by = Season, m = 1) +
+                   Season + 
+                   s(Site, bs="re"), 
+                 knots = list(Time=c(0,23)),
+                 family = "binomial", 
+                 data = occasions_cbind)
+
+
+# With a global smoother for Time
+mod_cycl2 <- bam(cbind(success, failure) ~ 
+                   s(Time, bs = "cc", k = 12) + # common smoother
+                   s(Time, bs = "cc", k = 12, by = Season, m = 1) +
+                   Season + 
+                   s(Site, bs="re"), 
+                 knots = list(Time=c(0,23)),
+                 family = "binomial", 
+                 data = occasions_cbind)
+
+
+# Predict activity patterns
+newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), max(Time), 1), 
+                                            Season = levels(Season), Site = "7B")) #Station doesn't matter
+
+
+cycl_pred1 <- predict.bam(mod_cycl1, newdata = newdat,  exclude = "s(Site)", se.fit = TRUE, type = "response") 
+cycl_pred1 <- cbind(newdat, fit=cycl_pred1$fit, se.fit=cycl_pred1$se.fit, Model = "Without common smoother")
+
+cycl_pred2 <- predict.bam(mod_cycl2, newdata = newdat,  exclude = "s(Site)", se.fit = TRUE, type = "response") 
+cycl_pred2 <- cbind(newdat, fit=cycl_pred2$fit, se.fit=cycl_pred2$se.fit, Model = "With common smoother")
+
+cycl_pred <- rbind(cycl_pred1, cycl_pred2)
+
+pl_cycl <- ggplot(cycl_pred, aes(Time, fit)) +
+  geom_ribbon(aes(ymin = fit-1.96*se.fit, ymax = fit+1.96*se.fit, color = Season, fill = Season), alpha = 0.3, size = 0.25) +
+  geom_line(aes(color = Season), size = 1) +
+  scale_color_manual(values = c("orange", "darkgreen")) +
+  scale_fill_manual(values = c("orange", "darkgreen")) +
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "C: Cyclic cubic spline HGAMs")+
+  coord_cartesian(ylim = c(0, 0.005)) +
+  theme_minimal()+
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        legend.text = element_text(size=10,face="bold"),
+        legend.margin=margin(0,0,0,0),
+        legend.box.margin=margin(-5,-10,-10,-10),
+        plot.title = element_text(size=10,face="bold"),
+        axis.line = element_line(colour = 'black', linetype = 'solid'),
+        axis.ticks = element_line(colour = 'black', linetype = 'solid'),
+        axis.title = element_text(size=9,face="bold"),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
+        panel.grid.minor.x = element_blank(),
+        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
+  scale_x_continuous(breaks=seq(0,max(cycl_pred$Time),length.out=7), labels=seq(0,24,4)) +
+  facet_grid(~Model)
+```
+
+We now bring together the results based on the three methods.
+
+``` {r cat7}
+(ggarrange(ggarrange(pl_trig, pl_KDE, ncol = 2, common.legend = TRUE, legend = "none"), pl_cycl, nrow = 2, common.legend = TRUE, legend = "bottom") +
+  theme(plot.margin = margin(0.1,0.1,0.5,0.1, "cm"))) %>% 
+ggsave(filename = "ms_figures/Fig3_KDEs_HMs_comparison.jpg", device = "jpeg", units = "cm", width = 24, height = 20, dpi = 600)
+```
+
+Both the HM-based approaches and the KDEs were able to quantify differences in activity patterns across the two seasons. All the methods aso return similar timing in peaks of activity. However, using the HM-based approaches were also able to quantify differential levels of activity between Spring and Fall. Because these approaches also account for the differential sampling effort, we can interpret the results as the probability that the species is active at a certain time of the day and also compare the activity at a certain hour across season. For example, based on the results we can say that the probability of the species being active around 20:00 in higher in the Spring than in the Fall.
+Likely owing to the assumption of independence, KDE curves tend to be more wiggly than model-based estimates, and this might be especially the case when there are only few independent records.
+
+##################
 
