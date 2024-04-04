@@ -1,7 +1,7 @@
 # Appendix {#app}
 
 ## The *sim_activity* function
-Throughout the tutorial we use the *sim_activity* function for simulating activity patterns. This function simulate realized activity patterns based on a 'true' activity pattern distribution density build as specific in equation 1 reported in section \@ref(var) and introduced in the main text. The arguments of the function specify the following:
+Throughout the tutorial we use the *sim_activity* function for simulating activity patterns. This function simulate realized activity patterns based on a 'true' activity pattern distribution density build as specific in equation 1 reported in section \@ref(var) and introduced in the main text (@Iannarilliea2024). The arguments of the function specify the following:
 
 *  M: Numeric. Number of sampling units (e.g. sites).
 *  J: Numeric. Number of cycles (e.g. days).
