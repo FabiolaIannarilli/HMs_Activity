@@ -10,7 +10,7 @@ We start by loading the data and showing a preview of what the data look like. H
 
 ```{r prep1, message = FALSE, warnings = FALSE}
 # Load libraries
-library(tidyverse)
+library(dplyr)
 library(lubridate)
 
 # Load data

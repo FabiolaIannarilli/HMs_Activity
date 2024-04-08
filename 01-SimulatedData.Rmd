@@ -23,7 +23,7 @@ We load the necessary libraries and set the intercept $\beta_0$, and the two amp
 ```{r sim1, message = FALSE, warnings = FALSE}
 # Load libraries and set equations' parameters
 set.seed(129)
-library(tidyverse)
+library(dplyr)
 library(grid)
 library(gridExtra)
 wavelength = 24

@@ -19,7 +19,7 @@ We load the three R libraries listed above along with other packages necessary t
 
 ```{r prepkde1, message = FALSE, warnings = FALSE}
 # Load libraries
-library(tidyverse)
+library(dplyr)
 library(ggpubr)
 library(gridExtra)
 library(grid)

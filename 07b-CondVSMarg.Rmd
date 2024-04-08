@@ -22,7 +22,7 @@ If we plot the estimated conditional and marginal mean activity curves (Figure \
 (ref:condvsmargcap) Conditional activity pattern for a typical site (one with random effects $\tau_i = 0$ and $\gamma_i = 0$) and marginal mean activity pattern formed by averaging site-specific activity patterns across a population of sites. 
 ```{r condvsmarg1, message = FALSE, warnings = FALSE}
 #' Load libraries and function to simulate activity patterns
-library(tidyverse)
+library(dplyr)
 library(GLMMadaptive)
 library(mgcv)
 library(tidyr)

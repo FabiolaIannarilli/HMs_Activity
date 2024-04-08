@@ -10,11 +10,10 @@ Again, we use camera-trap records collected between 2016 and 2018 at 100 locatio
 
 ```{r cat1, message = FALSE, warnings = FALSE}
 # Load Libraries
-library(tidyverse)
+library(dplyr)
 library(lubridate)
 library(GLMMadaptive)
 library(mgcv)
-library(activity)
 library(ggpubr)
 library(rstoat)
 library(terra) # to convert UTM in lat long

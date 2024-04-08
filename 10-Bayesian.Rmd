@@ -21,7 +21,7 @@ We simulate data using the same approach and the same parameters presented in se
 
 ``` {r bay1, message = FALSE, warnings = FALSE}
 # Load libraries and function to simulate activity patterns
-  library(tidyverse)
+  library(dplyr)
   library(nimble)
   library(tidyr)
   library(brms)

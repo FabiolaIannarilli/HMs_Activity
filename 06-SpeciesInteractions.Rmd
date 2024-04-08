@@ -6,13 +6,11 @@ As an example, we analyze temporal partitioning between coyotes and wolves (_Can
 
 ``` {r temp1, message = FALSE, warnings = FALSE}
 # Load libraries
-library(tidyverse) 
+library(dplyr) 
 library(lubridate) 
 library(GLMMadaptive)
 library(ggpubr)
 library(mgcv)
-library(tictoc)
-library(activity)
 
 # Load data: Coyote/Wolf Species interactions
 dat <- read.csv("data_input/species_records.csv", as.is = TRUE) %>% 
