@@ -29,7 +29,24 @@ pdf_document:
 ---
 
 # Preface {#preface}
+<! -- paragraph to fix once we have defined the final order of the chapters -->
 
 This vignette accompanies the manuscript @Iannarilliea2024 and contains step-by-step examples on how to use trigonometric and cyclic cubic spline Hierarchical Models (HMs) to analyze activity patterns from time-stamped camera-trap data (sections \@ref(est), \@ref(unibim)). It also includes examples of comparing the importance of different covariates when fitting GLMMs to describe activity patterns (section \@ref(cat)), and additional resources to illustrate the difference between conditional and marginal mean activity patterns (section \@ref(condvsmarg)) and the application of Kernel Density Estimators through the packages currently available in R (section \@ref(kdes)).
 
 All the analyses presented in the following sections were performed in @R-base. The camera-trap data used in the real-case examples can be accessed at XXXX. Details on how this data were collected can be found in @Iannarilliea2021.
+
+## Requirements
+Throughout this tutorial, we use several packages. Users interested in compiling the tutorial from sources and those that would like to reproduce the code provided in the next sections in their own machine should make sure to install these libraries. The code below provides a list of all the packages needed, check if they are already installed in your local machine, and install those that are not.
+
+``` {r preface1}
+list.of.packages <- c("dplyr", "grid", "gridExtra", "GLMMadaptive", "ggpubr", "mgcv", 
+                      "tidyr", "lubridate", "lmtest", "activity", "overlap", "circular", 
+                      "nimble", "brms")
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+if(length(new.packages)>0) install.packages(new.packages)
+
+# install packages from github repos
+remotes::install_github('mapoflife/rstoat', ref='main')
+```
+
+In some section, we also use *sim_activity*, a custom function that simulate activity patterns under different conditions. A description of this function is provided in \@ref(app)  at the end of this tutorial.
