@@ -101,7 +101,7 @@ pred_rand_int <- effectPlotData(trig_rand_int, newdat, marginal = FALSE)
   geom_line(aes(color = Season), linewidth = 1) +
   scale_color_manual(values = c("orange", "darkgreen")) +
   scale_fill_manual(values = c("orange", "darkgreen")) +
-  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "A: Trigonometric GLMM (random-intercept only)")+
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "B: Trigonometric GLMM \n(random-intercept only)")+
   theme_minimal()+
   theme(legend.position = "bottom",
         legend.title = element_blank(),
@@ -140,39 +140,11 @@ trig_rand_slope <- mixed_model(fixed = cbind(success, failure) ~
             data = occasions_cbind, family = binomial(), iter_EM = 0)
 summary(trig_rand_slope)
 
-newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), 24, length.out = 48), 
-                                            Season = levels(Season)))
-pred_rand_int <- effectPlotData(trig_rand_slope, newdat, marginal = FALSE) 
-
-ggplot(pred_rand_int, aes(Time, plogis(pred))) +
-  geom_ribbon(aes(ymin = plogis(low), ymax = plogis(upp), color = Season, fill = Season), alpha = 0.3, linewidth = 0.25) +
-  geom_line(aes(color = Season), size = 1) +
-  scale_color_manual(values = c("orange", "darkgreen")) +
-  scale_fill_manual(values = c("orange", "darkgreen")) +
-  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "Trigonometric GLMM (random intercept and slope)")+
-  theme_minimal()+
-  theme(legend.position = "bottom",
-        legend.title = element_blank(),
-        legend.text = element_text(size=10,face="bold"),
-        legend.margin=margin(0,0,0,0),
-        legend.box.margin=margin(-5,-10,-10,-10),
-        plot.title = element_text(size=10,face="bold"),
-        axis.line = element_line(colour = 'black', linetype = 'solid'),
-        axis.ticks = element_line(colour = 'black', linetype = 'solid'),
-        axis.title = element_text(size=9,face="bold"),
-        panel.grid.minor.y = element_blank(),
-        panel.grid.major.y = element_blank(),
-        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
-        panel.grid.minor.x = element_blank(),
-        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
-  scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4)) 
-
-
 ```
 
 However, this model is likely to be too computational demanding for most laptop. In such cases, we can either opt for the simpler model - keeping in mind that we are not allowing the estimates to vary in their timing of peak activity - or we can run this model in a high computing cluster.
 
-To test the importance of the seasonal effect on activity patterns of black bears, we can also compare the model above with a model that does not include the covariate using AIC: 
+**Model selection.** To test the importance of the seasonal effect on activity patterns of black bears, we can also compare the model above with a model that does not include the covariate using AIC: 
 
 ```{r cat4}
 # run model
@@ -188,12 +160,11 @@ AIC(trig_rand_int, trig_rand_int_no_cov)
 
 ### Cyclic cubic spline HGAMs
 
-Similar to trigonometric GLMMs, cyclic cubic spline HGAMs can also be used to model activity patterns as a function of a categorical covariate. As we explained in \@ref{est}, this class of models are highly flexible and offer a pletora of options when it comes to choosing which structure to fit. Here we focus on two. The first resembles a trigonometric random-intercept only GLMM and contains a cubic cyclic smoother for _Time_ which varies by _Season_, _Season_ as a fixed term, and a smoother for _Site_ as random effect. The second has an additional term, a general smoother for _Time_, and resembles a trigonometric GLMM with random intercept and slope.
+Similar to trigonometric GLMMs, cyclic cubic spline HGAMs can also be used to model activity patterns as a function of a categorical covariate. As we explained in \@ref{est}, this class of models are highly flexible and offer a pletora of options when it comes to choosing which structure to fit. Here we focus on two. The first resembles a trigonometric random-intercept only GLMM and contains a cubic cyclic smoother for _Time_ which varies by _Season_, _Season_ as a fixed term, and a smoother for _Site_ as a random effect. The second structure has an additional term, a general smoother for _Time_, and resembles a trigonometric GLMM with random intercept and slope.
 
-We first ran the two models, then predict and plot their estimates.
+We first ran the two models, then predict and plot their estimates along with estimates based on the trigonometric random intercept-only model, to facilitate comparison.
 
 ```{r cat5}
-
 # Without a global smoother for Time
 mod_cycl1 <- bam(cbind(success, failure) ~ 
                    s(Time, bs = "cc", k = 12, by = Season, m = 1) +
@@ -233,7 +204,7 @@ pl_cycl <- ggplot(cycl_pred, aes(Time, fit)) +
   geom_line(aes(color = Season), size = 1) +
   scale_color_manual(values = c("orange", "darkgreen")) +
   scale_fill_manual(values = c("orange", "darkgreen")) +
-  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "B: Cyclic cubic spline HGAMs")+
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "A: Cyclic cubic spline HGAMs")+
   coord_cartesian(ylim = c(0, 0.005)) +
   theme_minimal()+
   theme(legend.position = "bottom",
@@ -254,13 +225,13 @@ pl_cycl <- ggplot(cycl_pred, aes(Time, fit)) +
   facet_grid(~Model)
 
 # bringing HMs plot together
-(ggarrange(pl_trig, pl_cycl, ncol = 2, common.legend = TRUE, legend = "bottom", widths = c(0.33, 0.66)) +
+(ggarrange(pl_cycl, pl_trig, ncol = 2, common.legend = TRUE, legend = "bottom", widths = c(0.66, 0.33)) +
   theme(plot.margin = margin(0.1,0.1,0.5,0.1, "cm")))
 ```
 
-In this analysis, the patterns estimated by the two models structure is close to identical, suggesting there is minimal varation in timing of activity peaks among sites.
+In this analysis, the patterns estimated by the two cyclic cubic splines structures are close to identical, suggesting there is minimal variation in the timing of activity peaks among sites (panel A in the plot above). The patterns estimated by the two cyclic cubic spline models also closely match that returned by the random intercept-only trigonometric model. In \@ref(compkde), we repeated this analysis using KDEs (and aggregated data) to compare estimates based on the HMs and KDEs approaches. 
 
-As done for the trigonometric models, we can test the importance of the variable _Season_ by comparing the model without a global smoother with a similar model that does not include this covariate using AIC.
+**Model selection.** As done for the trigonometric models, we can use AIC to test the importance of the variable _Season_ by comparing the model without a global smoother with a similar model that does not include this covariate. Importantly, (generalized) LRTs are not recommended when comparing HGAMs and there are known issue when comparing HGAM models with and without global smoother using AIC (see @Pedersen2019). 
 
 ```{r cat6}
 # Without general smoother for Time, no covariate effect
@@ -315,7 +286,7 @@ dat_ghm <- left_join(dat,
                  cov %>% select(Session, Site, ghm), 
                  by = c("Session" = "Session", "Station" = "Site")) 
 ```
-and then proceed with the arranging the data in the format required to run the HM-based models, as we have done before in other examples.  
+and then proceed with arranging the data in the format required to run the HM-based models, as we have done in other examples.  
 
 ```{r cont3}
 # Create dataframe to store captures 
@@ -375,7 +346,7 @@ mod_cycl1_cont <- bam(cbind(success, failure) ~
 summary(mod_cycl1_cont)
 
 ```
-Comparing the two models' outputs is not easy. We can instead compare the predicted estimates visually. 
+Comparing the two models' output summaries is not easy. We can instead compare the predicted estimates visually. 
 
 ``` {r cont5}
 # create a new dataset for the estimates
@@ -412,8 +383,7 @@ ggplot(pred_cont, aes(Time, pred)) +
     geom_line(aes(color = ghm_ft), linewidth = 1) +
     scale_color_viridis_d() +
     scale_fill_viridis_d() +
-    labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)",
-         title = "A: trigonometric GLMM")+
+    labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)")+
     #coord_cartesian(ylim = c(0, 0.005)) +
     theme_minimal()+
     theme(legend.position = "none",
@@ -433,9 +403,9 @@ ggplot(pred_cont, aes(Time, pred)) +
     scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4)) +
     facet_grid(Model~ghm_ft)
 ```
-These results seem not conclusive. The estimates based on the cyclic cubic spline HGAM show a clear progression in the shape of black bears' activity pattern, from having an almost cathemeral pattern at low level of GHM to a well-defined  bimodal patterns at high level of GHM. This trend is less evindent in the estimates based on trigonometric GLMM. 
+These results seem not conclusive. The estimates based on the cyclic cubic spline HGAM show a clear progression in the shape of black bears' activity pattern, from having an almost cathemeral pattern at low level of GHM to a well-defined bimodal patterns at high level of GHM. This trend is less evident in the estimates based on trigonometric GLMM. 
 
-We can further explore the effect of GHM on activity by comparing these models with their relative null model (i.e. a version of the model without the covariate of interest) using AIC (or LRT).
+We can further explore the effect of GHM on activity by comparing these models with their relative null model (i.e. a version of the model without the covariate of interest) using AIC (or LRT for trigonometric GLMMs).
 
 ``` {r cont6}
 # null random-intercept only trigonometric GLMM
@@ -455,11 +425,11 @@ mod_cycl1_cont_null <- bam(cbind(success, failure) ~
 
 # Comparing trig GLMMs
 AIC(mod_trig_cont, mod_trig_cont_null)
-AIC(mod_trig_cont) - AIC(mod_trig_cont_null)
+AIC(mod_trig_cont_null) - AIC(mod_trig_cont)
 
 # Comparing cyclic cubic spline HGAMs
 AIC(mod_cycl1_cont, mod_cycl1_cont_null)
-AIC(mod_cycl1_cont) - AIC(mod_cycl1_cont_null)
+AIC(mod_cycl1_cont_null) - AIC(mod_cycl1_cont)
 ```
 
-Both AIC comparisons strongly support the hypothesis that GHM has an effect on the activity patterns of American black bear.
+Both AIC comparisons strongly support the hypothesis that GHM does not have an effect on the activity patterns of American black bear.
