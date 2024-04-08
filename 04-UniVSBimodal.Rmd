@@ -106,7 +106,7 @@ null_mod <- mixed_model(fixed = cbind(success, failure) ~ 1,
 summary(null_mod)
 ```
 
-We can now proceed to compare the different model structures and associated hypotheses. We can do this using the Akaike Information Criterion (AIC; @AIC).
+**Model selection.** We can now proceed to compare the different model structures and associated hypotheses. We can do this using the Akaike Information Criterion (AIC; @AIC).
 
 ``` {r univsbim5}
 # AIC comparison
