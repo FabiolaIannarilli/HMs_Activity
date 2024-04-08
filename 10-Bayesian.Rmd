@@ -1,41 +1,53 @@
+---
+title: "Bayes"
+output: 
+  html_document:
+    code_folding: show
+---
+
+
 # Activity patterns in the Bayesian framework {#bay}
 
-As we mentioned in chapter \@ref(est), it is not possible to directly model activity patterns as specified in equation 1 in section \@ref(var) (and in the main manuscript) due to the lack of ready-to-use tools to fit non-linear models in a frequentist framework. Working in the Bayesian framework allows analysts to overcome this limitation.
+As we mentioned in chapter \@ref(est), it is not possible to directly model activity patterns as specified in equation 1 in section \@ref(var) (and in the main manuscript) due to the lack of ready-to-use tools to fit non-linear models in a frequentest framework. Working in the Bayesian framework allows analysts to overcome this limitation.
 
-Here we first use simulated data to illustrate how to run random intercept-only and randon intercept and random slope trigonometric GLMMs. Then, we explore again the seasonal change in activity patterns of black bears. 
+Here, we use simulated data to illustrate how to fit Bayesian versions of the trigonometric and cylic cubic spline models. 
 
-## Random intercept-only trigonometric GLMM in Bayesian
+
+## Bayesian trigonometric model with random intercept-only 
+
+### Data Preparation
 
 We simulate data using the same approach and the same parameters presented in section \@ref(est). As such, the simulated data are generated from the same 'true' activity patterns. 
 
 ``` {r bay1, message = FALSE, warnings = FALSE}
 # Load libraries and function to simulate activity patterns
-library(tidyverse)
-library(nimble)
-library(tidyr)
-source("source_functions/sim_activity.R")
-source("source_functions/sim_to_minute.R")
-set.seed(129)
+  library(tidyverse)
+  library(nimble)
+  library(tidyr)
+  library(brms)
+  source("source_functions/sim_activity.R")
+  source("source_functions/sim_to_minute.R")
+  set.seed(129)
 
 # Set equations' parameters
-M = 100
-J = 30
-wavelength = 24
-n_peak = 2
-b0 = -3
-b1 = 1 
-b2 = 0.7
-theta0 = 3
-theta1 = 2 
-sd_tau = 1
-sd_gamma = 0.3
-time <- seq(0, wavelength, wavelength/512)
+  M = 100 # The number of sites
+  J = 30 # the number of binomial trials
+  wavelength = 24 # 24 hour period
+  n_peak = 2 # number of activity peaks
+  b0 = -3
+  b1 = 1 
+  b2 = 0.7
+  theta0 = 3
+  theta1 = 2 
+  sd_tau = 1
+  sd_gamma = 0.3
+  time <- seq(0, wavelength, wavelength/512)
 
-dat <- sim_activity(M = M, 
-                     J = J, 
+  dat <- sim_activity(M = M, 
+                     J = J,  
                      wavelength = wavelength, 
                      n_peak = n_peak, 
-                     n_sim = 1, 
+                     n_sim = 1,  #number of simulated datasets
                      b0 = -3, 
                      b0_constant = TRUE, # common intercept
                      tau_constant = FALSE, 
@@ -46,13 +58,410 @@ dat <- sim_activity(M = M,
                      theta1 = theta1, # common phaseshifts for the cosine terms
                      phaseshift_constant = FALSE, 
                      sd_phaseshift = sd_gamma, # site-specific phaseshift (equal for both cosine terms)
-                     plot_true_act = TRUE)
+                     plot_true_act = TRUE
+                     )
 
 # The data
 sim_data <- as.data.frame(dat$sim_data)
 dim(sim_data)
 
 ```
+We now create a matrix, _time_, that specifies the time of each interval and that has the same dimensions of the matrix *sim_data* containing the simulated hourly encounter/nonencounter events.
+
+``` {r bay2}
+# Bundle data
+time <- matrix(rep(1:ncol(dat$sim_data[[1]]), 
+                   nrow(dat$sim_data[[1]])), 
+               ncol = ncol(dat$sim_data[[1]]), 
+               nrow = nrow(dat$sim_data[[1]]), byrow = TRUE)
+time[1:10, 1:10]
+```
+
+### Model Setup
+
+We can now specify a model that exactly mirrors the structure of equation 1. To note that we incorporated the site-level random intercept $\tau_i$ into the intercept $\beta_0$.  
+
+``` {r bay3}
+# Fabiola cuts code that is not implemented here or documents whtehr these are useful alternatives
+# Specify model
+Act_bay <-nimbleCode({
+  
+  # Priors
+  mu.beta0 ~ dt(0, pow(2.5,-2), 1) #dunif(0,1) #dnorm(0, 1/sqrt(3)) dlogis(0,1)
+  tau.beta0 <- pow(sd.beta0, -2)
+  sd.beta0 ~ dunif(0,2) 
+  
+  #beta1t ~ dt(0, pow(2.5,-2),1)
+  #beta2t ~ dt(0, pow(2.5,-2),1)
+  #beta1<-exp(beta1t)
+  #beta2<-exp(beta2t)
+  beta1~ dt(0, pow(2.5,-2),1) #T(dt(0, pow(2.5,-2),1),0,) #truncated at 0
+  beta2~ dt(0, pow(2.5,-2),1) #T(dt(0, pow(2.5,-2),1),0,) # truncated at 0
+  mean.theta0 ~ dunif(0,2*pi)
+  mean.theta1 ~ dunif(0,2*pi)
+  tau.theta <- pow(sd.theta, -2)
+  sd.theta ~ dunif(0, pi/2)
+  
+  
+  # Likehood
+  for(i in 1:M){
+    beta0[i] ~ dnorm(mu.beta0, tau.beta0)
+    theta0[i] ~ dnorm(mean.theta0, sd.theta)
+    theta1[i] ~ dnorm(mean.theta1, sd.theta)
+    for(j in 1:J){
+      y[i,j] ~ dbern(p[i,j])
+      #logit(p[i,j]) <- beta0[i] + beta1*cos((pi*2*time[i,j])/12 + theta[i]) + beta2*sin((pi*2*time[i,j])/24 + theta[i])
+      logit(p[i,j]) <- beta0[i] + beta1*cos((pi*2*time[i,j])/24 + theta0[i]) + beta2*cos((pi*2*time[i,j])/12 + theta1[i])
+      
+    }
+  }
+  
+}
+)
+```
+
+### Model Fitting
+
+We now need to specify the initial values and MCMC settings and run the model using _nimble_ [@nimble1, @nimble2, @nimble3].
+
+``` {r bay4, cache=TRUE, cache.path="cache/", eval=FALSE}
+# MCMC settings
+  inits <- function() list(beta0 = runif(nrow(sim_data), 0, 3), theta0 = runif(nrow(sim_data), 0, 2*pi),
+                           theta1 = runif(nrow(sim_data), 0, 2*pi))
+  params <- c("mu.beta0", "sd.beta0", "beta1", "beta2", "mean.theta0", "mean.theta1", "sd.theta")
+  ni <- 120000; nt <- 1; nb <- 5000; nc <- 3;   n.adapt = 500
+  #ni <- 200; nt <- 1; nb <- 1; nc <- 3;   n.adapt = 500
+
+  nimble.constants <- list(time=time, M=nrow(sim_data), J=ncol(sim_data), pi=pi)
+  nimble.data<-list(y=sim_data)
+
+# Fit the model
+  res.nimble <- nimbleMCMC(constants = nimble.constants, 
+                         data = nimble.data, 
+                         inits = inits, 
+                         monitors = params, 
+                         code = Act_bay, 
+                         nchains = nc, niter = ni, nburnin = nb, thin = nt)
+```
+
+```{r bay.cache, eval=TRUE, echo=FALSE}
+#knitr::load_cache("bay4")
+#Fabiola removes this and uses the cache approach?
+load("res.nimble")
+```
+
+### Model Asssemment 
+
+We can explore the traceplots to assess convergence of the model.
+
+``` {r bay5, class.source = 'fold-hide'}
+  samplesSummary(res.nimble$chain1)
+  samplesSummary(res.nimble$chain2)
+  samplesSummary(res.nimble$chain3)
+
+# traceplots
+  par(mfrow=c(2,4))
+  for(i in 1:7){
+    plot(res.nimble$chain1[,i], type="l", main=colnames(res.nimble$chain1)[i], col="green")
+    lines(res.nimble$chain2[,i], type="l", col="red")
+    lines(res.nimble$chain3[,i], type="l", col="blue")
+  }
+#  dev.off()
+
+# Density plots
+  par(mfrow=c(2,4))
+  for(i in 1:7){
+    plot(density(res.nimble$chain1[,i]), type="l", main=colnames(res.nimble$chain1)[i], col="green")
+    lines(density(res.nimble$chain2[,i]), type="l", col="red")
+    lines(density(res.nimble$chain3[,i]), type="l", col="blue")
+  }
+  #dev.off()
+```
+
+### Model Predictions
+
+We can combine the MCMC samples to explore the results (i.e. the posterior distributions). We will compare the estimated and true conditional and marginal mean activity patterns.
+
+``` {r bay6}
+#Fabiola checkes estimated marginal and conditional effects - doesn't look correct. I logically changed some of the code as I was getting errors, but this still seems wrong.
+# Combine 3 chains and plot
+  res.nimbleall <- rbind(res.nimble$chain1, res.nimble$chain2, res.nimble$chain3)
+  samplesSummary(res.nimbleall)
+
+# Plot the posterior distributions
+  tim <- seq(0, 24,length=1000)
+  parms <- apply(res.nimbleall, 2, mean) 
+  parms <- data.frame(t(parms))
+# Plot true and estimated conditional and marginal means
+# True conditional
+  truecond <- plogis(b0 + b1*cos((pi*2*tim)/24 + theta0) + b2*cos((pi*2*tim)/12 + theta1))
+
+# Estimated conditional
+  logitp <- parms$mu.beta0 + parms$beta1*cos((pi*2*tim)/24 + parms$mean.theta0) + parms$beta2 * cos((pi*2*tim)/12 + parms$mean.theta1)
+  
+  conditionalmean<-plogis(logitp)
+
+# True and Estimated Marginal mean
+  pm <- matrix(NA, 10000, length(tim)) # hold marginal mean for each time
+  ps <- rnorm(10000, parms$mean.theta0, parms$sd.theta) # random phase shifts
+  beta0s <- rnorm(10000, parms$mu.beta0, parms$sd.beta0) # random intercepts
+  
+  pmt <- matrix(NA, 10000, length(tim)) # hold marginal mean for each time
+  pst0 <- rnorm(10000, theta0, sd_gamma) # random phase shifts
+  pst1 <- rnorm(10000, theta1, sd_gamma) # random phase shifts
+  beta0st <- rnorm(10000, b0, sd_tau) # random intercepts
+
+for(i in 1:length(tim)){
+  #use estimated values
+  pm[,i] <- plogis(beta0s + parms$beta1*cos((pi*2*tim[i])/24 + ps) + parms$beta2*cos((pi*2*tim[i])/12 + ps))
+  #use true values
+  pmt[,i] <- plogis(beta0st + b1*cos((pi*2*tim[i])/24 + pst0) + b2*cos((pi*2*tim[i])/12 + pst1))
+}
+# lines(tim, plogis(logitp), type="l")
+
+  marginalmean <- apply(pm, 2, mean)
+  truemarginalmean <- apply(pmt, 2, mean)
+```
+
+### Plot Predictions
+``` {r bayend, eval = TRUE, class.source = 'fold-hide'}
+par(mfrow=c(2,2))
+# TRUE
+  plot(tim, truecond, type="l", xlab="hour", 
+       ylab="Activity Label Not Scaled", col="red", 
+       main="TRUE",ylim=c(0,0.15))
+  lines(tim, truemarginalmean, type="l", col="blue", lty=2)
+  legend("topright", bty="n", c("Conditional", "Marginal"), 
+         col=c("red", "blue"), lty=c(1,2))
+
+# Rescale and plot
+  sc.tcondmean<-truecond/MESS::auc(tim, truecond)
+  sc.tmarginalmean<-truemarginalmean/MESS::auc(tim, truemarginalmean)
+  plot(tim, sc.tcondmean, type="l", xlab="hour", ylab="Activity Label  Scaled", col="red", main="TRUE")
+  lines(tim, sc.tmarginalmean, type="l", col="blue", lty=2)
+
+#Estimated
+  plot(tim, conditionalmean, type="l", xlab="hour", 
+       ylab="Activity Label Not Scaled", col="red", main="Estimated",ylim=c(0,1))
+  lines(tim, marginalmean, type="l", col="blue", lty=2)
+  legend("topright", bty="n",c("Conditional", "Marginal"), 
+         col=c("red", "blue"), lty=c(1,2))
+
+# Rescale and plot
+  sc.condmean<-conditionalmean/MESS::auc(tim, conditionalmean)
+  sc.marginalmean<-marginalmean/MESS::auc(tim, marginalmean)
+  plot(tim, sc.condmean, type="l", xlab="hour", ylab="Activity Label  Scaled", 
+       col="red", main="Estimated",ylim=c(0,0.1))
+  lines(tim, sc.marginalmean, type="l", col="blue", lty=2)
+
+
+# Estimated conditional mean with uncertainty included (for marginal mean, would
+# need a double loop)
+  condmeans <- matrix(NA, nrow(res.nimbleall), length(tim))
+#margmeans<-matrix(NA, nrow(res.nimbleall), length(tim))
+  for(i in 1:length(tim)){
+    condmeans[,i] <- plogis(res.nimbleall[,5] + res.nimbleall[,1]*cos((pi*2*tim[i])/24 + 
+                          res.nimbleall[,3]) + res.nimbleall[,2]*cos((pi*2*tim[i])/12 + res.nimbleall[,3]))
+  }
+lowcond <- apply(condmeans,2,quantile, prob=0.025)
+upcond <- apply(condmeans,2,quantile, prob=0.975)
+
+par(mfrow=c(1,1))
+  plot(tim, conditionalmean, type="l", xlab="hour", ylab="Activity Label Not Scaled", 
+       main= "True and Estimated Conditional Mean (with CI's)",
+       col="red",  ylim=c(0, max(upcond)))
+  lines(tim, upcond, type="l", lty=2, col="red")
+  lines(tim, lowcond, type="l", lty=2, col="red")
+  lines(tim, truecond, type="l", col="black")
+  legend("topright",  c("Estimated", "True"), 
+         lty=c(1,1), col="red", "black",bty="n")
+
+
+```
+
+Models defined in a Bayesian framework can better mirror the structure in equation 1 and accommodate variability in both frequency of use and timing of peak in activity but require longer computational times than frequentest approaches and may be impractical when applied to very large camera-trap datasets.
+
+
+## Bayesian cyclic cubic spline model with random intercept-only 
+
+### Data Preparation
+
+The first step is to rearrange the specific format of the data created by the *sim_activity* function (see also \ref{est4}). We access the encounter data and store them in an object called *y*, which has a number of rows equal to the number of simulated sites and a number of columns equal to 24 (hours) times the length (in days) of the simulated sampling period (e.g. 24 hour * 30 days = 720 encounter occasions). We add a column which contains a unique identifier for each site (e.g. *id = A1*) and assign a name to each column that represents the time occasion (e.g. from 1 to 720), then convert the data in long format using the *id* column as reference.
+
+```{r data.prep.bayes.cc.1}
+# The data
+  y <- as.data.frame(dat$sim_data)
+  dim(y)
+
+# summarize aggregated data
+  y <- data.frame(id=paste("A", seq(1,M,1), sep=""), y=as.data.frame(y))
+  colnames(y) <- c("id", paste0("S", seq(1, ncol(y)-1, 1), sep=""))
+
+# Format data in long format
+  y_long <- pivot_longer(data = y, cols = -id, names_to = "time", values_to = "y") %>%
+                mutate(time=as.numeric(substr(time,2,10)),
+                       id = factor(id))
+
+# create variable to describe time as hour (between 0 and 23)
+  y_long$hour <- sim_to_minute(y_long$time, group = wavelength)
+
+# show first few rows of the dataset created
+  knitr::kable(head(y_long))
+```
+
+We obtain a data set in which each row specifies the outcome (i.e. encounter or non-encounter of the target species) at a certain site during a specific hour of a certain day of sampling.
+
+To optimize computational time, we can reduce the number of rows in the dataset by counting the number of hourly-long occasions in which the species was observed (i.e. successes) and the number of occasion in which the species was not observed (i.e. failures) for each hourly time interval and camera site (see also \ref{est5}).
+
+```{r data.prep.bayes.cc.2, message = FALSE, warnings = FALSE}
+# count successes and failures at each site-occasion
+  occasions_cbind <- y_long %>% 
+    group_by(id, hour) %>% 
+    summarise(success = sum(y),
+              n_events = n(),
+              failure = n_events - success) %>% 
+    dplyr::rename(Site = id,
+                 Time = hour)
+
+# show first few rows of the dataset created
+  knitr::kable(head(occasions_cbind))
+```
+### Model Setup and Fitting
+
+We are now ready to setup the Bayesian cyclic cubic spline model using similar code as \ref{est10}. However,
+here we wrap our code in the brm function from the package brms. We also need to change our notation slightly by specifying the number of successes
+and failure as 'success| trial(add variable here)'. From the brms R package vignette, "cbind() syntax will not work in brms in the expected way because this syntax is reserved for other purposes." Note that we only considering random intercepts, but we can include random slope terms also by addiding this to our model definition: s(Time, Site, bs="re").
+
+Something also to consider is how we go about fitting the random effect term in brms. The main consequenes of how we go about doing this is whether we can easily estimate the conditional mean or not. Note that brms functions do not allow excluding smooth terms, such as (Site, bs="re") when making predictions ([see here](https://discourse.mc-stan.org/t/excluding-a-smooth-term-in-brms-using-posterior-linpred/10960/4)). We can consider a slightly different parameterization than \ref{est10}, which makes it straightfrward in estimating the conditional mean . Let's consider both approaches...
+
+
+```{r fit.bayes.cc.3, cache=TRUE, cache.path="cache/", eval=FALSE, echo=TRUE}
+# Setup the model but do not fit it (i.e., chains = 0)
+  cycl_rand_int_setup <- brms::brm(bf(success| trials(n_events)  ~ s(Time, bs = "cc", k = wavelength)+
+                                          s(Site, bs="re")
+                                   ),
+                                   family = "binomial", 
+                                   data = occasions_cbind, 
+                                   knots = list(Time = c(0,23)),
+                                   cores = 1, seed = 17,chains=0)
+
+
+cycl_rand_int_setup_alt <- brms::brm(bf(success| trials(n_events)  ~ s(Time, bs = "cc", k = wavelength)+
+                                          (1| Site)
+                                       ),
+                                       family = "binomial", 
+                                       data = occasions_cbind, 
+                                       knots = list(Time = c(0,23)),
+                                       cores = 1, seed = 17,chains=0)
+
+
+# Now fit the model
+  cycl_rand_int <- update(cycl_rand_int_setup, recompile = FALSE, 
+                          newdata = occasions_cbind,
+                          chains = 3)
+  
+  cycl_rand_int_alt <- update(cycl_rand_int_setup_alt, recompile = FALSE, 
+                              newdata = occasions_cbind,
+                              chains = 3)
+```
+
+```{r fit.bayes.load, eval=TRUE, echo=FALSE}
+#Fabiola removes this and uses the cache approach?
+load("cycl_rand_int")
+load("cycl_rand_int_alt")
+```
+
+### Model Asssemment 
+
+```{r fit.bayes.cc.4}
+#Traceplots to check convergence
+  mcmc_plot(cycl_rand_int, 
+            type = "trace")
+  mcmc_plot(cycl_rand_int_alt, 
+            type = "trace")
+
+# Look at the coefficients for the two models and note their equivalence (parameters displayed in different orders)
+  mcmc_plot(cycl_rand_int, 
+         type = "areas",
+         prob = 0.95)
+  mcmc_plot(cycl_rand_int_alt, 
+         type = "areas",
+         prob = 0.95)
+  
+  
+#Summary of outputs - coefficients are the same
+  summary(cycl_rand_int)
+  summary(cycl_rand_int_alt)
+
+```
+
+### Model Predictions
+
+First, let's predict the site-level variability
+
+```{r fit.bayes.cc.pred1}
+# Predict the mean site-level activity pattern
+  newdata = data.frame(Time=0:23,Site = occasions_cbind$Site, n_events=1)
+  preds=fitted(cycl_rand_int,scale="response",newdata=newdata)
+  preds=data.frame(newdata,preds)
+  head(preds)
+
+
+# Plot site level mean activity
+  ggplot( aes(x=Time, y=Estimate, group=Site, color=Site), data=preds) +
+      geom_line()+theme_minimal() + theme(legend.position = "none")
+```
+
+
+Next, we can predict the marginal mean activity curve by averaging across the site-level variation.
+
+```{r fit.bayes.cc.pred2, class.source = 'fold-hide'}
+#Average across sites to get the marginal mean
+  marginal.mean = aggregate(preds$Estimate, list(preds$Time), FUN=mean)
+  marginal.lower = aggregate(preds$Q2.5, list(preds$Time), FUN=mean)
+  marginal.upper = aggregate(preds$Q97.5, list(preds$Time), FUN=mean) 
+
+# Plot the marginal mean and compare it to the simulated true mean
+  plot(marginal.mean$Group.1,marginal.mean$x,type="l",lwd=3,col=1,
+       ylim=c(0,0.25),xlab="Time",ylab="Probability of Activity")
+  lines(marginal.lower$Group.1,marginal.lower$x)
+  lines(marginal.upper$Group.1,marginal.upper$x)
+  lines(dat$Marginal[,2],dat$Marginal[,1],lwd=3,col=2)
+  legend("topright",lwd=c(3,1,1,3),col=c(1,1,1,2),
+         legend=c("Marginal Mean", "Lower Marginal Mean","Upper Marginal Mean", "True Marginal Mean"))
+```
+
+Next, lets predict the conditional mean activity. The benefit of the cycl_rand_int_alt parameterization is simply to conveniently estimate the conditional mean activity curve. Note how the first model structure with a random effect spline has no random effects
+according to brms. However, the second model structure does..
+
+```{r fit.bayes.cc.note, error=TRUE}
+  ranef(cycl_rand_int)
+  ranef(cycl_rand_int_alt)$Site[1:5,,]
+```
+ 
+Because brms does not allow smooth terms, such as (Site, bs="re"), to be omitted when predicting, we will use the second model to predict the conditional mean activity curve. 
+
+```{r fit.bayes.cc.predict3, class.source = 'fold-hide'}
+# Predict the conditional mean activity
+  newdata2 = data.frame(Time=0:23,n_events=1)
+  preds2=fitted(cycl_rand_int_alt,scale="response", newdata=newdata2,re_formula = NA)
+  
+  preds2=data.frame(newdata2,preds2)
+  head(preds2)
+
+# Plot the Conditional mean and compare it to the simulated true mean
+  plot(preds2$Time, preds2$Estimate,type="l",lwd=3,col=1,ylim=c(0,0.25),
+       xlab="Time",ylab="Probability of Activity")
+  lines(preds2$Time,preds2$Q2.5)
+  lines(preds2$Time,preds2$Q97.5)
+  lines(dat$Conditional[,2],dat$Conditional[,1],lwd=3,col=2)
+  legend("topright",lwd=c(3,1,1,3),col=c(1,1,1,2),
+         legend=c("Conditional Mean", "Lower Conditional Mean","Upper Conditional Mean", "True Conditional Mean"))
+```
+
+
+
+
 We now create a matrix, _time_, that specifies the time of each interval and that has the same dimensions of the matrix *sim_data* containing the simulated hourly encounter/nonencounter events.
 
 ``` {r bay2}
@@ -103,7 +512,7 @@ Act_bay <-nimbleCode({
 ```
 We also specify the initial values and  MCMC settings and run the model using _nimble_ [@nimble1, @nimble2, @nimble3].
 
-``` {r bay4, cache=TRUE, cache.path="cache/"}
+``` {r bay4, eval = FALSE, cache=TRUE, cache.path="cache/"}
 # Other settings
 inits <- function() list(beta0 = runif(nrow(sim_data), 0, 3), theta0 = runif(nrow(sim_data), 0, 2*pi),
                          theta1 = runif(nrow(sim_data), 0, 2*pi))
@@ -124,7 +533,7 @@ res.nimble <- nimbleMCMC(constants = nimble.constants,
 ```
 We explore the traceplots to assess convergence of the model.
 
-``` {r bay5}
+``` {r bay5, eval = FALSE}
 samplesSummary(res.nimble$chain1)
 samplesSummary(res.nimble$chain2)
 samplesSummary(res.nimble$chain3)
@@ -149,7 +558,7 @@ dev.off()
 ```
 Then combine the MCMC samples to explore the results (i.e. the posterior distributions). We compare estimated and true conditional and marginal mean activity patterns.
 
-``` {r bay6}
+``` {r bay6, eval = FALSE}
 # Combine 3 chains and plot
 res.nimbleall<-rbind(res.nimble$chain1, res.nimble$chain2, res.nimble$chain3)
 samplesSummary(res.nimbleall)
