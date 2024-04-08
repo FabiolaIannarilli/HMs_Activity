@@ -245,7 +245,7 @@ pl_cycl <- ggplot(cycl_pred, aes(Time, fit, color=Species, group=Species)) +
   facet_wrap(~oth_sp_labels, scales = "fixed")
 
 ggarrange(pl_trig, pl_cycl, nrow = 2, ncol = 1, common.legend = TRUE, legend = "right") %>% 
-ggsave(filename = "ms_figures/Fig4_Coyote_Wolf_patterns.jpg", device = "jpeg", units = "cm", width = 24, height = 10, dpi = 600)
+ggsave(filename = "ms_figures/Fig4_Coyote_Wolf_patterns.jpg", device = "jpeg", units = "cm", width = 24, height = 20, dpi = 600)
 ```
 We see that the trigonometric and the cyclic cubic spline HMs return the same pattern.
 
