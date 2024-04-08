@@ -196,8 +196,8 @@ cond_eff <- rbind(cond_eff_Co, cond_eff_Wo) %>%
 This figure and a comment on the results are presented in the main manuscript (Figure 3). Here we proceed instead with addressing the same question using a cyclic cubic spline HGAM (without general smoother) for each species and then plotting the estimates of activity patterns to visually inspect the results.
 
 ``` {r temp8}
-#' Cyclic cubic spline (without general smoother)
-#' Coyote
+# Cyclic cubic spline (without general smoother)
+# Coyote
 mod_cycl_Co <- bam(cbind(success, failure) ~ s(Time, bs = "cc", k = 12, by = oth_sp, m = 1) +
                      oth_sp + 
                      s(site, bs="re"), 
@@ -210,7 +210,7 @@ newdat <- with(occasions_Co_cbind, expand.grid(Time = seq(0, 24, 1),
 cycl_pred_Co <- predict.bam(mod_cycl_Co, newdata = newdat,  exclude = "s(site)", se.fit = TRUE, type = "response") 
 cycl_pred_Co <- cbind(newdat, fit=cycl_pred_Co$fit, se.fit=cycl_pred_Co$se.fit, Species = "Coyote")
 
-#' Wolf
+# Wolf
 mod_cycl_Wo <- bam(cbind(success, failure) ~ s(Time, bs = "cc", k = 12, by = oth_sp, m = 1) +
                      oth_sp + 
                      s(site, bs="re"), 
@@ -248,3 +248,43 @@ ggarrange(pl_trig, pl_cycl, nrow = 2, ncol = 1, common.legend = TRUE, legend = "
 ggsave(filename = "ms_figures/Fig4_Coyote_Wolf_patterns.jpg", device = "jpeg", units = "cm", width = 24, height = 10, dpi = 600)
 ```
 We see that the trigonometric and the cyclic cubic spline HMs return the same pattern.
+
+As in other examples, we can assess the importance of the variable of interest in driving a species activity patterns by comparing the models above with a version of the same model withut this covariate. In this example, this results in models without the interactions of the cosine terms with the variable *oth_sp*. However, it is preferable to run this comparison only considering the trigonometric models. When removing the effect of the covariate, we change the model structure to one that contains a global smoother and, as highlighted in @Pedersen2019, AIC might not be reliable when comparing HGAMs with and without a global smoother. In these cases, AIC tend to select the model without the global smoother.
+
+``` {r temp9}
+# Trigonometric GLMM (random intercept-only)
+# run model: coyote
+mod_trig_Co_null <- mixed_model(fixed = cbind(success, failure) ~ cos(2*pi*Time/24) + sin(2*pi*Time/24) +
+                                                             cos(2*pi*Time/12) + sin(2*pi*Time/12), 
+                           random = ~ 1 | site,
+                           family = binomial(),
+                           data = occasions_Co_cbind,
+                           iter_EM = 0) 
+
+# run model: wolf
+mod_trig_Wo_null <- mixed_model(fixed = cbind(success, failure) ~ cos(2*pi*Time/24) + sin(2*pi*Time/24) +
+                                                             cos(2*pi*Time/12) + sin(2*pi*Time/12), 
+                           random = ~ 1 | site,
+                           family = binomial(),
+                           data = occasions_Wo_cbind,
+                           iter_EM = 0) 
+
+```
+
+*Model selection.* For each of the two species, we can now compare the models that include and do not include the presence of the other species. 
+For coyotes, 
+``` {r temp9}
+print("Coyote")
+print("Trigonometric GLMMs:")
+AIC(mod_trig_Co_null, mod_trig_Co)
+```
+
+Based on AIC, there is a strong support for the model that assumes an effect of the presence of wolves as a driver of coyotes' activity patterns.
+
+``` {r temp9}
+print("Wolf")
+print("Trigonometric GLMMs:")
+AIC(mod_trig_Wo_null, mod_trig_Wo)
+```
+
+A similar conclusion is reached for the wolf. These results do not imply a casual effect, but rather define an association: in site-sessions when the species cooccur (i.e. in space and time), they tend to have activity patterns that differ compared to site-sessions when they do not cooccur. These differences might be driven by other factors (e.g., level of anthropization) not considered in the analysis.  
