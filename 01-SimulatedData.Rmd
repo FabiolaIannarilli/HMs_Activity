@@ -26,6 +26,7 @@ set.seed(129)
 library(dplyr)
 library(grid)
 library(gridExtra)
+library(ggplot2)
 wavelength = 24
 b0 = -3
 b1 = 1 
