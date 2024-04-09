@@ -41,12 +41,10 @@ Throughout this tutorial, we use several packages. Users interested in compiling
 ``` {r preface1}
 list.of.packages <- c("dplyr", "grid", "gridExtra", "GLMMadaptive", "ggpubr", "mgcv", 
                       "tidyr", "lubridate", "lmtest", "activity", "overlap", "circular", 
-                      "nimble", "brms")
+                      "nimble", "brms", "forcats")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)>0) install.packages(new.packages)
 
-# install packages from github repos
-remotes::install_github('mapoflife/rstoat', ref='main')
 ```
 
 In some section, we also use *sim_activity*, a custom function that simulate activity patterns under different conditions. A description of this function is provided in \@ref(app)  at the end of this tutorial.

@@ -15,8 +15,7 @@ library(lubridate)
 library(GLMMadaptive)
 library(mgcv)
 library(ggpubr)
-library(rstoat)
-library(terra) # to convert UTM in lat long
+library(forcats) 
 
 # Load data
 dat <- read.csv("data_input/species_records.csv") %>% 
@@ -249,70 +248,19 @@ AIC(mod_cycl1, mod_cycl1_no_cov)
 
 ## Continuous covariates
 
-We use the same data to illustrate how these model structures can be used to assess the effect of continuous covariates. Specifically, we explore how bear diel activity changes in response to anthropogenic modifications of the landscape quantified through the Global Human Modification index (GHM; @Kennedyea2020; @Kennedyea2019), a continuous metric ranging between 0 and 1 which is a cumulative measure of human modification of terrestrial landscapes.
-
-We first extract the values of GHM at each site. This requires converting the site coordinates from UTM to latitude/longitude.
+We use the same data to illustrate how these model structures can be used to assess the effect of continuous covariates. Specifically, we explore how bear diel activity changes in response to anthropogenic modifications of the landscape quantified through the Global Human Modification index (GHM; @Kennedyea2020; @Kennedyea2019), a continuous metric ranging between 0 and 1 which is a cumulative measure of human modification of terrestrial landscapes. An histogram of the values of GHM at the different sites sampled shows that the level of human-driven landscape modification is relatively low in the study area and most of the sites have a GHM value lower than 0.10. 
 
 ```{r cont1}
-# add Global Modification Index to cov
-cov_temp <- cov %>% 
-  mutate(lng = Xcoords,
-         lat = Ycoords,
-         date = Date_setup,
-  )
-p1 <- vect(cov, geom=c("Xcoords", "Ycoords"), crs="epsg:26915")
-p2 <- project(p1, "+proj=longlat")
-lonlat <- geom(p2)[, c("x", "y")]
-cov_temp <- cbind(cov, lonlat) %>% 
-  mutate(lng = x,
-         lat = y,
-         date = Date_setup,
-  ) %>% 
-  select(Session, Site, lng, lat, date)
-ghm <- start_annotation_simple(
-  events = cov_temp,
-  layers = "tncghm-modification-1000-0",
-  coords = c("lng", "lat"),
-  date = "date"
-)
-cov$ghm <- ghm$value
-
+hist(cov$ghm)
 ```
-We now have to link this information to the independent encounter events already defined at the beginning of this tutorial and stored in the object _dat_, 
+
+We link the GHM values available in the _cov_ object to the _occasion_ data frame created at the beginning of this tutorial, and then proceed with arranging the data in the format required to run the HM-based models, as we have done in other examples. This time though, we also add GHM as an additional grouping level. 
 
 ```{r cont2}
-dat_ghm <- left_join(dat, 
-                 cov %>% select(Session, Site, ghm), 
-                 by = c("Session" = "Session", "Station" = "Site")) 
-```
-and then proceed with arranging the data in the format required to run the HM-based models, as we have done in other examples.  
-
-```{r cont3}
-# Create dataframe to store captures 
-occasions <- vector("list", length = nrow(site))
-for(i in 1:nrow(site)){
-  occasions[[i]] <- data.frame(Session = site$Session[i],
-                               Site = site$Site[i],
-                               start = seq(from = ymd_hms(paste(site$Date_setup[i], "00:00:00", sep = " ")), 
-                                           to = ymd_hms(paste(site$end[i], "23:59:59", sep = " ")), by = '60 min')) %>% 
-    mutate(end = c(start[2:length(start)], start[length(start)]+minutes(60))) 
-}
-occasions <- do.call(rbind.data.frame, occasions)
-occasions$capt <- 0
-
-#' Store captures
-for(i in 1:nrow(dat)){
-  occasions[occasions$Session == as.character(dat$Session[i]) & occasions$Site == as.character(dat$Station[i]) &
-              occasions$start <= dat$DateTimeOriginal[i] & occasions$end > dat$DateTimeOriginal[i], "capt"] <- 1
-}
-
-#' Format data 
-occasions$Time <- ymd_hms(occasions$start) 
-occasions$Time <- hour(occasions$Time)
-
-#' Add covariate info
+# Add ghm info
 occasions <- left_join(occasions, 
-                       cov %>% select(Session, Site, ghm)) 
+                       cov %>% select(Session, Site, ghm)) %>% 
+  mutate(ghm = round(ghm, digits = 3))
 
 head(table(occasions$ghm, occasions$capt))
 occasions$Site <- as.factor(occasions$Site)
@@ -326,7 +274,7 @@ occasions_cbind <- occasions %>%
 ```
 We can now fit the model structure we prefer. As an example, we report a trigonometric random-intercept only model and a cyclic cubic spline HGAM without common smoother.
 
-```{r cont4}
+```{r cont3}
 # random-intercept only trigonometric GLMM
 mod_trig_cont <- mixed_model(fixed = cbind(success, failure) ~ cos(2 * pi * Time/24) * ghm + sin(2 * pi * Time/24) * ghm +
                                                                sin(2 * pi * Time/12) * ghm + cos(2 * pi * Time/12) * ghm,
@@ -347,7 +295,7 @@ summary(mod_cycl1_cont)
 ```
 Comparing the two models' output summaries is not easy. We can instead compare the predicted estimates visually. 
 
-``` {r cont5}
+``` {r cont4}
 # create a new dataset for the estimates
 newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), 24, length.out = 48),
                                             ghm = quantile(ghm, probs = c(0.025, 0.5, 0.975)),
@@ -406,7 +354,7 @@ These results seem not conclusive. The estimates based on the cyclic cubic splin
 
 We can further explore the effect of GHM on activity by comparing these models with their relative null model (i.e. a version of the model without the covariate of interest) using AIC (or LRT for trigonometric GLMMs).
 
-``` {r cont6}
+``` {r cont5}
 # null random-intercept only trigonometric GLMM
 mod_trig_cont_null <- mixed_model(fixed = cbind(success, failure) ~ cos(2 * pi * Time/24) + sin(2 * pi * Time/24) +
                                                                sin(2 * pi * Time/12) + cos(2 * pi * Time/12),
