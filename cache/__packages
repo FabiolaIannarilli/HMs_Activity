@@ -22,3 +22,5 @@ terra
 tictoc
 overlap
 circular
+Rcpp
+brms
