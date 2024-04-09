@@ -12,7 +12,7 @@ Here, we build and compare model structures that represent these three different
 
 ``` {r univsbim1, message = FALSE, warnings = FALSE}
 # Load libraries
-library(tidyverse)
+library(dplyr)
 library(lubridate)
 library(GLMMadaptive)
 library(lmtest)
