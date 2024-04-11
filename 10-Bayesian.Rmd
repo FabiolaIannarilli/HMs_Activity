@@ -117,13 +117,13 @@ Act_bay <-nimbleCode({
 
 We now need to specify the initial values and MCMC settings and run the model using _nimble_ [@nimble1, @nimble2, @nimble3].
 
-``` {r bay4, cache=TRUE, cache.path="cache/", eval=FALSE}
+``` {r bay4, cache=TRUE, cache.path="cache/", eval=TRUE}
 # MCMC settings
   inits <- function() list(beta0 = runif(nrow(sim_data), 0, 3), theta0 = runif(nrow(sim_data), 0, 2*pi),
                            theta1 = runif(nrow(sim_data), 0, 2*pi))
   params <- c("mu.beta0", "sd.beta0", "beta1", "beta2", "mean.theta0", "mean.theta1", "sd.theta")
-  ni <- 120000; nt <- 1; nb <- 5000; nc <- 3;   n.adapt = 500
-  #ni <- 200; nt <- 1; nb <- 1; nc <- 3;   n.adapt = 500
+  #ni <- 120000; nt <- 1; nb <- 5000; nc <- 3;   n.adapt = 500
+  ni <- 200; nt <- 1; nb <- 1; nc <- 3;   n.adapt = 500
 
   nimble.constants <- list(time=time, M=nrow(sim_data), J=ncol(sim_data), pi=pi)
   nimble.data<-list(y=sim_data)
@@ -323,7 +323,7 @@ and failure as 'success| trial(add variable here)'. From the brms R package vign
 Something also to consider is how we go about fitting the random effect term in brms. The main consequenes of how we go about doing this is whether we can easily estimate the conditional mean or not. Note that brms functions do not allow excluding smooth terms, such as (Site, bs="re") when making predictions ([see here](https://discourse.mc-stan.org/t/excluding-a-smooth-term-in-brms-using-posterior-linpred/10960/4)). We can consider a slightly different parameterization than \ref{est10}, which makes it straightfrward in estimating the conditional mean . Let's consider both approaches...
 
 
-```{r fit.bayes.cc.3, cache=TRUE, cache.path="cache/", eval=FALSE, echo=TRUE}
+```{r fit.bayes.cc.3, cache=TRUE, cache.path="cache/", eval=TRUE, echo=TRUE}
 # Setup the model but do not fit it (i.e., chains = 0)
   cycl_rand_int_setup <- brms::brm(bf(success| trials(n_events)  ~ s(Time, bs = "cc", k = wavelength)+
                                           s(Site, bs="re")
@@ -353,11 +353,6 @@ cycl_rand_int_setup_alt <- brms::brm(bf(success| trials(n_events)  ~ s(Time, bs 
                               chains = 3)
 ```
 
-```{r fit.bayes.load, eval=TRUE, echo=FALSE}
-#Fabiola removes this and uses the cache approach?
-load("cycl_rand_int")
-load("cycl_rand_int_alt")
-```
 
 ### Model Asssemment 
 

@@ -22,7 +22,6 @@ dat <- read.csv("data_input/species_records.csv") %>%
   filter(Species == "BlackBear") %>% droplevels() %>% 
   mutate(DateTimeOriginal = ymd_hms(DateTimeOriginal))
 cov <- read.csv("data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv", as.is = TRUE) %>% 
-  select(c(Session, Site, Date_setup, Date_retr, Problem1_from, Problem1_to, Xcoords, Ycoords)) %>% 
   mutate(Date_setup = mdy(Date_setup),
          Date_retr = mdy(Date_retr),
          Problem1_from = mdy(Problem1_from),
