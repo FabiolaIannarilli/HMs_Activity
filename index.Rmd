@@ -41,7 +41,7 @@ Throughout this tutorial, we use several packages. Users interested in compiling
 ``` {r preface1}
 list.of.packages <- c("dplyr", "grid", "gridExtra", "GLMMadaptive", "ggpubr", "mgcv", 
                       "tidyr", "lubridate", "lmtest", "activity", "overlap", "circular", 
-                      "nimble", "brms", "forcats")
+                      "nimble", "brms", "forcats", "MESS")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)>0) install.packages(new.packages)
 
