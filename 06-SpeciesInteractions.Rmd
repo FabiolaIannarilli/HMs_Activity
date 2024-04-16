@@ -82,8 +82,7 @@ for(i in 1:nrow(dat_Co)){
 }
 
 # Format data 
-occasions_Co$Time <- ymd_hms(occasions_Co$start) 
-occasions_Co$Time <- hour(occasions_Co$Time)
+occasions_Co$Time <- hour(occasions_Co$start)
 occasions_Co$oth_sp <- NA
 for(i in 1:nrow(occasions_Co)){
   occasions_Co$oth_sp[i] <- ifelse(paste(occasions_Co$Session[i], occasions_Co$site[i], sep = "_") %in% site$Sess_site, 1,0)
@@ -103,16 +102,15 @@ We had 130 hourly intervals (out of 56 928) and 121 hourly intervals (out of 514
 We repeat the same steps for wolves.
 
 ``` {r temp6}
-#' Store captures
+# Store captures
 dat_Wo <- dat %>% filter(Species == "Wolf")
 for(i in 1:nrow(dat_Wo)){
   occasions_Wo[occasions_Wo$Session == as.character(dat_Wo$Session[i]) & occasions_Wo$site == as.character(dat_Wo$Station[i]) &
                  occasions_Wo$start <= dat_Wo$DateTimeOriginal[i] & occasions_Wo$end > dat_Wo$DateTimeOriginal[i], "capt"] <- 1
 }
 
-#' Format data 
-occasions_Wo$Time <- ymd_hms(occasions_Wo$start) 
-occasions_Wo$Time <- hour(occasions_Wo$Time)
+# Format data 
+occasions_Wo$Time <- hour(occasions_Wo$start)
 occasions_Wo$oth_sp <- NA
 for(i in 1:nrow(occasions_Wo)){
   occasions_Wo$oth_sp[i] <- ifelse(paste(occasions_Wo$Session[i], occasions_Wo$site[i], sep = "_") %in% site$Sess_site, 1,0)

@@ -97,9 +97,8 @@ We have 251 and 570925 1-hour long occasions with and without encounters of coyo
 Because we chose to use hourly occasions, we can extract the information about the hour of each interval to use it as the _Time_ variable in the models that we will run in the following sections. If a different time length is used (e.g. 1-minute long), this step needs to be adapted accordingly. We also code _Site_ as a factor.
 
 ```{r prep7}
-#' Format data 
-occasions$Time <- ymd_hms(occasions$start) 
-occasions$Time <- hour(occasions$Time)
+# Format data 
+occasions$Time <- hour(occasions$start)
 occasions$Site <- as.factor(occasions$Site)
 nrow(occasions)
 ```

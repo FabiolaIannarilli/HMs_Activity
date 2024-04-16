@@ -50,15 +50,14 @@ for(i in 1:nrow(site)){
 occasions <- do.call(rbind.data.frame, occasions)
 occasions$capt <- 0
 
-#' Store captures
+# Store captures
 for(i in 1:nrow(dat)){
   occasions[occasions$Session == as.character(dat$Session[i]) & occasions$Site == as.character(dat$Station[i]) &
               occasions$start <= dat$DateTimeOriginal[i] & occasions$end > dat$DateTimeOriginal[i], "capt"] <- 1
 }
 
-#' Format data 
-occasions$Time <- ymd_hms(occasions$start) 
-occasions$Time <- hour(occasions$Time)
+# Format data 
+occasions$Time <- hour(occasions$start)
 occasions$Site <- as.factor(occasions$Site)
 
 # format data for cbind(success, failure)

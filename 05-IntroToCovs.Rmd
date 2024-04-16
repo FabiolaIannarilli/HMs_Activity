@@ -56,8 +56,7 @@ for(i in 1:nrow(dat)){
 }
 
 # Format data 
-occasions$Time <- ymd_hms(occasions$start) 
-occasions$Time <- hour(occasions$Time)
+occasions$Time <- hour(occasions$start)
 occasions$Season <- as.factor(substr(occasions$Session, 1, 1))
 table(occasions$Season, occasions$capt)
 occasions$Site <- as.factor(occasions$Site)
