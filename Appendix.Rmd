@@ -1,6 +1,6 @@
 # Appendix {#app}
 
-## The *sim_activity* function
+## The *sim_activity* function {#sim_function}
 Throughout the tutorial we use the *sim_activity* function for simulating activity patterns. This function simulate realized activity patterns based on a 'true' activity pattern distribution density build as specific in equation 1 reported in section \@ref(var) and introduced in the main text (@Iannarilliea2024). The arguments of the function specify the following:
 
 *  M: Numeric. Number of sampling units (e.g. sites).
@@ -119,3 +119,317 @@ dat <- sim_activity(M = M,
                      plot_true_act = TRUE)
 
 ```
+
+## Probability Density Function Comparison {#poisson}
+
+How we aggregate observations of activity will determine how we model our data. @Rees2024 modeled animal diel activity using a generalized additive modeling approach with a negative binomial distribution after determining there was overdispersion using a Poisson distribution. The Poisson probability density function (PDF) is a special case of the Negative Binomial. Throughout, we have used the binomial probability mass function to model diel activity in both trigonometric GLMMs and cyclic cubic splines HGAMs. The Poisson distribution is in fact a special case of the binomial when the number of 'trials' is very large. As such, we can gain similar inference using these different distributions, but we need to think about how sampling effort is accounted for. 
+
+In the binomial application, the zeros indicate that a camera was active on a given day, but there was no detection of the species. When using the Poisson or negative binomial distribution to model the counts of detections, we need to include sampling effort (e.g., @Rees2024). We can do this as an offset within the model, which changes our inference from the expected number of counts to the expected number of counts per unit of effort (i.e. thus modeling a rate). If setup this way, results using these different probability distributions should be quite similar (depending on sample size). There however may be computational benefits modeling counts at very large sample sizes. 
+
+Below, we demonstrate the equivalence between using the binomial and Poisson probability distributions when fitting animal activity data using trigonmetric and cyclic spline hierarchical models.
+
+
+### Data preparation
+
+We use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021]. We will use the same data records of American black bear (*Ursus americanus*) as done in the chapter \@ref(cat). However, we will ignore examining a season covariate for simplicity and just focus on modeling the fall data. 
+
+
+```{r pdf1, message = TRUE, warnings = TRUE}
+# Load Libraries
+rm(list = ls())
+set.seed(129)
+library(dplyr)
+library(lubridate)
+library(GLMMadaptive)
+library(mgcv)
+library(ggpubr)
+
+# Load data
+dat <- read.csv("data_input/species_records.csv") %>% 
+  filter(Species == "BlackBear") %>% droplevels() %>% 
+  filter(Session %in%  c("Fall2016", "Fall2017")) %>% 
+  mutate(DateTimeOriginal = ymd_hms(DateTimeOriginal))
+cov <- read.csv("data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv", as.is = TRUE) %>% 
+  mutate(Date_setup = mdy(Date_setup),
+         Date_retr = mdy(Date_retr),
+         Problem1_from = mdy(Problem1_from),
+         Problem1_to = mdy(Problem1_to)) 
+
+# Merge time of deployment and retrieval + problems
+site <- cov
+site$end <- ymd("2000-01-01")
+for(i in 1:nrow(site)){
+  site$end[i] <-  min(site$Date_retr[i], site$Problem1_from[i], na.rm = TRUE)
+}
+
+# Create dataframe to store captures 
+occasions <- vector("list", length = nrow(site))
+for(i in 1:nrow(site)){
+  occasions[[i]] <- data.frame(Session = site$Session[i],
+                               Site = site$Site[i],
+                               start = seq(from = ymd_hms(paste(site$Date_setup[i], "00:00:00", sep = " ")), 
+                                           to = ymd_hms(paste(site$end[i], "23:59:59", sep = " ")), by = '60 min')) %>% 
+    mutate(end = c(start[2:length(start)], start[length(start)]+minutes(60))) 
+}
+occasions <- do.call(rbind.data.frame, occasions)
+occasions$capt <- 0
+
+# Store captures
+for(i in 1:nrow(dat)){
+  occasions[occasions$Session == as.character(dat$Session[i]) & occasions$Site == as.character(dat$Station[i]) &
+              occasions$start <= dat$DateTimeOriginal[i] & occasions$end > dat$DateTimeOriginal[i], "capt"] <- 1
+}
+
+# Format data 
+occasions$Time <- hour(occasions$start)
+occasions$Site <- as.factor(occasions$Site)
+
+# format data for cbind(success, failure)
+occasions_cbind <- occasions %>% 
+  group_by(Site, Time) %>% 
+  summarize(success = sum(capt),
+            failure = n() - success)
+head(occasions_cbind)
+
+# Create a copy of the dataset
+y_fall <- occasions_cbind
+
+# Create a column of the total number of possible detections (i.e. trials) to be used
+# as the offset when controlling for sampling effort when using the Poisson PDF.
+y_fall$total <-  y_fall$success + y_fall$failure
+
+```
+
+### Trigonometric PDF Comparison
+
+Fit the model using 0 and 1 data with a binomial distribution and then fit the equivalent count data 
+along with an offset to control for sampling effort.
+
+```{r pdf2}
+# Fit the Binomial model
+trig_rand_int <- mixed_model(fixed = cbind(success, failure) ~ 
+                                              cos(2 * pi * Time/24) +
+                                              sin(2 * pi * Time/24) +
+                                              sin(2 * pi * Time/12) +
+                                              cos(2 * pi * Time/12) ,
+            random = ~  1  |   Site,
+            data = y_fall, family = binomial(), iter_EM = 0)
+summary(trig_rand_int)
+
+
+#Fit Poisson Model with log offset using the variable 'total'
+trig_rand_int_P <- mixed_model(fixed = success ~ 
+                                              cos(2 * pi * Time/24) +
+                                              sin(2 * pi * Time/24) +
+                                              sin(2 * pi * Time/12) +
+                                              cos(2 * pi * Time/12) + offset(log(total)),
+            random = ~  1  |   Site,
+            data = y_fall, family = poisson(), iter_EM = 0)
+summary(trig_rand_int_P)
+
+```
+
+First, note the similarity in the coefficient estimates. Next, we can predict the diel activity for each model. Note that to be equivalent, we need to consider the same predictions for 1 unit of sampling effort, thus we use 'total = 1'. 
+
+```{r pdf3}
+newdat <- with(occasions_cbind, expand.grid(Time = seq(0, 24, length.out = 24),total=1))
+pred_rand_int <- effectPlotData(trig_rand_int, newdat, marginal = FALSE) 
+pred_rand_int_P <- effectPlotData(trig_rand_int_P, newdat, marginal = FALSE) 
+```
+
+Now, we can plot the activity predictions from both models. 
+
+```{r pdf4, class.source = 'fold-hide'}
+# plot 1
+pl_trig1 <- ggplot(pred_rand_int, aes(Time, plogis(pred))) +
+  geom_ribbon(aes(ymin = plogis(low), ymax = plogis(upp)), alpha = 0.1, linewidth = 0.25) +
+  geom_line(aes(), linewidth = 1) +
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "B: Trigonometric Binomial Model")+
+  theme_minimal()+
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        legend.text = element_text(size=10,face="bold"),
+        legend.margin=margin(0,0,0,0),
+        legend.box.margin=margin(-5,-10,-10,-10),
+        plot.title = element_text(size=10,face="bold"),
+        axis.line = element_line(colour = 'black', linetype = 'solid'),
+        axis.ticks = element_line(colour = 'black', linetype = 'solid'),
+        axis.title = element_text(size=9,face="bold"),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
+        panel.grid.minor.x = element_blank(),
+        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
+  scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4))
+
+# plot 2
+pl_trig1_P <- ggplot(pred_rand_int_P, aes(Time, plogis(pred))) +
+  geom_ribbon(aes(ymin = plogis(low), ymax = plogis(upp)), alpha = 0.1, linewidth = 0.25) +
+  geom_line(aes(), linewidth = 1) +
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "A: Trigonometric Poisson Model ")+
+  theme_minimal()+
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        legend.text = element_text(size=10,face="bold"),
+        legend.margin=margin(0,0,0,0),
+        legend.box.margin=margin(-5,-10,-10,-10),
+        plot.title = element_text(size=10,face="bold"),
+        axis.line = element_line(colour = 'black', linetype = 'solid'),
+        axis.ticks = element_line(colour = 'black', linetype = 'solid'),
+        axis.title = element_text(size=9,face="bold"),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
+        panel.grid.minor.x = element_blank(),
+        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
+  scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4)) 
+ggarrange(pl_trig1_P, pl_trig1)
+  
+```
+
+We can see that the predictions are equivalent. 
+
+### Cyclic cubic PDF Comparison
+
+Now, lets do the same comparison for fitting models in a generalized additive model framework.
+
+```{r pdf5}
+# Fit binomial model
+mod_cycl <- bam(cbind(success, failure) ~ 
+                   s(Time, bs = "cc", k = 12) + 
+                   s(Site, bs="re"), 
+                 knots = list(Time=c(0,23)),
+                 family = "binomial", 
+                 data = y_fall)
+
+# Predict activity patterns
+newdat <- with(occasions_cbind, expand.grid(Time = seq(0, 24, length.out=24),total=1, 
+                                          Site = "7B")) #Station doesn't matter
+
+# Create predictions and confidence intervals
+cycl_pred <- predict.bam(mod_cycl, newdata = newdat,  exclude = "s(Site)", se.fit = TRUE, type = "link") 
+cycl_pred$low <- cycl_pred$fit - (1.96 * cycl_pred$se.fit)
+cycl_pred$upp <- cycl_pred$fit + (1.96 * cycl_pred$se.fit)
+cycl_pred$Time <- newdat$Time
+cycl_pred <- data.frame(cycl_pred)
+
+#Fit Poisson model
+mod_cycl_P <- bam(success ~ 
+                   s(Time, bs = "cc", k = 12) + 
+                   s(Site, bs="re") + offset(log(total)), 
+                 knots = list(Time=c(0,23)),
+                 family = "poisson", 
+                 data = y_fall)
+
+# Create predictions and confidence intervals
+cycl_pred_P <- predict.bam(mod_cycl_P, newdata = newdat,  exclude = "s(Site)", se.fit = TRUE, type = "link") 
+cycl_pred_P$low <- cycl_pred_P$fit - (1.96 * cycl_pred_P$se.fit)
+cycl_pred_P$upp <- cycl_pred_P$fit + (1.96 * cycl_pred_P$se.fit)
+cycl_pred_P$Time <- newdat$Time
+cycl_pred_P <- data.frame(cycl_pred_P)
+```
+
+Now, we can plot the activity predictions from both models. 
+
+```{r pdf6, class.source = 'fold-hide'}
+# plot 1
+pl_cycle1 <- ggplot(cycl_pred, aes(Time, plogis(fit))) +
+  geom_ribbon(aes(ymin = plogis(low), ymax = plogis(upp)), alpha = 0.1, linewidth = 0.25) +
+  geom_line(aes(), linewidth = 1) +
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "A: Hierarhical GAM - Binomial")+
+  theme_minimal()+
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        legend.text = element_text(size=10,face="bold"),
+        legend.margin=margin(0,0,0,0),
+        legend.box.margin=margin(-5,-10,-10,-10),
+        plot.title = element_text(size=10,face="bold"),
+        axis.line = element_line(colour = 'black', linetype = 'solid'),
+        axis.ticks = element_line(colour = 'black', linetype = 'solid'),
+        axis.title = element_text(size=9,face="bold"),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
+        panel.grid.minor.x = element_blank(),
+        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
+  scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4))
+
+#plot 2
+pl_cycle1_P <- ggplot(cycl_pred, aes(Time, plogis(fit))) +
+  geom_ribbon(aes(ymin = plogis(low), ymax = plogis(upp)), alpha = 0.1, linewidth = 0.25) +
+  geom_line(aes(), linewidth = 1) +
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "B: Hierarhical GAM - Poisson")+
+  theme_minimal()+
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        legend.text = element_text(size=10,face="bold"),
+        legend.margin=margin(0,0,0,0),
+        legend.box.margin=margin(-5,-10,-10,-10),
+        plot.title = element_text(size=10,face="bold"),
+        axis.line = element_line(colour = 'black', linetype = 'solid'),
+        axis.ticks = element_line(colour = 'black', linetype = 'solid'),
+        axis.title = element_text(size=9,face="bold"),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
+        panel.grid.minor.x = element_blank(),
+        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
+  scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4)) 
+ggarrange(pl_cycle1_P, pl_cycle1)
+
+```
+
+Again, we can see that the predictions are equivalent. 
+
+### Not Controlling for Sampling Effort
+
+Let's see what happens when we don't control for sampling effort using the Poisson PDF.
+
+```{r pdf7}
+#Fit Poisson model
+mod_cycl_P2 <- bam(success ~ 
+                     s(Time, bs = "cc", k = 12) + 
+                     s(Site, bs="re"), 
+                   knots = list(Time=c(0,23)),
+                   family = "poisson", 
+                   data = y_fall)
+
+# Create predictions and confidence intervals
+newdat <- with(occasions_cbind, expand.grid(Time = seq(0, 24, length.out=24),
+                                            Site = "7B")) #Station doesn't matter
+cycl_pred_P2 <- predict.bam(mod_cycl_P2, newdata = newdat,  exclude = "s(Site)", se.fit = TRUE, type = "link") 
+cycl_pred_P2$low <- cycl_pred_P2$fit - (1.96 * cycl_pred_P2$se.fit)
+cycl_pred_P2$upp <- cycl_pred_P2$fit + (1.96 * cycl_pred_P2$se.fit)
+cycl_pred_P2$Time <- newdat$Time
+cycl_pred_P2 <- data.frame(cycl_pred_P2)
+
+```
+
+Let's plot this model output compared to the above Poisson model where we do control for sampling effort.
+
+```{r pdf8, class.source = 'fold-hide'}
+pl_cycle1_P2 <- ggplot(cycl_pred_P2, aes(Time, plogis(fit))) +
+  geom_ribbon(aes(ymin = plogis(low), ymax = plogis(upp)), alpha = 0.1, linewidth = 0.25) +
+  geom_line(aes(), linewidth = 1) +
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "C: Hierarhical GAM - Poisson NO OFFSET")+
+  theme_minimal()+
+  theme(legend.position = "bottom",
+        legend.title = element_blank(),
+        legend.text = element_text(size=10,face="bold"),
+        legend.margin=margin(0,0,0,0),
+        legend.box.margin=margin(-5,-10,-10,-10),
+        plot.title = element_text(size=10,face="bold"),
+        axis.line = element_line(colour = 'black', linetype = 'solid'),
+        axis.ticks = element_line(colour = 'black', linetype = 'solid'),
+        axis.title = element_text(size=9,face="bold"),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
+        panel.grid.minor.x = element_blank(),
+        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
+  scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4)) 
+
+ggarrange(pl_cycle1_P, pl_cycle1_P2)
+```
+
+We can see that the activity curve is the same shape, but the magnitude on the y-axis is different. Using the offset allows us to better represent animal activity in terms of when they are active and not active, similar to how some studies compare animal activity as detection rates across sites as the number of detections per site divided by the number of days the site was sampled; this measure is some times refereed to as a relative abundance index (RAI). 

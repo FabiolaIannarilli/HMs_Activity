@@ -305,7 +305,8 @@ cond_eff <- rbind(cond_true, cond_eff1)
         panel.grid.major.y = element_blank(),
         panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
         panel.grid.minor.x = element_blank(),
-        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
+        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0),
+        plot.margin = margin(0.1,0.1,0.5,0.1, "cm"))+
   scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4)))
 
 ```
@@ -362,7 +363,8 @@ cond_eff <- rbind(cond_true, cycl_pred)
         panel.grid.major.y = element_blank(),
         panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
         panel.grid.minor.x = element_blank(),
-        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
+        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0),
+        plot.margin = margin(0.1,0.1,0.5,0.1, "cm"))+
   scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4)))
   
 ```
@@ -418,9 +420,12 @@ cond_eff <- rbind(cond_true, cycl_pred)
         panel.grid.major.y = element_blank(),
         panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
         panel.grid.minor.x = element_blank(),
-        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
+        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0),
+        plot.margin = margin(0.1,0.1,0.5,0.1, "cm"))+
   scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4)))
   
 ```
 
 Adding a component that allows for variability in timing of peak activity seems to improve the model fit and provide an estimated activity pattern that more closely resembles the one used to simulated the data.
+
+**Going forward**. Throughout the tutorial, we fit trigonometric GLMMs using a binomial distribution (_family = "binomial"_ in the code); however, we can run these models also using a Poisson distribution with a few adjustments to data and model structures. We report an example in chapter \@ref(poisson). When working with large datasets, using a Poisson distribution might led to a gain in computational time.  
