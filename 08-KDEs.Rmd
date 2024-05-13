@@ -414,6 +414,7 @@ In section \@ref(cat), we use the seasonal activity patterns of black bears as a
 # Load additional Libraries
 library(GLMMadaptive)
 library(mgcv)
+library(tidyr)
 
 # Load data
 dat <- read.csv("data_input/species_records.csv") %>% 
@@ -516,7 +517,7 @@ pl_KDE <- ggplot(KDE, aes(x = x/(2*pi)*24, y = y)) +
   theme_minimal() +
   scale_color_manual(values = c("orange", "darkgreen")) +
   scale_fill_manual(values = c("orange", "darkgreen")) +
-  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (density) \n", title = "B: KDE \n(splitting data by Season)")+
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (density) \n", title = "C: KDE \n(splitting data by Season)")+
   theme_minimal()+
   theme(legend.position = "none",
         legend.title = element_blank(),
@@ -533,7 +534,7 @@ pl_KDE <- ggplot(KDE, aes(x = x/(2*pi)*24, y = y)) +
         panel.grid.minor.x = element_blank())+
   scale_x_continuous(breaks=seq(0,24,4), labels=seq(0,24,4))
 ```
-Next, we re-run the analysis using the HM approach. In particular, we fit a trigonometric random intercept-only model and cyclic cubic spline without a global smoother for _Time_. Both models account for variability in site-use, but not for variability in timing of activity peaks. We also fit a cyclic cubic spline with a global smoother for _Time_ to account for this second form of variability.
+Next, we re-run the analysis using the HM approach. In particular, we fit a trigonometric random intercept-only model and cyclic cubic spline without a smoother for _Time_ that depends on _Season_. Both models account for variability in site-use, but not for variability in timing of activity peaks. 
 
 ```{r compkde3}
 # trig GLMM random intercept-only
@@ -577,25 +578,14 @@ pl_trig <- ggplot(pred_rand_int, aes(Time, plogis(pred))) +
   scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4))
 
 # Cyclic cubic spline HGAMs 
-# Without a global smoother for Time
-mod_cycl1 <- bam(cbind(success, failure) ~ 
+mod_cycl <- bam(cbind(success, failure) ~ 
                    s(Time, bs = "cc", k = 12, by = Season, m = 1) +
                    Season + 
                    s(Site, bs="re"), 
                  knots = list(Time=c(0,23)),
                  family = "binomial", 
                  data = occasions_cbind)
-
-
-# With a global smoother for Time
-mod_cycl2 <- bam(cbind(success, failure) ~ 
-                   s(Time, bs = "cc", k = 12) + # common smoother
-                   s(Time, bs = "cc", k = 12, by = Season, m = 1) +
-                   Season + 
-                   s(Site, bs="re"), 
-                 knots = list(Time=c(0,23)),
-                 family = "binomial", 
-                 data = occasions_cbind)
+summary(mod_cycl)
 
 
 # Predict activity patterns
@@ -603,20 +593,15 @@ newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), max(Time), 1),
                                             Season = levels(Season), Site = "7B")) #Station doesn't matter
 
 
-cycl_pred1 <- predict.bam(mod_cycl1, newdata = newdat,  exclude = "s(Site)", se.fit = TRUE, type = "response") 
-cycl_pred1 <- cbind(newdat, fit=cycl_pred1$fit, se.fit=cycl_pred1$se.fit, Model = "Without common smoother")
-
-cycl_pred2 <- predict.bam(mod_cycl2, newdata = newdat,  exclude = "s(Site)", se.fit = TRUE, type = "response") 
-cycl_pred2 <- cbind(newdat, fit=cycl_pred2$fit, se.fit=cycl_pred2$se.fit, Model = "With common smoother")
-
-cycl_pred <- rbind(cycl_pred1, cycl_pred2)
+cycl_pred <- predict.bam(mod_cycl, newdata = newdat,  exclude = "s(Site)", se.fit = TRUE, type = "response") 
+cycl_pred <- cbind(newdat, fit=cycl_pred$fit, se.fit=cycl_pred$se.fit, Model = "Random-intercept only")
 
 pl_cycl <- ggplot(cycl_pred, aes(Time, fit)) +
   geom_ribbon(aes(ymin = fit-1.96*se.fit, ymax = fit+1.96*se.fit, color = Season, fill = Season), alpha = 0.3, size = 0.25) +
   geom_line(aes(color = Season), size = 1) +
   scale_color_manual(values = c("orange", "darkgreen")) +
   scale_fill_manual(values = c("orange", "darkgreen")) +
-  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "C: Cyclic cubic spline HGAMs")+
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "B: Cyclic cubic spline HGAMs")+
   coord_cartesian(ylim = c(0, 0.005)) +
   theme_minimal()+
   theme(legend.position = "bottom",
@@ -633,20 +618,41 @@ pl_cycl <- ggplot(cycl_pred, aes(Time, fit)) +
         panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
         panel.grid.minor.x = element_blank(),
         strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
-  scale_x_continuous(breaks=seq(0,max(cycl_pred$Time),length.out=7), labels=seq(0,24,4)) +
-  facet_grid(~Model)
+  scale_x_continuous(breaks=seq(0,max(cycl_pred$Time),length.out=7), labels=seq(0,24,4)) 
 ```
 
 We now bring together the results based on the three methods.
 
-``` {r cat7}
-(ggarrange(ggarrange(pl_trig, pl_KDE, ncol = 2, common.legend = TRUE, legend = "none"), pl_cycl, nrow = 2, common.legend = TRUE, legend = "bottom") +
+``` {r compkde4}
+(ggarrange(pl_trig, pl_cycl, pl_KDE, ncol = 3, common.legend = FALSE, legend = "none") +
   theme(plot.margin = margin(0.1,0.1,0.5,0.1, "cm"))) %>% 
-ggsave(filename = "ms_figures/Fig3_KDEs_HMs_comparison.jpg", device = "jpeg", units = "cm", width = 24, height = 20, dpi = 600)
+ggsave(filename = "ms_figures/Fig3_KDEs_HMs_comparison.jpg", device = "jpeg", units = "cm", width = 24, height = 10, dpi = 600)
 ```
 
-Both the HM-based approaches and the KDEs were able to quantify differences in activity patterns across the two seasons. All the methods aso return similar timing in peaks of activity. However, using the HM-based approaches were also able to quantify differential levels of activity between Spring and Fall. Because these approaches also account for the differential sampling effort, we can interpret the results as the probability that the species is active at a certain time of the day and also compare the activity at a certain hour across season. For example, based on the results we can say that the probability of the species being active around 20:00 in higher in the Spring than in the Fall.
+Both the HM-based approaches and the KDEs were able to quantify differences in activity patterns across the two seasons. All the methods also return similar timing in peaks of activity. However, by using the HM-based approaches, we are also able to quantify differential levels of activity between Spring and Fall. Because these approaches also account for the differential sampling effort, we can interpret the results as the probability that the species is active at a certain time of the day and also compare the activity at a certain hour across season. For example, based on the results we can say that the probability of the species being active around 20:00 is higher in the Spring than in the Fall.
 Likely owing to the assumption of independence, KDE curves tend to be more wiggly than model-based estimates, and this might be especially the case when there are only few independent records.
 
-##################
+We can use compare the two HMs to their relative null model to assess the importance of the variable _Season_ on bear's activity patterns.
+```{r compkde5}
+# trig GLMM random intercept-only
+# null model
+trig_rand_int_null <- mixed_model(fixed = cbind(success, failure) ~ 
+                                              cos(2 * pi * Time/24) +
+                                              sin(2 * pi * Time/24) +
+                                              sin(2 * pi * Time/12) +
+                                              cos(2 * pi * Time/12) ,
+            random = ~  1  |   Site,
+            data = occasions_cbind, family = binomial(), iter_EM = 0)
+summary(trig_rand_int_null)
+AIC(trig_rand_int_null) - AIC(trig_rand_int)
 
+# Cyclic cubic spline HGAMs 
+# null model
+mod_cycl_null <- bam(cbind(success, failure) ~ 
+                   s(Site, bs="re"), 
+                 knots = list(Time=c(0,23)),
+                 family = "binomial", 
+                 data = occasions_cbind)
+summary(mod_cycl_null)
+AIC(mod_cycl_null) - AIC(mod_cycl)
+```

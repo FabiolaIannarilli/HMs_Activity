@@ -1,12 +1,12 @@
-book_filename: "GLMMsActivity"
+book_filename: "HMsActivity"
 language:
   ui:
     chapter_name: "Chapter "
 delete_merged_file: true
 rmd_files:
-  html: ["index.Rmd", "01-SimulatedData.Rmd", "02-EstimatingAP.RMD", 
+  html: ["index.Rmd", "01-SimulatedData.Rmd", "02-EstimatingAP.Rmd", 
   "03-DataPrep.Rmd", "04-UniVSBimodal.Rmd", "05-IntroToCovs.Rmd", "06-SpeciesInteractions.Rmd", 
-  "07b-CondVSMarg.Rmd", "08-KDEs.Rmd", "10-Bayesian.Rmd", "references.Rmd", "Appendix.Rmd"]
-  pdf: ["index.Rmd", "01-SimulatedData.Rmd", "02-EstimatingAP.RMD", 
+  "07b-CondVSMarg.Rmd", "08-KDEs.Rmd", "10-Bayesian.Rmd", "references.Rmd", "appendix.Rmd"]
+  pdf: ["index.Rmd", "01-SimulatedData.Rmd", "02-EstimatingAP.Rmd", 
   "03-DataPrep.Rmd", "04-UniVSBimodal.Rmd", "05-IntroToCovs.Rmd", "06-SpeciesInteractions.Rmd", 
-  "07b-CondVSMarg.Rmd", "08-KDEs.Rmd", "10-Bayesian.Rmd", "references.Rmd", "Appendix.Rmd"]
+  "07b-CondVSMarg.Rmd", "08-KDEs.Rmd", "10-Bayesian.Rmd", "references.Rmd", "appendix.Rmd"]

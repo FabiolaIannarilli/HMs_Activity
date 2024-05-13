@@ -1,15 +1,15 @@
 --- 
-title: "A “How to” guide on estimating Activity Patterns from Camera-Trap Data using a Hierarchical Modeling approach:\n tutorials"
+title: "A 'How to' Guide for Estimating Animal Diel Activity Using Hierarchical Models: tutorials"
 author: 
   - name: "Fabiola Iannarilli"
     email: fabiola.iannarilli@gmail.com
     affiliation: Department of Fisheries, Wildlife and Conservation Biology, St. Paul, Minnesota, USA; Max Planck Institute of Animal Behavior, Konstanz, Germany 
     correspondence: true
-  - name: "Brian Gerber"
+  - name: "Brian D. Gerber"
     affiliation:  USGS, Colorado Cooperative Fish and Wildlife Research Unit, Colorado State University, Fort Collins, Colorado, USA
   - name: "John Erb"
     affiliation:  Minnesota Department of Natural Resources, Grand Rapids, Minnesota, USA
-  - name: "John R Fieberg"
+  - name: "John R. Fieberg"
     affiliation: Department of Fisheries, Wildlife and Conservation Biology, St. Paul, Minnesota, USA
 site: bookdown::bookdown_site
 output: distill::distill_article
@@ -18,9 +18,9 @@ bibliography: [book.bib, packages.bib, articles.bib]
 biblio-style: apalike
 link-citations: yes
 github-repo: rstudio/bookdown-demo
-description: "This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript Iannarilli et al. 202?."
+description: "This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript Iannarilli et al. 2024."
 pdf_document: 
-    number_sections: yes
+    number_chapters: yes
     toc: yes
     toc_depth: 4
     pandoc_args:
@@ -29,14 +29,14 @@ pdf_document:
 ---
 
 # Preface {#preface}
-<! -- paragraph to fix once we have defined the final order of the chapters -->
+<!-- paragraph to fix once we have defined the final order of the chapters -->
 
-This vignette accompanies the manuscript @Iannarilliea2024 and contains step-by-step examples on how to use trigonometric and cyclic cubic spline Hierarchical Models (HMs) to analyze activity patterns from time-stamped camera-trap data (sections \@ref(est), \@ref(unibim)). It also includes examples of comparing the importance of different covariates when fitting GLMMs to describe activity patterns (section \@ref(cat)), and additional resources to illustrate the difference between conditional and marginal mean activity patterns (section \@ref(condvsmarg)) and the application of Kernel Density Estimators through the packages currently available in R (section \@ref(kdes)).
+This vignette accompanies the manuscript @Iannarilliea2024 and contains step-by-step examples on how to use trigonometric and cyclic cubic spline Hierarchical Models (HMs) to analyze activity patterns from time-stamped data (chapters \@ref(est), \@ref(unibim)). In this tutorial, we present case studies based on camera-trap data, but the approaches described can be applied to data collected vis other static sensors (e.g., acoustic recorders). The tutorial also includes examples of comparing the importance of different covariates when fitting GLMMs to describe activity patterns (chapter \@ref(cov)), and additional resources to illustrate the difference between conditional and marginal mean activity patterns (chapter \@ref(condvsmarg)) and the application of Kernel Density Estimators through the packages currently available in R (chapter \@ref(kdes)).
 
-All the analyses presented in the following sections were performed in @R-base. The camera-trap data used in the real-case examples can be accessed at XXXX. Details on how this data were collected can be found in @Iannarilliea2021.
+All the analyses presented in the following chapters were performed in @R-base. The camera-trap data used in the real-case examples can be accessed at XXXX. Details on how this data were collected can be found in @Iannarilliea2021.
 
 ## Requirements
-Throughout this tutorial, we use several packages. Users interested in compiling the tutorial from sources and those that would like to reproduce the code provided in the next sections in their own machine should make sure to install these libraries. The code below provides a list of all the packages needed, check if they are already installed in your local machine, and install those that are not.
+Throughout this tutorial, we use several packages. Users interested in compiling the tutorial from source or in reproducing the analysis on their own machine should install these packages. The code below provides a list of all the libraries needed, check if they are already installed in the user's local machine, and install those that are not.
 
 ``` {r preface1}
 list.of.packages <- c("dplyr", "grid", "gridExtra", "GLMMadaptive", "ggpubr", "mgcv", 
@@ -47,4 +47,4 @@ if(length(new.packages)>0) install.packages(new.packages)
 
 ```
 
-In some section, we also use *sim_activity*, a custom function that simulate activity patterns under different conditions. A description of this function is provided in \@ref(app)  at the end of this tutorial.
+In chapter \@ref(est), we use the function *sim_activity*, a custom function that we built to simulate activity patterns under different conditions. A description of this function is provided in chapter \@ref(app) at the end of this tutorial.

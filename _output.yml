@@ -3,7 +3,7 @@ bookdown::gitbook:
   config:
     toc:
       before: |
-        <li><a href="./">An “How to” guide on estimating Activity Patterns from Camera-Trap Data using a Hierarchical Modeling approach: tutorials</a></li>
+        <li><a href="./">A 'How to' Guide for Estimating Animal Diel Activity Using Hierarchical Models: tutorials</a></li>
       after: |
         <li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
     edit: https://github.com/rstudio/bookdown-demo/edit/master/%s

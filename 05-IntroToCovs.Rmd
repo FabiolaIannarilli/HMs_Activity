@@ -1,12 +1,12 @@
-# Modeling activity patterns with covariates {#cat}
+# Modeling activity patterns with covariates {#cov}
 
 Many researchers exploring activity patterns from camera-trap data sooner or later run into the challenge of estimating how activity patterns vary in response to some conditions, often related to the environment in which the data have been collected. We address this common set of ecological questions in this vignette, focusing first on categorical and then on continuous variables.
 
-## Categorical covariates
+## Categorical covariates {#cat}
 
-The task of comparing activity patterns among different levels of a categorical variable can be achieved also using KDE approaches. However, the process can be particularly cumbersome, especially when comparing more than two levels. It requires splitting the dataset of the independent records depending on the levels of the variable of interest, run a KDE for each groups of records, and then comparing the results using an ad-hoc test. Conversely, the same task can be accomplished by fitting a model-based approach on the whole dataset, as we describe here. In section XXXX, we repeat the analysis presented in this section using the KDEs approach, and compare its results to those obtained using the trigonometric and cyclic cubic spline HMs.  
+The task of comparing activity patterns among different levels of a categorical variable can be achieved also using KDE approaches. However, the process can be particularly cumbersome, especially when comparing more than two levels. It requires splitting the dataset of the independent records depending on the levels of the variable of interest, run a KDE for each groups of records, and then comparing the results using an ad-hoc test. Conversely, the same task can be accomplished by fitting a model-based approach on the whole dataset, as we describe here. In section XXXX, we repeat the analysis presented in this section using the KDEs approach, and compare its results to those obtained using the trigonometric and cyclic cubic spline HMs.
 
-Again, we use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021]. This time, we use records of American black bear (*Ursus americanus*) and explore differences in activity patterns of this species between spring and fall. We format the data similarly to how is done in \@ref(dataprep), but this time we also create an additional column that contains the information about the season (i.e. Spring or Fall) in which each record was collected. We use this covariate, _Season_, as an additional grouping criterion. 
+Again, we use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021]. This time, we use records of American black bear (*Ursus americanus*) and explore differences in activity patterns of this species between spring and fall. We format the data similarly to how is done in \@ref(dataprep), but this time we also create an additional column that contains the information about the season (i.e. Spring or Fall) in which each record was collected. We use this covariate, *Season*, as an additional grouping criterion.
 
 ```{r cat1, message = FALSE, warnings = FALSE}
 # Load Libraries
@@ -73,7 +73,7 @@ We obtained 523 (out of 348 696) and 232 (out of 222 480) hourly occasions with 
 
 ### Trigonometric GLMMs
 
-Extending the trigonometric HMs to explore the effect of a covariate on activity patterns only requires to include interactions between the trigonometric terms and the covariate. The interactions allow the coefficients of the trigonometric terms to vary by treatment group, that is the two levels of the covariate _Season_. We start by fitting and visualizing the estimate based on a random-intercept only model in which the random intercept for *Site* accounts for repeated measures and varying levels of activity at each site:
+Extending the trigonometric HMs to explore the effect of a covariate on activity patterns only requires to include interactions between the trigonometric terms and the covariate. The interactions allow the coefficients of the trigonometric terms to vary by treatment group, that is, the two levels of the covariate *Season*. We start by fitting and visualizing the estimate based on a random-intercept only model in which the random intercept for *Site* accounts for repeated measures and varying levels of activity at each site:
 
 ```{r cat2}
 # run model
@@ -97,7 +97,8 @@ pred_rand_int <- effectPlotData(trig_rand_int, newdat, marginal = FALSE)
   geom_line(aes(color = Season), linewidth = 1) +
   scale_color_manual(values = c("orange", "darkgreen")) +
   scale_fill_manual(values = c("orange", "darkgreen")) +
-  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "B: Trigonometric GLMM \n(random-intercept only)")+
+  coord_cartesian(ylim = c(0, 0.005)) +
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "A: Trigonometric GLMM \n(random-intercept only)")+
   theme_minimal()+
   theme(legend.position = "bottom",
         legend.title = element_blank(),
@@ -117,11 +118,11 @@ pred_rand_int <- effectPlotData(trig_rand_int, newdat, marginal = FALSE)
 
 ```
 
-The estimated activity patterns already show a striking difference between the two seasons. In Spring, black bears in this study area showed a defined bimodal activity pattern, with the species active primarily around around 8, both in the mornings and in the evenings. During the Fall, the species instead was almost not at all active during the morning. 
+The estimated activity patterns already show a striking difference between the two seasons. In Spring, black bears in this study area showed a defined bimodal activity pattern, with the species active primarily around around 8, both in the mornings and in the evenings. During the Fall, the species instead was almost not at all active during the morning.
 
 Importantly, the two seasons were sampled for a different number of days: the whole period of study covered 3 springs but only 2 falls. This difference makes the direct comparison between the intensity of activity in the two seasons impossible when using KDEs. However, both the trigonometric GLMMs and the cyclic cubic HGAMs (see later) directly account for sampling effort and make this comparison possible. Thus, we can also say that, around 20:00, black bears were overall more active in the Spring than in the Fall.
 
-We can further extend the model above by including a random slope based on Season. 
+We can further extend the model above by including a random slope based on Season.
 
 ```{r cat3, eval=FALSE}
 trig_rand_slope <- mixed_model(fixed = cbind(success, failure) ~ 
@@ -140,7 +141,7 @@ summary(trig_rand_slope)
 
 However, this model is likely to be too computational demanding for most laptop. In such cases, we can either opt for the simpler model - keeping in mind that we are not allowing the estimates to vary in their timing of peak activity - or we can run this model in a high computing cluster.
 
-**Model selection.** To test the importance of the seasonal effect on activity patterns of black bears, we can also compare the model above with a model that does not include the covariate using AIC: 
+**Model selection.** To test the importance of the seasonal effect on activity patterns of black bears, we can also compare the model above with a model that does not include the covariate using AIC:
 
 ```{r cat4}
 # run model
@@ -156,31 +157,17 @@ AIC(trig_rand_int, trig_rand_int_no_cov)
 
 ### Cyclic cubic spline HGAMs
 
-Similar to trigonometric GLMMs, cyclic cubic spline HGAMs can also be used to model activity patterns as a function of a categorical covariate. As we explained in \@ref{est}, this class of models are highly flexible and offer a pletora of options when it comes to choosing which structure to fit. Here we focus on two. The first resembles a trigonometric random-intercept only GLMM and contains a cubic cyclic smoother for _Time_ which varies by _Season_, _Season_ as a fixed term, and a smoother for _Site_ as a random effect. The second structure has an additional term, a general smoother for _Time_, and resembles a trigonometric GLMM with random intercept and slope.
-
-We first ran the two models, then predict and plot their estimates along with estimates based on the trigonometric random intercept-only model, to facilitate comparison.
+Similar to trigonometric GLMMs, cyclic cubic spline HGAMs can also be used to model activity patterns as a function of a categorical covariate. As we explained in \@ref{est}, this class of models are highly flexible and offer a pletora of options when it comes to choosing which structure to fit. Here we focus on two. The first resembles a trigonometric random-intercept only GLMM and contains *Season* as a fixed term, a cubic cyclic smoother for *Time* which varies by *Season*, and a smoother for *Site* as a random effect. This structure accommodates variability in site-use, but not in timing of activity peaks. 
 
 ```{r cat5}
 # Without a global smoother for Time
-mod_cycl1 <- bam(cbind(success, failure) ~ 
-                   s(Time, bs = "cc", k = 12, by = Season, m = 1) +
+mod_cycl1 <- bam(cbind(success, failure) ~
                    Season + 
+                   s(Time, bs = "cc", k = 12, by = Season, m = 1) +
                    s(Site, bs="re"), 
                  knots = list(Time=c(0,23)),
                  family = "binomial", 
                  data = occasions_cbind)
-
-
-# With a global smoother for Time
-mod_cycl2 <- bam(cbind(success, failure) ~ 
-                   s(Time, bs = "cc", k = 12) + # common smoother
-                   s(Time, bs = "cc", k = 12, by = Season, m = 1) +
-                   Season + 
-                   s(Site, bs="re"), 
-                 knots = list(Time=c(0,23)),
-                 family = "binomial", 
-                 data = occasions_cbind)
-
 
 # Predict activity patterns
 newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), max(Time), 1), 
@@ -188,19 +175,15 @@ newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), max(Time), 1),
 
 
 cycl_pred1 <- predict.bam(mod_cycl1, newdata = newdat,  exclude = "s(Site)", se.fit = TRUE, type = "response") 
-cycl_pred1 <- cbind(newdat, fit=cycl_pred1$fit, se.fit=cycl_pred1$se.fit, Model = "Without common smoother")
+cycl_pred1 <- cbind(newdat, fit=cycl_pred1$fit, se.fit=cycl_pred1$se.fit, Model = "Random-intercept only")
 
-cycl_pred2 <- predict.bam(mod_cycl2, newdata = newdat,  exclude = "s(Site)", se.fit = TRUE, type = "response") 
-cycl_pred2 <- cbind(newdat, fit=cycl_pred2$fit, se.fit=cycl_pred2$se.fit, Model = "With common smoother")
-
-cycl_pred <- rbind(cycl_pred1, cycl_pred2)
-
-pl_cycl <- ggplot(cycl_pred, aes(Time, fit)) +
-  geom_ribbon(aes(ymin = fit-1.96*se.fit, ymax = fit+1.96*se.fit, color = Season, fill = Season), alpha = 0.3, size = 0.25) +
+# Plot
+pl_cycl1 <- ggplot(cycl_pred1, aes(Time, fit)) +
+  geom_ribbon(aes(ymin = fit-1.96*se.fit, ymax = fit+1.96*se.fit, color = Season, fill = Season), alpha = 0.3, linewidth = 0.25) +
   geom_line(aes(color = Season), size = 1) +
   scale_color_manual(values = c("orange", "darkgreen")) +
   scale_fill_manual(values = c("orange", "darkgreen")) +
-  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "A: Cyclic cubic spline HGAMs")+
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "B: Cyclic cubic spline HGAM")+
   coord_cartesian(ylim = c(0, 0.005)) +
   theme_minimal()+
   theme(legend.position = "bottom",
@@ -217,42 +200,108 @@ pl_cycl <- ggplot(cycl_pred, aes(Time, fit)) +
         panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
         panel.grid.minor.x = element_blank(),
         strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
-  scale_x_continuous(breaks=seq(0,max(cycl_pred$Time),length.out=7), labels=seq(0,24,4)) +
-  facet_grid(~Model)
+  scale_x_continuous(breaks=seq(0,max(cycl_pred1$Time),length.out=7), labels=seq(0,24,4)) 
 
 # bringing HMs plot together
-(ggarrange(pl_cycl, pl_trig, ncol = 2, common.legend = TRUE, legend = "bottom", widths = c(0.66, 0.33)) +
+(ggarrange(pl_trig, pl_cycl1, ncol = 2, common.legend = TRUE, legend = "bottom", widths = c(0.5, 0.5)) +
   theme(plot.margin = margin(0.1,0.1,0.5,0.1, "cm")))
 ```
 
-In this analysis, the patterns estimated by the two cyclic cubic splines structures are close to identical, suggesting there is minimal variation in the timing of activity peaks among sites (panel A in the plot above). The patterns estimated by the two cyclic cubic spline models also closely match that returned by the random intercept-only trigonometric model. In \@ref(compkde), we repeated this analysis using KDEs (and aggregated data) to compare estimates based on the HMs and KDEs approaches. 
+The patterns estimated by the cyclic cubic spline model also closely matches that returned by the random intercept-only trigonometric model. In \@ref(compkde), we repeated this analysis using KDEs (and aggregated data) to compare estimates based on the HMs and KDEs approaches.
 
-**Model selection.** As done for the trigonometric models, we can use AIC to test the importance of the variable _Season_ by comparing the model without a global smoother with a similar model that does not include this covariate. Importantly, (generalized) LRTs are not recommended when comparing HGAMs and there are known issue when comparing HGAM models with and without global smoother using AIC (see @Pedersen2019). 
+**Model selection.** As done for the trigonometric models, we can use AIC to test the importance of the variable *Season* by comparing the model without a global smoother with a similar model that does not include this covariate. Importantly, (generalized) LRTs are not recommended when comparing HGAMs and there are some known issues when comparing HGAM models with and without global smoother using AIC (see @Pedersen2019). We thus recommend caution and stress that a careful a priori choice of modeling structures based on the desired inference and the characteristics of the data is often preferrable.  
 
 ```{r cat6}
 # Without general smoother for Time, no covariate effect
 mod_cycl1_no_cov <- bam(cbind(success, failure) ~ 
-                   s(Time, bs = "cc", k = 12, by = Season, m = 1) +
+                          s(Site, bs="re"), 
+                        knots = list(Time=c(0,23)),
+                        family = "binomial", 
+                        data = occasions_cbind)
+
+
+AIC(mod_cycl1, mod_cycl1_no_cov)
+AIC(mod_cycl1_no_cov) - AIC(mod_cycl1)
+```
+
+We can extend the previous model structure to accommodate site-to-site variability in timing of activity peaks by adding a smoother for _Time_ that depends on _Site_ and a global smoother for _Time_. This second structure mimics a random intercept and random slope model.
+
+```{r cat7}
+# Random intercept and slope
+mod_cycl2 <- bam(cbind(success, failure) ~ 
                    Season + 
+                   s(Time, bs = "cc", k = 12) + # global smoother
+                   s(Time, bs = "cc", k = 12, by = Site, m = 1) +
+                   s(Time, bs = "cc", k = 12, by = Season, m = 1) +
                    s(Site, bs="re"), 
                  knots = list(Time=c(0,23)),
                  family = "binomial", 
                  data = occasions_cbind)
-
-
-AIC(mod_cycl1, mod_cycl1_no_cov)
+summary(mod_cycl2)
+AIC(mod_cycl1) - AIC(mod_cycl2)
 ```
 
 
-## Continuous covariates
 
-We use the same data to illustrate how these model structures can be used to assess the effect of continuous covariates. Specifically, we explore how bear diel activity changes in response to anthropogenic modifications of the landscape quantified through the Global Human Modification index (GHM; @Kennedyea2020; @Kennedyea2019), a continuous metric ranging between 0 and 1 which is a cumulative measure of human modification of terrestrial landscapes. An histogram of the values of GHM at the different sites sampled shows that the level of human-driven landscape modification is relatively low in the study area and most of the sites have a GHM value lower than 0.10. 
+```{r cat8}
+# Predict site-specific activity patterns
+newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), max(Time), 1), 
+                                            Season = levels(Season), Site =  unique(occasions_cbind$Site))) 
+
+
+cycl_pred1 <- predict.bam(mod_cycl1, newdata = newdat,  exclude = NULL, se.fit = TRUE, type = "response") 
+cycl_pred1 <- cbind(newdat, fit=cycl_pred1$fit, se.fit=cycl_pred1$se.fit, Model = "Random-intercept only")
+
+cycl_pred2 <- predict.bam(mod_cycl2, newdata = newdat,  exclude = NULL, se.fit = TRUE, type = "response") 
+cycl_pred2 <- cbind(newdat, fit=cycl_pred2$fit, se.fit=cycl_pred2$se.fit, Model = "Random intercept and slope")
+
+cycl_pred <- rbind(cycl_pred1, cycl_pred2)
+
+selected_sites <- c("2A", "2B", "3B", "4D","7B", "14B", "14C", "15A", "15E", "18C")
+(cycl_pred %>% filter(Site %in% selected_sites) %>% 
+  mutate(Season2 = ifelse(Season == "F", "Fall", "Spring")) %>% 
+ggplot(., aes(Time, fit, group = Site)) +
+    geom_line(aes(color = Site, group = Site), size = 1) +
+    labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "Cyclic cubic spline HGAMs")+
+    theme_minimal()+
+    theme(legend.position = "bottom",
+          legend.title = element_blank(),
+          legend.text = element_text(size=10,face="bold"),
+          legend.margin=margin(0,0,0,0),
+          legend.box.margin=margin(-5,-10,-10,-10),
+          plot.title = element_text(size=10,face="bold"),
+          axis.line = element_line(colour = 'black', linetype = 'solid'),
+          axis.ticks = element_line(colour = 'black', linetype = 'solid'),
+          axis.title = element_text(size=9,face="bold"),
+          panel.grid.minor.y = element_blank(),
+          panel.grid.major.y = element_blank(),
+          panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
+          panel.grid.minor.x = element_blank(),
+          strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0.5),
+          plot.margin = margin(0.1,0.1,0.5,0.1, "cm"))+
+    scale_x_continuous(breaks=seq(0,max(cycl_pred$Time),length.out=7), labels=seq(0,24,4)) +
+    facet_grid(Season2~Model)) %>% 
+ggsave(filename = "ms_figures/Fig4_Site_specific_estimates.jpg", device = "jpeg", units = "cm", width = 24, height = 20, dpi = 600)
+
+```
+
+The second structure has an additional term, a general smoother for *Time*, and resembles a trigonometric GLMM with random intercept and slope.
+
+We first ran the two models, then predict and plot their estimates along with estimates based on the trigonometric random intercept-only model, to facilitate comparison.
+
+
+ 
+
+
+## Continuous covariates {#cont}
+
+We use the same data to illustrate how these model structures can be used to assess the effect of continuous covariates. Specifically, we explore how bear diel activity changes in response to anthropogenic modifications of the landscape quantified through the Global Human Modification index (GHM; @Kennedyea2020; @Kennedyea2019), a continuous metric ranging between 0 and 1 which is a cumulative measure of human modification of terrestrial landscapes. An histogram of the values of GHM at the different sites sampled shows that the level of human-driven landscape modification is relatively low in the study area and most of the sites have a GHM value lower than 0.10.
 
 ```{r cont1}
 hist(cov$ghm)
 ```
 
-We link the GHM values available in the _cov_ object to the _occasion_ data frame created at the beginning of this tutorial, and then proceed with arranging the data in the format required to run the HM-based models, as we have done in other examples. This time though, we also add GHM as an additional grouping level. 
+We link the GHM values available in the *cov* object to the *occasion* data frame created at the beginning of this tutorial, and then proceed with arranging the data in the format required to run the HM-based models, as we have done in other examples. This time though, we also add GHM as an additional grouping level.
 
 ```{r cont2}
 # Add ghm info
@@ -270,6 +319,7 @@ occasions_cbind <- occasions %>%
             failure = n() - success)
 
 ```
+
 We can now fit the model structure we prefer. As an example, we report a trigonometric random-intercept only model and a cyclic cubic spline HGAM without common smoother.
 
 ```{r cont3}
@@ -291,9 +341,10 @@ mod_cycl1_cont <- bam(cbind(success, failure) ~
 summary(mod_cycl1_cont)
 
 ```
-Comparing the two models' output summaries is not easy. We can instead compare the predicted estimates visually. 
 
-``` {r cont4}
+Comparing the two models' output summaries is not easy. We can instead compare the predicted estimates visually.
+
+```{r cont4}
 # create a new dataset for the estimates
 newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), 24, length.out = 48),
                                             ghm = quantile(ghm, probs = c(0.025, 0.5, 0.975)),
@@ -348,11 +399,12 @@ ggplot(pred_cont, aes(Time, pred)) +
     scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4)) +
     facet_grid(Model~ghm_ft)
 ```
-These results seem not conclusive. The estimates based on the cyclic cubic spline HGAM show a clear progression in the shape of black bears' activity pattern, from having an almost cathemeral pattern at low level of GHM to a well-defined bimodal patterns at high level of GHM. This trend is less evident in the estimates based on trigonometric GLMM. 
+
+These results seem not conclusive. The estimates based on the cyclic cubic spline HGAM show a clear progression in the shape of black bears' activity pattern, from having an almost cathemeral pattern at low level of GHM to a well-defined bimodal patterns at high level of GHM. This trend is less evident in the estimates based on trigonometric GLMM.
 
 We can further explore the effect of GHM on activity by comparing these models with their relative null model (i.e. a version of the model without the covariate of interest) using AIC (or LRT for trigonometric GLMMs).
 
-``` {r cont5}
+```{r cont5}
 # null random-intercept only trigonometric GLMM
 mod_trig_cont_null <- mixed_model(fixed = cbind(success, failure) ~ cos(2 * pi * Time/24) + sin(2 * pi * Time/24) +
                                                                sin(2 * pi * Time/12) + cos(2 * pi * Time/12),
