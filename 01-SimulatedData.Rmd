@@ -66,13 +66,27 @@ curvesID = as.factor(rep(1:7, each = length(time))),
 curvesLeg = as.factor(rep(c("+/- 1.5 SD", "+/- 1 SD", "+/- 0.5 SD", "Conditional", "+/- 0.5 SD", "+/- 1 SD", "+/- 1.5 SD"), each = length(time)))
 )
 
-# calculate the marginal mean activity curve
-p_df2 <- p_df %>% select(p, time) %>% group_by(time) %>% 
-  summarize(p = mean(p)) %>% 
-  mutate(mean = "on", curvesID = as.factor(8),
-         curvesLeg = as.factor("Marginal"))
+# calculate the marginal mean activity curve by integrating over the distribution of the random effects
+p_marg <- matrix(NA,length(time), 1)
+for(i in 1:length(time)){
+     intfun<-function(tau_x){
+       plogis(b0 + b1*cos(2*pi*time[i]/(24)+ theta0 + gamma_i[4]) + b2*cos(2*pi*time[i]/(12)+theta0 + gamma_i[4]) + tau_x)*dnorm(tau_x, mean = 0, sd = 1)
+       }
+       p_marg[i]<-integrate(intfun,-Inf, Inf)[1]
+}
+p_df2 <- data.frame(p = unlist(p_marg),
+                    time = time,
+                    mean = "on", 
+                    curvesID = as.factor(8),
+                    curvesLeg = as.factor("Marginal"))
+p_df <- rbind(p_df, p_df2)
 
-p_df <- rbind(p_df, as.data.frame(p_df2))
+# p_df2 <- p_df %>% select(p, time) %>% group_by(time) %>% 
+#   summarize(p = mean(p)) %>% 
+#   mutate(mean = "on", curvesID = as.factor(8),
+#          curvesLeg = as.factor("Marginal"))
+# 
+# p_df <- rbind(p_df, as.data.frame(p_df2))
 
 # plot
 (pl_vert <- ggplot(p_df, aes(x = time, y = p, group = curvesID)) +
@@ -123,13 +137,28 @@ curvesID = as.factor(rep(1:7, each = length(time))),
 curvesLeg = as.factor(rep(c("+/- 0.5 SD", "+/- 1 SD", "+/- 1.5 SD", "Conditional", "+/- 0.5 SD", "+/- 1 SD", "+/- 1.5 SD"), each = length(time))) 
 )
 
-# calculate the marginal mean activity curve
-p_df2 <- p_df %>% select(p, time) %>% group_by(time) %>% 
-  summarize(p = mean(p)) %>% 
-  mutate(mean = "on", curvesID = as.factor(8),
-         curvesLeg = as.factor("Marginal"))
+# calculate the marginal mean activity curve by integrating over the distribution of the random effects
+p_marg <- matrix(NA,length(time), 1)
+for(i in 1:length(time)){
+     intfun<-function(gamma_x){
+       plogis(b0 + b1*cos(2*pi*time[i]/(24)+ theta0 + gamma_x) + b2*cos(2*pi*time[i]/(12)+theta0 + gamma_x) + tau_i[4])*dnorm(gamma_x, mean = 0, sd = 1)
+       }
+       p_marg[i]<-integrate(intfun,-Inf, Inf)[1]
+}
+p_df2 <- data.frame(p = unlist(p_marg),
+                    time = time,
+                    mean = "on", 
+                    curvesID = as.factor(8),
+                    curvesLeg = as.factor("Marginal"))
+p_df <- rbind(p_df, p_df2)
 
-p_df <- rbind(p_df, as.data.frame(p_df2))
+# # calculate the marginal mean activity curve
+# p_df2 <- p_df %>% select(p, time) %>% group_by(time) %>% 
+#   summarize(p = mean(p)) %>% 
+#   mutate(mean = "on", curvesID = as.factor(8),
+#          curvesLeg = as.factor("Marginal"))
+# 
+# p_df <- rbind(p_df, as.data.frame(p_df2))
 
 # plot
 pl_hor <- ggplot(p_df, aes(x = time, y = p, group = curvesID)) +

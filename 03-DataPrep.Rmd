@@ -1,15 +1,15 @@
 # Data preparation {#dataprep}
 
-In the previous sections, we use simulated data to introduce the concept of variability in activity patterns \@ref(var) and to illustrate the use of HM-based approaches for their estimate \@ref(est). We now switch gear. In this and the following four sections, we use real camera-trap data and answer some of the most common ecological questions related to the study of activity patterns using trigonometric and cyclic cubic spline HMs.
+In the previous chapters, we use simulated data to introduce the concept of variability in activity patterns (chapter \@ref(var)) and to illustrate the use of HM-based approaches for their estimate (chapter \@ref(est)). We now switch gear. In this and the following three chapters, we fit trigonometric and cyclic cubic spline HMs to real camera-trap data to answer some of the most common ecological questions related to the study of activity patterns.
 
-Camera-trap data are often organized in datasets where each row contains the information related to a certain image. To estimate activity patterns, at a minimum, we need information on the location id (or geographic coordinates) and time of the day in which the different encounter events for a certain species occurred. 
+In this chapter we explain how to prepare the data to analyze activity patterns from camera-trap datasets using HMs. This procedure is applied throughout the tutorial every time we use a new set of real data. To minimize redundancy, we illustrate the procedure in details here only once, and then refer to and extend on the code below, when necessary. 
 
-The next section explains how to prepare the data to analyze activity patterns from camera-trap datasets. This procedure will be applied every time we use a new set of data in the examples presented in the next sections. To minimize redundancy, we illustrate the procedure in details only once, and then refer to and extend on the code below, when necessary. 
+We start by loading the data and showing a preview of what they look like. Here, we select camera-trap records of coyotes (*Canis latrans*). We also load some libraries to wrangle the data in the desired format.
 
-We start by loading the data and showing a preview of what the data look like. Here, we select camera-trap records of coyotes (*Canis latrans*) collected at 100 locations sampled between 2016 and 2018 in Northern Minnesota, USA (@Iannarilliea2021). We also load some libraries to wrangle the data in the desired format.
-
-```{r prep1, message = FALSE, warnings = FALSE}
+```{r prep1, message = TRUE, warnings = TRUE}
 # Load libraries
+rm(list = ls())
+set.seed(129)
 library(dplyr)
 library(lubridate)
 
@@ -24,15 +24,13 @@ head(coy)
 
 ```
 
-In this dataset, each row corresponds to one image. To estimate activity patterns, we are interested in the time of day in which each event has been recorded. These values are stored in the column named _Time_. Because in our study cameras were set up to collected burst of three pictures every time a camera was triggered, some images have been collected at the same exact time and location and thus show identical values in all columns (see for example the first and second rows above).
+To estimate activity patterns, at a minimum, we need information on the location id (or geographic coordinates) and time of the day in which the different encounter events for a certain species occurred. In this dataset, each row corresponds to one image. We are interested on the location id (or geographic coordinates) and the time of day in which each event has been recorded. These values are stored in the columns named _Station_ and _Time_, respectively. Because in our study cameras were set up to collected burst of three pictures every time a camera was triggered, some images have been collected at the same exact time and location and thus show identical values in all columns (see for example the first and second rows above).
 
-It often happens that individuals tend to spend several minutes in front of a camera, triggering the sensor several times in a short period of time. This leads to camera-trap data being inherently highly correlated: once a camera has been triggered, it is more likely that it will be triggered again in the following few minutes than, for example, several hours later. When using KDEs, the resulting short-term autocorrelation might lead to overestimating activity patterns. To minimize this risk and the level of autocorrelation, camera-trap data are often aggregated based on some time threshold (often between 1 and 60 minutes, commonly 30; @Burtonea2015 and @Iannarilliea2021): images collected at the same site closely in time are clumped in an unique encounter event (or sequence). This process, often known as _data aggregation_, reduces short-term serial correlation among subsequent records of the same species collected at a certain site, and it is often highly recommended (althought not stricly required) as a preparatory step before applying KDEs. We illustrate the effects of not aggregating camera trap data when estimating activity patterns using KDEs in section \@ref(dataprepkdes). 
+It often happens that individuals tend to spend several minutes in front of a camera, triggering the sensor several times in a short period of time. This leads to camera-trap data being inherently highly correlated: once a camera has been triggered, it is more likely that it will be triggered again in the following few minutes than, for example, several hours later. When using KDEs, the resulting short-term autocorrelation might lead to overestimating activity patterns. To minimize this risk and the level of autocorrelation, camera-trap data are often aggregated based on some time threshold (often between 1 and 60 minutes, commonly 30; @Burtonea2015 and @Iannarilliea2021): images collected at the same site closely in time are clumped in an unique encounter event (or sequence). This process, often known as _data aggregation_, reduces short-term serial correlation among subsequent records of the same species collected at a certain site, and it is often highly recommended (althought not stricly required, see discussion in @Peral2022) as a preparatory step before applying KDEs. We illustrate the effects of not aggregating camera trap data when estimating activity patterns using KDEs in chapter \@ref(dataprepkdes). 
 
-Data aggregation is not necessary when using trigonometric and cyclic cubic spline HMs. We first apply data aggregation and then run trigonometric and cyclic cubic spline HMs only to facilitate comparison with KDEs in section \@ref(cat). We use the raw (non-aggregated) dataset in all the other real-case studies presented in this Tutorial.
+Data aggregation is not necessary when using trigonometric and cyclic cubic spline HMs. We, thus, use the raw (non-aggregated) dataset in all the real-case studies presented in this Tutorial, except chapter \@ref(cat), where we apply data aggregation to facilitate comparison of activity pattern estimates based on HMs and KDEs. 
 
-## Data preparation for trigonometric and cyclic HMs {#dataprephm}
-
-Contrary to KDEs, trigonometric and cyclic GLMMs enables us to leverage not only the times an encounter was recorded in cameras but also the times in which cameras were active at a certain location and no encounter was recorded. This, in turn, allows us to estimate activity while accounting for sampling effort and makes comparison in relative probability of use across sites (or e.g. environmental and anthropogenic conditions) possible.
+Contrary to KDEs, trigonometric and cyclic GLMMs enables us to leverage not only the times an encounter was recorded but also the times in which cameras were active at a certain location and no encounter occurred. This, in turn, allows us to estimate activity while accounting for the sampling effort and makes comparison in relative probability of activity across sites (or e.g. environmental and anthropogenic conditions) possible.
 
 To include effort, we have to build a matrix that stores information about when a camera was active at each site, and in how many of these days (or shorter occasions, see later) we recorded the target species.
 
@@ -48,7 +46,7 @@ cov <- read.csv("data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv", 
 head(cov)
 ```
 
-This dataframe contains information on the sampling session (_Session_), the camera-trap site (_Site_), the date a camera was deployed (_Date_setup_) and retrieved (_Date_retr_) from the corresponding site. For cameras that were no longer active at retrieval, we also have information about the period the camera become inactive (_Problem1_from_ and _Problem1_to_). This structure follows the one accepted in the *camtrapR* package [@camtrapR].
+This dataframe contains information on the sampling session (_Session_), the camera-trap site (_Site_), the date a camera was deployed (_Date_setup_) and retrieved (_Date_retr_) from the corresponding site. For cameras that were no longer active at retrieval, we also have information about the period the camera was inactive (_Problem1_from_ and _Problem1_to_). This structure follows the one accepted in the *camtrapR* package [@camtrapR].
 
 In this format, the information about the last day of camera operation at the sites are spread across two columns, _Date_retr_ (for cameras that not failed) and _Problem1_from_ (for cameras that did fail). We bring this information together in one column called _end_.
 
@@ -61,9 +59,9 @@ for(i in 1:nrow(site)){
 }
 ```
 
-Then we create a dataframe to store the information about when and when not the target species was encountered at the different locations and within temporal occasions of length of our choice. Here, we use temporal occasions 60 minutes long, but different durations (from seconds to several hours) can be used. Shorter lengths will increase computational time and could potentially lead to convergence problems if data are too sparse. 
+Then we create a dataframe to store the information about when and when not the target species was encountered at the different locations and within temporal occasions of length of our choice. Here, we use temporal occasions 60 minutes long, but different durations (from seconds to several hours) can be used. Shorter lengths will increase computational time and could potentially lead to convergence problems if data are too sparse. In the code below, the argument _by = '60 min'_ can be changed to accommodate intervals of length other than 1 hour (e.g. _by = '30 min'_ when considering interval 30-min long). 
 
-For each site, we first create a list of all the hourly occasions from the start to the end of the deployment of an active camera at that site. We then prepopulate the column _capt_ (which will track the encounter/non-encounter information) with zeros. In the code below, the argument _by = '60 min'_ can be changed to accommodate intervals of length other than 1 hour (e.g. _by = '30 min'_ when considering interval 30-min long).
+For each site, we create a list of all the hourly occasions from the start to the end of the deployment of an active camera at that site. We then prepopulate the column _capt_ (which will track the encounter/non-encounter information) with zeros. 
 
 ```{r prep5}
 # Create dataframe to store captures 
@@ -81,7 +79,7 @@ occasions$capt <- 0
 head(occasions)
 ```
 
-For each record of coyote collected during the study, we assign the value 1 in the column _capt_ in the corresponding row for the combination of site and time interval that includes the time of the encounter event. 
+For each record of coyote collected during the study, we assign the value 1 at the column _capt_ in the corresponding row for the combination of site and time interval that includes the time of the encounter event. 
 
 ```{r prep6}
 #' Store captures
@@ -94,7 +92,7 @@ table(occasions$capt)
 
 We have 251 and 570925 1-hour long occasions with and without encounters of coyotes, respectively. 
 
-Because we chose to use hourly occasions, we can extract the information about the hour of each interval to use it as the _Time_ variable in the models that we will run in the following sections. If a different time length is used (e.g. 1-minute long), this step needs to be adapted accordingly. We also code _Site_ as a factor.
+Because we chose to use hourly occasions, we can extract the information about the hour of each interval and use it as the _Time_ variable in the models that we will run in the following chapters. If a different time length is used (e.g. 1-minute long), this step needs to be adapted accordingly. We also code _Site_ as a factor.
 
 ```{r prep7}
 # Format data 
@@ -102,7 +100,7 @@ occasions$Time <- hour(occasions$start)
 occasions$Site <- as.factor(occasions$Site)
 nrow(occasions)
 ```
-Our dataset, _occasions_, contains now more than 570 000 rows. Running a HM on such dataset might take a long time and even be impossible without relying on a computing cluster. When the condition under which we test for variation in activity patterns does not varies across the period of sampling (as it instead happens e.g. with Julian day), we can summarize the encounter/non-encounter records counting the number of successes (i.e. interval with encounters) and failures (i.e. interval without encounters) at each site and hourly temporal occasion, and then run the HMs using the _cbind(success, failure)_ approach (see next section for examples).
+Our dataset, _occasions_, contains now more than 570 000 rows. Running a HM on such dataset might likely take a long time and even be impossible without relying on a computing cluster. When the condition under which we test for variation in activity patterns does not varies across the period of sampling (as it instead happens e.g. with Julian day), we can summarize the encounter/non-encounter records counting the number of successes (i.e. interval with encounters) and failures (i.e. interval without encounters) at each site and hourly temporal occasion, and then run the HMs using the _cbind(success, failure)_ approach (see next chapter for examples).
 
 ```{r prep8}
 # format data for cbind(success, failure)
@@ -113,4 +111,4 @@ occasions_cbind <- occasions %>%
 head(occasions_cbind)
 ```
 
-The first row indicates that for Site 10A and Time interval 0 (i.e. from 00:00:00 to 00:59:59) we had 259 occasions (i.e. days in this case) without detecting a coyote and 0 occasion with a coyote encounter during this specific time of day. In the next section \@ref(unibim), we see how to use this dataset to test hypotheses about coyotes' diel activity patterns.
+The first row indicates that for Site 10A and Time interval 0 (i.e. from 00:00:00 to 00:59:59) we had 259 occasions (i.e. days in this case) without detecting a coyote and 0 occasion with a coyote encounter during this specific time of day. In the next chapter (chapter \@ref(unibim)), we see how to use this dataset to test hypotheses about coyotes' diel activity patterns. 

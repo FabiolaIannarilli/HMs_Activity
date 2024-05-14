@@ -1,26 +1,27 @@
 # Appendix {#app}
 
 ## The *sim_activity* function {#sim_function}
-Throughout the tutorial we use the *sim_activity* function for simulating activity patterns. This function simulate realized activity patterns based on a 'true' activity pattern distribution density build as specific in equation 1 reported in section \@ref(var) and introduced in the main text (@Iannarilliea2024). The arguments of the function specify the following:
+Throughout the tutorial we use the *sim_activity* function for simulating activity patterns. This function simulate realized activity patterns based on a 'true' activity pattern distribution density build as specified in equation 1 reported in chapter \@ref(var) and introduced in @Iannarilliea2024. The arguments of the function specify the following:
 
-*  M: Numeric. Number of sampling units (e.g. sites).
-*  J: Numeric. Number of cycles (e.g. days).
-*  wavelength: Numeric. Length of a period (i.e. distance between identical points in a trigonometric function)
-*  b0: Numeric. Intercept.
-*  b0_constant: Logic. If TRUE (default), b0 is held constant; otherwise time-varying.
-*  tau_constant: Logic. If TRUE (default), random intercept is equal to 0 and there is no variability in use among sampling units
-*  sdtau: Numeric. Only if \code{tau_constant} = FALSE. Random intercept describing variability in use among sampling units coded as a Normal distribution N(0,sdtau).
-*  b1: Numeric. Wave amplitude of first cosinusoidal curve.
-*  b2: Numeric. Wave amplitude of second cosinusoidal curve.
-*  theta0: Numeric. Curve-specific phaseshift for the first cosinusoidal curve.
-*  theta1: Numeric. Curve-specific phaseshift for the second cosinusoidal curve.
-*  n_peak: Numeric. Number of peak in activity during a period - a day - (e.g. unimodal = 1, bimodal = 2). Must be a positive integer.
-*  phaseshift_constant: Logic. Should all the sites have a peak at the same time? (Default = TRUE).
-*  sd_phaseshift: Numeric. Variability in timing of peak actvity among sites  (i.e. standard deviation of the phaseshift in the sinusoidal curve that determines an horizonthal shift).
-*  n_sim: Numeric. Number of datasets of realized detections to create.
-*  plot_true_act: Logic. If TRUE (default), a plot of the conditional and marginal means probability of activity by occasion is returned.
+*  `M`: Numeric. Number of sampling units (e.g. sites).
+*  `J`: Numeric. Number of cycles (e.g. days).
+*  `wavelength`: Numeric. Length of a period (i.e. distance between identical points in a trigonometric function)
+*  `b0`: Numeric. Intercept.
+*  `b0_constant`: Logic. If TRUE (default), b0 is held constant; otherwise time-varying.
+*  `tau_constant`: Logic. If TRUE (default), random intercept is equal to 0 and there is no variability in use among sampling units
+*  `sdtau`: Numeric. Only if `tau_constant} = FALSE. Random intercept describing variability in use among sampling units coded as a Normal distribution N(0,sdtau).
+*  `b1`: Numeric. Wave amplitude of first cosinusoidal curve.
+*  `b2`: Numeric. Wave amplitude of second cosinusoidal curve.
+*  `theta0`: Numeric. Curve-specific phaseshift for the first cosinusoidal curve.
+*  `theta1`: Numeric. Curve-specific phaseshift for the second cosinusoidal curve.
+*  `n_peak`: Numeric. Number of peak in activity during a period - a day - (e.g. unimodal = 1, bimodal = 2). Must be a positive integer.
+*  `phaseshift_constant`: Logic. Should all the sites have a peak at the same time? (Default = TRUE).
+*  `sd_phaseshift`: Numeric. Variability in timing of peak actvity among sites  (i.e. standard deviation of the phaseshift in the sinusoidal curve that determines an horizonthal shift).
+*  `n_sim`: Numeric. Number of datasets of realized detections to create.
+*  `plot_true_act`: Logic. If TRUE (default), a plot of the conditional and marginal means probability of activity by occasion is returned.
 
-When the goal is simulating diel activity patterns, \code{wavelength} can be specified either as number of hours (i.e. \code{wavelength} = 24) or number of minutes (i.e. \code{wavelength} = 1440) in the diel cycle. When \code{b2} = 0, the function will return a curve governed only by the first cosine term, and thus a curve with a unimodal pattern (the frequency of the first cosine term is set to 24). 
+When the goal is simulating diel activity patterns, `wavelength` can be specified either as the number of hours (i.e. `wavelength` = 24) or number of minutes (i.e. `wavelength` = 1440) in the diel cycle. When `b2` = 0, the function returns a curve governed only by the first cosine term, and thus a curve with a unimodal pattern (the frequency of the first cosine term is set to 24).
+
 ```{r app1}
 # Load function
 source("source_functions/sim_activity.R")
@@ -60,7 +61,7 @@ dat <- sim_activity(M = M,
 ```
 
 
-When \code{b2} differs from zero, the function returns a bimodal pattern. The presence of two cosine terms allows us to simulate curves with the two peaks having different heights and, thus, resembling real activity patterns.
+When `b2` differs from zero, the function returns a bimodal pattern. The presence of two cosine terms allows us to simulate curves with the two peaks having different heights and, thus, resembling real activity patterns.
 
 ```{r app2}
 # Set equations' parameters (all others as used before)
@@ -90,7 +91,7 @@ dat <- sim_activity(M = M,
 
 ```
 
-Activity patterns having the two peaks to be of the same height can be simulated setting \code{b1} = 0, \code{n_peak} = 2, and \code{b2} other than zero. This silence the first cosine term that has a frequency of 24 and impose a frequency of 12 on the second cosine term. 
+Activity patterns having the two peaks to be of the same height can be simulated setting `b1` = 0, `n_peak` = 2, and `b2` other than zero. This silence the first cosine term that has a frequency of 24 and impose a frequency of 12 on the second cosine term. 
 
 ```{r app3}
 # Set equations' parameters (all others as used before)
@@ -191,8 +192,9 @@ occasions_cbind <- occasions %>%
             failure = n() - success)
 head(occasions_cbind)
 
-# Create a copy of the dataset
-y_fall <- occasions_cbind
+#Subset the data to the Fall data only, thus removing Spring data.
+y_fall = occasions_cbind[which(occasions_cbind$Season=="F"),]
+head(y_fall)
 
 # Create a column of the total number of possible detections (i.e. trials) to be used
 # as the offset when controlling for sampling effort when using the Poisson PDF.
@@ -202,8 +204,7 @@ y_fall$total <-  y_fall$success + y_fall$failure
 
 ### Trigonometric PDF Comparison
 
-Fit the model using 0 and 1 data with a binomial distribution and then fit the equivalent count data 
-along with an offset to control for sampling effort.
+Fit the model using 0 and 1 data with a binomial distribution and then fit the equivalent count data along with an offset to control for sampling effort.
 
 ```{r pdf2}
 # Fit the Binomial model
@@ -433,3 +434,140 @@ ggarrange(pl_cycle1_P, pl_cycle1_P2)
 ```
 
 We can see that the activity curve is the same shape, but the magnitude on the y-axis is different. Using the offset allows us to better represent animal activity in terms of when they are active and not active, similar to how some studies compare animal activity as detection rates across sites as the number of detections per site divided by the number of days the site was sampled; this measure is some times refereed to as a relative abundance index (RAI). 
+
+## Estimating marginal means {#estmarg}
+
+## Link to the Diel.Niche package {#Diel.Niche}
+
+In the ecology and evolution literature, animal activity is often discussed in terms of diel classifications or phenotypes, such as diurnal, nocturnal, crepuscular, or cathemeral. But, how much activity in what time period does it mean to be diurnal, nocturnal, etc.? To make comparable inference across studies, we should define these diel phenotypes mathematically so that we can make inference based on consistent definitions and thus make appropriate comparisons across species or projects. We can use the [`Diel.Niche` R package](https://github.com/diel-project/Diel-Niche-Modeling/) to do exactly this. First, we use our data to estimate animal diel activity across the 24-hour period and then second, we can classify predicted activity patterns into the corresponding diel phenotype. Here, we demonstrate using a hierarchical cyclic cubic spline model, but the process is the same for any model predicting 24-hr temporal activity.
+
+
+### Data
+
+We use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA [@Iannarilliea2021]. We use the same data records of American black bear (*Ursus americanus*) as done in other chapters and in section \@ref(poisson). However, we ignore examining a season covariate for simplicity and focus on modeling the spring data. 
+
+``` {r data1, warnings = TRUE, message = TRUE, warnings = TRUE}
+# load packages
+library(mgcv)
+library(brms)
+library(suncalc)
+library(lubridate)
+library(Diel.Niche)
+library(ggplot2)
+
+
+#Subset the data to the Spring data only, thus removing Fall data.
+y_spring = occasions_cbind[which(occasions_cbind$Season=="S"),]
+head(y_spring)
+
+```
+
+### Model Fitting
+Using the spring data for black bears, We can now fit a hierarchical cyclic cubic spline model.
+
+```{r fit..cc.3, eval=TRUE, echo=TRUE}
+cycl_rand_int_ML <- bam(cbind(success, failure) ~ 
+                                                 s(Time, bs = "cc", k = 12) + 
+                                                 s(Site, bs="re"), 
+                                                 knots = list(Time=c(0,23)),
+                                                 family = "binomial", 
+                                                 data = y_spring
+                          )
+```
+
+### Model Predictions
+Lets now use our model to predict the conditional mean activity curve across all sites. We will then use those predictions to define the diel phenotype. Below, we will classify each predicted time period into twilight, daytime, and nighttime. To make sure we capture enough predictions to summarize each of these periods, we will predict the probability of activity at a smaller interval than how we modeled the data (e.g., 100 intervals instead of 24). 
+
+```{r fit.ml.pred1}
+newdat <- with(occasions_cbind, expand.grid(Time = seq(0, 24, length.out=100),total=1, 
+                                            Site = "7B")) #Station doesn't matter, as 'site' is excluded below
+
+# Get predictions and of the conditional mean
+cycl_pred <- predict.bam(cycl_rand_int_ML, newdata = newdat,  exclude = "s(Site)", type = "response") 
+cycl_pred <- data.frame(cycl_pred)
+cycl_pred$Time <- newdat$Time
+head(cycl_pred)
+
+# These predictions are absolute probabilities of activity, which incorporates sampling effort. 
+#  We need to turn these into relative activity probabilities; therefore, assuming the species is active,
+#  these are the relative probabilities of activity during each time period. 
+#  
+cycl_pred$cycl_pred.st = cycl_pred$cycl_pred/sum(cycl_pred$cycl_pred)
+```
+
+### Twilight, daytime, and nighttime
+
+Next, we need to determine the time periods that correspond to twilight, daytime, and nighttime. To do so, we need to get the relevant astronomical periods that define these periods.  
+
+```{r fit.ml.classify}
+# Extract sunrise and sunset times for the general study area and period. 
+sun.times <- getSunlightTimes( date = as.Date("2016-04-15"), 
+                    lat = 47.73 , lon = -94.55, data = NULL, 
+                    keep = c( "dawn", "dusk", "nightEnd", "night"), 
+                    tz = "America/Chicago")
+
+# Use the extracted sun times to define dawn and dusk
+dawn <- c(hour(sun.times$nightEnd)+minute(sun.times$nightEnd)/60,
+         hour(sun.times$dawn)+minute(sun.times$dawn)/60)
+  
+dusk <- c(hour(sun.times$dusk)+minute(sun.times$dusk)/60,
+         hour(sun.times$night)+minute(sun.times$night)/60)
+  
+# Create a vector that defines each time period of cycl_pred$Time into twilight (combination of dawn and dusk)
+# daytime, and nighttime  
+diel.class <- rep(NA,nrow(cycl_pred))
+diel.class[cycl_pred$Time>=dawn[1] & cycl_pred$Time<=dawn[2]] <- "Twilight"
+diel.class[cycl_pred$Time>=dusk[1] & cycl_pred$Time<=dusk[2]] <- "Twilight"
+diel.class[cycl_pred$Time>=dawn[2] & cycl_pred$Time<=dusk[1]] <- "Day"
+# the undefined time periods are then the night  
+diel.class[is.na(diel.class)] <- "Night"
+cycl_pred$diel.class <- diel.class
+
+# Sum the standardized predictions of activity by diel period
+# These are the relative probabilities of activity  
+diel.summary <- aggregate(cycl_pred$cycl_pred.st, by=list(diel.class=cycl_pred$diel.class), FUN=sum)
+diel.summary
+```
+
+### Diel.Niche
+
+Next, we will reorganize the probabilities of activity in the order used by the `Diel.Niche` pacakge: twilight, daytime, nighttime. For details about the `Diel.Niche` package, see the [Github repository](https://github.com/diel-project/Diel-Niche-Modeling/) and the associated [manuscript](https://doi.org/10.1111/1365-2656.14035).
+
+
+```{r fit.ml.pred2}  
+y = t(matrix(c(diel.summary$x[3],
+                 diel.summary$x[1], 
+                 diel.summary$x[2]
+                 )
+               )
+        )
+colnames(y)=c("P_twilight","P_daytime","P_nightime")
+  
+# Use the diel niche package to extract the associated diel phenotype within the Traditional hypothesis set  
+diel.out <- Diel.Niche::posthoc.niche(y, hyp= hyp.sets("Traditional"))
+diel.out
+```
+The corresponding diel phenotype for the conditional mean activity is the **Cathemeral** phenotype.
+
+Lastly, lets plot the conditional mean activity with the supported diel phenotype for these results. 
+```{r fit.ml.pred3}  
+plot(cycl_pred$Time,cycl_pred$cycl_pred,type="l",col=2,lwd=3, 
+       main=paste("Spring Black Bear Activity \n",diel.out$Hypothesis),
+       ylab="Probability of Activity",xlab="Time")
+  abline(v=c(dawn[1],dawn[2]),lty=3)
+  abline(v=c(dusk[1],dusk[2]),lty=3)
+```
+
+The vertical dotted lines indicate the periods of dawn and dusk for this sampling period. As we can see, black bears are mostly active during the day with a relative probability activity of `r round(diel.out$p.day,digits=2)`. They are also have a high relative activity during twilight with a probability of `r round(diel.out$p.twi,digits=2)`. 
+
+Interestingly, if we use a set of diel phenotype hypotheses that are more specific in separating bimodal and trimodal activity (i.e., General hypothesis set; see definitions at [Github repository](https://github.com/diel-project/Diel-Niche-Modeling/)) we would find the correspondent diel phenotype to be better described as **Diurnal-Crepuscular**.
+```{r fit.ml.pred4}  
+Diel.Niche::posthoc.niche(y, hyp= hyp.sets("General"))
+```
+This difference in classification is because of the low amount of activity during the nighttime. It is hard to describe this activity pattern as Cathemeral, given that all three time periods (twilight, daytime, and nighttime) are not used. More specifically, black bears are concentrating their activity during twilight and daytime, thus the more accurate description would be **Diurnal-Crepuscular**.
+
+### Conclusion
+
+Modeling animal activity patterns continuously throughout the 24-hour period provides important fine scale inference that is not achieved when aggregating data into blocks of time (e.g., daytime vs nighttime). However, it is important to then still be able to translate findings in relevant terminology based on diel phenotypes. The [`Diel.Niche` R package](https://github.com/diel-project/Diel-Niche-Modeling/) provides an efficient way of summarizing findings from hierarchical trigonometric and cyclic cubic spline models.
+
+Here, we provided a simple example to demonstrate the process of using the `Diel.Niche` R package](https://github.com/diel-project/Diel-Niche-Modeling/). However, there are a number of options we could also consider. For example, we could predict the diel phenotype for each site. This will be most useful when we have site to site variation in terms of a random intercept and slope. We could also use covariates in our model and predict the supported diel phenotype across covariate values. Furthermore, we only predicted the corresponding diel phenotype using the estimated conditional mean activity. There is of course uncertainty associated with this mean activity level. To explore how supported the diel phenotype is when considering uncertainty from the conditional mean, we could predict activity curves at different levels of uncertainty or at certain confidence intervals to investigate uncertainty in the associated diel phenotype.

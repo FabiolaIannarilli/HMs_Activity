@@ -1,15 +1,17 @@
 # Modeling activity patterns with covariates {#cov}
 
-Many researchers exploring activity patterns from camera-trap data sooner or later run into the challenge of estimating how activity patterns vary in response to some conditions, often related to the environment in which the data have been collected. We address this common set of ecological questions in this vignette, focusing first on categorical and then on continuous variables.
+Many researchers exploring activity patterns from camera-trap data sooner or later run into the challenge of estimating how activity patterns vary in response to some conditions, often related to the environment in which the data have been collected. We address this common set of ecological questions in this chapter, focusing first on categorical and then on continuous variables.
 
 ## Categorical covariates {#cat}
 
-The task of comparing activity patterns among different levels of a categorical variable can be achieved also using KDE approaches. However, the process can be particularly cumbersome, especially when comparing more than two levels. It requires splitting the dataset of the independent records depending on the levels of the variable of interest, run a KDE for each groups of records, and then comparing the results using an ad-hoc test. Conversely, the same task can be accomplished by fitting a model-based approach on the whole dataset, as we describe here. In section XXXX, we repeat the analysis presented in this section using the KDEs approach, and compare its results to those obtained using the trigonometric and cyclic cubic spline HMs.
+The task of comparing activity patterns among different levels of a categorical variable can be achieved also using KDE approaches. However, the process can be particularly cumbersome, especially when comparing more than two levels. It requires splitting the dataset of the independent records depending on the levels of the variable of interest, run a KDE for each group of records, and then comparing the results using an ad-hoc test. Conversely, the same task can be accomplished by fitting a HM on the whole dataset, as we describe here. In chapter \@ref(compkde), we repeat the analysis presented here using the KDEs approach, and compare its results to those obtained using the trigonometric and cyclic cubic spline HMs.
 
-Again, we use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021]. This time, we use records of American black bear (*Ursus americanus*) and explore differences in activity patterns of this species between spring and fall. We format the data similarly to how is done in \@ref(dataprep), but this time we also create an additional column that contains the information about the season (i.e. Spring or Fall) in which each record was collected. We use this covariate, *Season*, as an additional grouping criterion.
+Again, we use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA [@Iannarilliea2021]. This time, we use records of American black bear (*Ursus americanus*) and explore differences in activity patterns of this species between spring and fall. We format the data similarly to how is described in chapter \@ref(dataprep), but this time we also create an additional column (*Season*) that contains the information about the season (i.e. Spring or Fall) in which the records were collected and use it as an additional grouping criterion.
 
-```{r cat1, message = FALSE, warnings = FALSE}
+```{r cat1, message = TRUE, warnings = TRUE}
 # Load Libraries
+rm(list = ls())
+set.seed(129)
 library(dplyr)
 library(lubridate)
 library(GLMMadaptive)
@@ -67,9 +69,12 @@ occasions_cbind <- occasions %>%
   summarize(success = sum(capt),
             failure = n() - success)
 
+# we save this dataset for applications in other part of the tutorial
+
+
 ```
 
-We obtained 523 (out of 348 696) and 232 (out of 222 480) hourly occasions with at least 1 positive record of a bear in the Spring and Fall sessions, respectively.
+We obtained 5773 (out of 348 696) and 244 (out of 222 480) hourly occasions with at least 1 positive record of a bear in the Spring and Fall sessions, respectively.
 
 ### Trigonometric GLMMs
 
@@ -155,9 +160,11 @@ trig_rand_int_no_cov <- mixed_model(fixed = cbind(success, failure) ~
 AIC(trig_rand_int, trig_rand_int_no_cov)
 ```
 
+The AIC comparison supports the model that includes a seasonal effect on bears' activity patterns.
+
 ### Cyclic cubic spline HGAMs
 
-Similar to trigonometric GLMMs, cyclic cubic spline HGAMs can also be used to model activity patterns as a function of a categorical covariate. As we explained in \@ref{est}, this class of models are highly flexible and offer a pletora of options when it comes to choosing which structure to fit. Here we focus on two. The first resembles a trigonometric random-intercept only GLMM and contains *Season* as a fixed term, a cubic cyclic smoother for *Time* which varies by *Season*, and a smoother for *Site* as a random effect. This structure accommodates variability in site-use, but not in timing of activity peaks. 
+Similar to trigonometric GLMMs, cyclic cubic spline HGAMs can also be used to model activity patterns as a function of a categorical covariate. As we explained in chapter \@ref(est), this class of models are highly flexible and offer a pletora of options when it comes to choosing which structure to fit. Here we focus on two. The first resembles a trigonometric random intercept-only GLMM and contains *Season* as a fixed term, a cubic cyclic smoother for *Time* which varies by *Season*, and a smoother for *Site* as a random effect. This structure accommodates variability in site-use, but not in timing of activity peaks. 
 
 ```{r cat5}
 # Without a global smoother for Time
@@ -207,9 +214,9 @@ pl_cycl1 <- ggplot(cycl_pred1, aes(Time, fit)) +
   theme(plot.margin = margin(0.1,0.1,0.5,0.1, "cm")))
 ```
 
-The patterns estimated by the cyclic cubic spline model also closely matches that returned by the random intercept-only trigonometric model. In \@ref(compkde), we repeated this analysis using KDEs (and aggregated data) to compare estimates based on the HMs and KDEs approaches.
+The patterns estimated by the cyclic cubic spline model closely matches that returned by the random intercept-only trigonometric model. 
 
-**Model selection.** As done for the trigonometric models, we can use AIC to test the importance of the variable *Season* by comparing the model without a global smoother with a similar model that does not include this covariate. Importantly, (generalized) LRTs are not recommended when comparing HGAMs and there are some known issues when comparing HGAM models with and without global smoother using AIC (see @Pedersen2019). We thus recommend caution and stress that a careful a priori choice of modeling structures based on the desired inference and the characteristics of the data is often preferrable.  
+**Model selection.** As done for the trigonometric models, we can use AIC to test the importance of the variable *Season* by comparing the model without a global smoother with a similar model that does not include this covariate. Importantly, (generalized) LRTs are not recommended when comparing HGAMs and there are some known issues when comparing HGAMs with and without global smoother using AIC (see @Pedersen2019). We thus recommend caution and stress that a careful a priori choice of modeling structures based on the desired inference and the characteristics of the data is often preferrable.  
 
 ```{r cat6}
 # Without general smoother for Time, no covariate effect
@@ -224,7 +231,7 @@ AIC(mod_cycl1, mod_cycl1_no_cov)
 AIC(mod_cycl1_no_cov) - AIC(mod_cycl1)
 ```
 
-We can extend the previous model structure to accommodate site-to-site variability in timing of activity peaks by adding a smoother for _Time_ that depends on _Site_ and a global smoother for _Time_. This second structure mimics a random intercept and random slope model.
+We can extend the previous model structure to accommodate site-to-site variability in timing of activity peaks by adding a smoother for _Time_ that depends on _Site_ and a global smoother for _Time_. This second structure mimics a random intercept and random slope model and allows the site-specific activity curves to vary not only in their intercept but also in their shape.
 
 ```{r cat7}
 # Random intercept and slope
@@ -237,11 +244,11 @@ mod_cycl2 <- bam(cbind(success, failure) ~
                  knots = list(Time=c(0,23)),
                  family = "binomial", 
                  data = occasions_cbind)
-summary(mod_cycl2)
+#summary(mod_cycl2)
 AIC(mod_cycl1) - AIC(mod_cycl2)
 ```
 
-
+This model is more supported than the previous one. Plotting some of the estimated site-specific curves shows how the activity patterns can vary greatly among sites.  
 
 ```{r cat8}
 # Predict site-specific activity patterns
@@ -257,7 +264,7 @@ cycl_pred2 <- cbind(newdat, fit=cycl_pred2$fit, se.fit=cycl_pred2$se.fit, Model 
 
 cycl_pred <- rbind(cycl_pred1, cycl_pred2)
 
-selected_sites <- c("2A", "2B", "3B", "4D","7B", "14B", "14C", "15A", "15E", "18C")
+(selected_sites <- c("2A", "2B", "3B", "4D","7B", "14B", "14C", "15A", "15E", "18C")
 (cycl_pred %>% filter(Site %in% selected_sites) %>% 
   mutate(Season2 = ifelse(Season == "F", "Fall", "Spring")) %>% 
 ggplot(., aes(Time, fit, group = Site)) +
@@ -281,17 +288,9 @@ ggplot(., aes(Time, fit, group = Site)) +
           plot.margin = margin(0.1,0.1,0.5,0.1, "cm"))+
     scale_x_continuous(breaks=seq(0,max(cycl_pred$Time),length.out=7), labels=seq(0,24,4)) +
     facet_grid(Season2~Model)) %>% 
-ggsave(filename = "ms_figures/Fig4_Site_specific_estimates.jpg", device = "jpeg", units = "cm", width = 24, height = 20, dpi = 600)
+ggsave(filename = "ms_figures/Fig4_Site_specific_estimates.jpg", device = "jpeg", units = "cm", width = 24, height = 20, dpi = 600))
 
 ```
-
-The second structure has an additional term, a general smoother for *Time*, and resembles a trigonometric GLMM with random intercept and slope.
-
-We first ran the two models, then predict and plot their estimates along with estimates based on the trigonometric random intercept-only model, to facilitate comparison.
-
-
- 
-
 
 ## Continuous covariates {#cont}
 
@@ -320,7 +319,7 @@ occasions_cbind <- occasions %>%
 
 ```
 
-We can now fit the model structure we prefer. As an example, we report a trigonometric random-intercept only model and a cyclic cubic spline HGAM without common smoother.
+We can now fit the model structure we prefer. As an example, we report a trigonometric random intercept-only model and a cyclic cubic spline HGAM without a site-specific smoother.
 
 ```{r cont3}
 # random-intercept only trigonometric GLMM
@@ -332,9 +331,9 @@ summary(mod_trig_cont)
 
 # cyclic cubic spline HGAM without common smoother for Time
 mod_cycl1_cont <- bam(cbind(success, failure) ~ 
-                   s(Time, bs = "cc", k = 12, by = ghm, m = 1) +
-                   ghm + 
-                   s(Site, bs="re"), 
+                        ghm + 
+                        s(Time, bs = "cc", k = 12, by = ghm, m = 1) +
+                        s(Site, bs="re"), 
                  knots = list(Time=c(0,23)),
                  family = "binomial", 
                  data = occasions_cbind)
