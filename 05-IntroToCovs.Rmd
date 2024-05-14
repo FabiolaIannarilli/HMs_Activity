@@ -290,7 +290,7 @@ pl_cycl <- cycl_pred %>% filter(Site %in% selected_sites) %>%
     facet_grid(Season2~Model)  
 
 # save plot
-ggsave(plot = pl_cycl, filename = "ms_figures/Fig4_Site_specific_estimates.jpg", device = "jpeg", units = "cm", width = 24, height = 20, dpi = 600))
+ggsave(plot = pl_cycl, filename = "ms_figures/Fig4_Site_specific_estimates.jpg", device = "jpeg", units = "cm", width = 24, height = 20, dpi = 600)
 
 ```
 
