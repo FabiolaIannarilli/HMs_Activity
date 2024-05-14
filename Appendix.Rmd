@@ -148,7 +148,6 @@ library(ggpubr)
 # Load data
 dat <- read.csv("data_input/species_records.csv") %>% 
   filter(Species == "BlackBear") %>% droplevels() %>% 
-  filter(Session %in%  c("Fall2016", "Fall2017")) %>% 
   mutate(DateTimeOriginal = ymd_hms(DateTimeOriginal))
 cov <- read.csv("data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv", as.is = TRUE) %>% 
   mutate(Date_setup = mdy(Date_setup),
@@ -183,17 +182,18 @@ for(i in 1:nrow(dat)){
 
 # Format data 
 occasions$Time <- hour(occasions$start)
+occasions$Season <- as.factor(substr(occasions$Session, 1, 1))
+table(occasions$Season, occasions$capt)
 occasions$Site <- as.factor(occasions$Site)
 
 # format data for cbind(success, failure)
 occasions_cbind <- occasions %>% 
-  group_by(Site, Time) %>% 
+  group_by(Site, Time, Season) %>% 
   summarize(success = sum(capt),
             failure = n() - success)
-head(occasions_cbind)
 
 #Subset the data to the Fall data only, thus removing Spring data.
-y_fall = occasions_cbind[which(occasions_cbind$Season=="F"),]
+y_fall <-  occasions_cbind[which(occasions_cbind$Season == "F"),]
 head(y_fall)
 
 # Create a column of the total number of possible detections (i.e. trials) to be used
@@ -457,7 +457,7 @@ library(ggplot2)
 
 
 #Subset the data to the Spring data only, thus removing Fall data.
-y_spring = occasions_cbind[which(occasions_cbind$Season=="S"),]
+y_spring <-  occasions_cbind[which(occasions_cbind$Season == "S"),]
 head(y_spring)
 
 ```
