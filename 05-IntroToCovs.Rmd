@@ -264,10 +264,10 @@ cycl_pred2 <- cbind(newdat, fit=cycl_pred2$fit, se.fit=cycl_pred2$se.fit, Model 
 
 cycl_pred <- rbind(cycl_pred1, cycl_pred2)
 
-(selected_sites <- c("2A", "2B", "3B", "4D","7B", "14B", "14C", "15A", "15E", "18C")
-(cycl_pred %>% filter(Site %in% selected_sites) %>% 
+selected_sites <- c("2A", "2B", "3B", "4D","7B", "14B", "14C", "15A", "15E", "18C")
+pl_cycl <- cycl_pred %>% filter(Site %in% selected_sites) %>% 
   mutate(Season2 = ifelse(Season == "F", "Fall", "Spring")) %>% 
-ggplot(., aes(Time, fit, group = Site)) +
+  ggplot(., aes(Time, fit, group = Site)) +
     geom_line(aes(color = Site, group = Site), size = 1) +
     labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "Cyclic cubic spline HGAMs")+
     theme_minimal()+
@@ -287,8 +287,10 @@ ggplot(., aes(Time, fit, group = Site)) +
           strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0.5),
           plot.margin = margin(0.1,0.1,0.5,0.1, "cm"))+
     scale_x_continuous(breaks=seq(0,max(cycl_pred$Time),length.out=7), labels=seq(0,24,4)) +
-    facet_grid(Season2~Model)) %>% 
-ggsave(filename = "ms_figures/Fig4_Site_specific_estimates.jpg", device = "jpeg", units = "cm", width = 24, height = 20, dpi = 600))
+    facet_grid(Season2~Model)  
+
+# save plot
+ggsave(plot = pl_cycl, filename = "ms_figures/Fig4_Site_specific_estimates.jpg", device = "jpeg", units = "cm", width = 24, height = 20, dpi = 600))
 
 ```
 
