@@ -44,6 +44,13 @@ list.of.packages <- c("dplyr", "grid", "gridExtra", "GLMMadaptive", "ggpubr", "m
                       "nimble", "brms", "forcats", "MESS")
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)>0) install.packages(new.packages)
+if(!("Diel.Niche" %in% installed.packages()[,"Package"])){
+  # Install package from GitHub via the devtools package.
+  devtools::install_github("diel-project/Diel-Niche-Modeling",
+                         ref="main", dependencies = TRUE,
+                         build_vignettes = FALSE
+)
+} 
 
 ```
 
