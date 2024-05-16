@@ -181,7 +181,7 @@ pl <- grid.arrange(pl_vert, pl_hor, ncol = 2)
 
 ```
 
-The dashed lines in panel B represent curves simulated using different values of $\gamma_i$ (darker to lighter colors from lower to higher in absolute values). Varying the random phaseshift $\gamma_i$ results in activity curves that are shifted horizontally. Because we are simulating data using two cosine terms, the cumulative effects of the two random phaseshifts (one per cosine term) also affect the intensity of site-use. <!--- Again, we will discuss in more details when illustrating the differences between conditional and marginal mean activity curves in chapter \@ref(condvsmarg).--->
+The dashed lines in panel B represent curves simulated using different values of $\gamma_i$ (darker to lighter colors from lower to higher in absolute values). Varying the random phaseshift $\gamma_i$ results in activity curves that are shifted horizontally. Because we are simulating data using two cosine terms, the cumulative effects of the two random phaseshifts (one per cosine term) also affect the intensity of site-use.  
 
 *Site-to-site variability in a unimodal pattern.* For completeness, we also present how variability affects a unimodal activity pattern. We can simulate this activity pattern by re-running the code above without the second cosine term (or, by $\beta_2 = 0$).
 
@@ -293,4 +293,4 @@ pl_uni <- grid.arrange(pl_vert_uni, pl_hor_uni, ncol = 2)
 
 This second example clearly illustrates how varying $\gamma_i$ (while keeping all the other parameters constant) leads to the horizontal shift of the curves, with peaks in activity equal across time but occurring at different times of the diel cycle.
 
-In the next chapter, we simulate data drawing values of $\tau_i$ and $\gamma_i$ from the normal distributions specified at the beginning of this chapter. We use these simulated data to illustrate how trigonometric and cyclic cubic regression spline HMs can be used to estimate activity patterns.<!--- In chapter \@ref(condvsmarg), we illustrate the difference between conditional and marginal mean activity patterns and discuss when one might choose one curve over the other depending on one's ecological questions.--->
+In the next chapter, we simulate data drawing values of $\tau_i$ and $\gamma_i$ from the normal distributions specified at the beginning of this chapter. We use these simulated data to illustrate how trigonometric and cyclic cubic regression spline HMs can be used to estimate activity patterns. We will further elaborate on differences between conditional and marginal mean activity patterns in chapter \@ref(condvsmarg). 
