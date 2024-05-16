@@ -78,7 +78,7 @@ for(i in 1:length(time)){
 }
 ```
 
-We discuss differences between conditional and marginal means in detail in chapter \@ref(condvsmarg) and in Box 1 in the main text [@Iannarilliea2024]. Although we can consider conditional means for any site, it is often instructive to consider the conditional mean curve for a "typical site" obtained by setting all the random effects equal to zero. We can plot the conditional and marginal curves using the code below:
+We discuss differences between conditional and marginal means in detail in chapter \@ref(condvsmarg) and in Box 1 in the main text [@Iannarilliea2024]. Although we can consider conditional means for any site, it is often instructive to consider the conditional mean curve for a "typical site" obtained by setting all the random effects equal to zero. And, this is the conditional mean we are referring to if we do not mention a specific site. We can plot the conditional and marginal curves using the code below:
 
 ```{r sim2c}
 p_df2 <- data.frame(p = unlist(p_marg),
