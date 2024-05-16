@@ -31,14 +31,16 @@ pdf_document:
 # Preface {#preface}
 <!-- paragraph to fix once we have defined the final order of the chapters -->
 
-This vignette accompanies the manuscript @Iannarilliea2024 and contains step-by-step examples on how to use trigonometric and cyclic cubic spline Hierarchical Models (HMs) to analyze activity patterns from time-stamped data (chapters \@ref(est), \@ref(unibim)). In this tutorial, we present case studies based on camera-trap data, but the approaches described can be applied to data collected vis other static sensors (e.g., acoustic recorders). The tutorial also includes examples of comparing the importance of different covariates when fitting GLMMs to describe activity patterns (chapter \@ref(cov)), and additional resources to illustrate the difference between conditional and marginal mean activity patterns (chapter \@ref(condvsmarg)) and the application of Kernel Density Estimators through the packages currently available in R (chapter \@ref(kdes)).
+This vignette accompanies @Iannarilliea2024 and contains step-by-step examples on how to use trigonometric and cyclic cubic spline Hierarchical Models (HMs) to analyze activity patterns from time-stamped data (chapters \@ref(est), \@ref(unibim)). In this tutorial, we present case studies based on camera-trap data, but the approaches described can be applied to data collected via other static sensors (e.g., acoustic recorders). The tutorial also includes examples demonstrating how one can test for hypothesized effects of covariates on activity patterns (chapter \@ref(cov)), and additional resources for understanding the difference between conditional and marginal mean activity patterns (chapter \@ref(condvsmarg)) and the application of Kernel Density Estimators to activity data (chapter \@ref(kdes)).
 
-All the analyses presented in the following chapters were performed in @R-base. The camera-trap data used in the real-case examples were collected at 100 locations sampled between 2016 and 2018 in Northern Minnesota, USA [@Iannarilliea2021] and can be accessed at XXXX. Further details on these data can be found in @Iannarilliea2021.
+All analyses presented in the following chapters were performed in @R-base. The camera-trap data used in the real-case examples were collected at 100 locations sampled between 2016 and 2018 in Northern Minnesota, USA [@Iannarilliea2021] and can be accessed at XXXX. Further details on these data can be found in @Iannarilliea2021.
 
 ## Requirements
-Throughout this tutorial, we use several packages. Users interested in compiling the tutorial from source or in reproducing the analysis on their own machine should install these packages. The code below provides a list of all the libraries needed, check if they are already installed in the user's local machine, and install those that are not.
 
-``` {r preface1}
+Throughout this tutorial, we use several packages. Users interested in compiling the tutorial from source or in reproducing the analysis on their own machine should install these packages. The code below provides a list of all the libraries needed, checks if they are already installed in the user's local machine, and installs those packages that are not.
+
+<!--- Changed to eval = FALSE to avoid actually running this code ;) --->
+``` {r preface1, eval=FALSE}
 list.of.packages <- c("dplyr", "grid", "gridExtra", "GLMMadaptive", "ggpubr", "mgcv", 
                       "tidyr", "lubridate", "lmtest", "activity", "overlap", "circular", 
                       "nimble", "brms", "forcats", "MESS")
