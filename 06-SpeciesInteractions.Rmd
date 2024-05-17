@@ -27,7 +27,7 @@ cov <- read.csv("data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv", 
          Problem1_to = mdy(Problem1_to)) 
 ```
 
-However, before organizing the data using the *cbind(success, failure)* approach we need to include the additional information on whether the other species was also detected at least once at a certain site during a sampling session. We thus create two lists of *site X session* (hereafter, *site-session*) in which either wolves or coyotes have been encountered and then look at the overlap between these two lists.
+However, before organizing the data using the `cbind(success, failure)` approach we need to include the additional information on whether the other species was also detected at least once at a certain site during a sampling session. We thus create two lists of *site X session* (hereafter, *site-session*) in which either wolves or coyotes have been encountered and then look at the overlap between these two lists.
 
 ```{r temp2}
 # Where both species were detected at the same site during a session?
@@ -40,7 +40,7 @@ site <- semi_join(site_Co, site_Wo, by = c("Session", "Station")) %>%
   mutate(Sess_site = paste(Session, Station, sep = "_"))
 ```
 
-Wolves and coyotes have been detected at `r nrow(site_Wo)` and `r nrow(site_Co)` site-sessions, respectively, `r nrow(site)` of which were the same.
+Wolves and coyotes have been detected at `r nrow(site_Wo)` and `r nrow(site_Co)` site-sessions, respectively, with `r nrow(site)`   occurrences of both species at the same site-session. 
 
 ```{r temp3}
 # Add binary variable for presence of other species
@@ -51,7 +51,7 @@ for(i in 1:nrow(dat)){
 table(dat$Species, dat$oth_sp)
 ```
 
-For each species (e.g., coyote), we used a dummy variable called *oth_sp* to describe whether the other species (e.g., wolf) was photographed at least once (*oth_sp* = 1; 0 otherwise) at the same site during a specific site-session. This resulted in 1747 and 3209 records of coyotes at site-sessions where wolves were and were not recorded, and 2248 and 8148 records of wolf at site-sessions where coyotes were and were not recorded. With this additional piece of information we can proceed on organizing the data as number of successes and failures, starting with coyotes. We will build a dataframe to store the encounter/nonencounter information for each species.
+For each species (e.g., coyote), we used a dummy variable called `oth_sp` to describe whether the other species (e.g., wolf) was photographed at least once (`oth_sp` = 1; 0 otherwise) at the same site during a specific site-session. This resulted in 1747 and 3209 records of coyotes at site-sessions where wolves were and were not recorded, and 2248 and 8148 records of wolves at site-sessions where coyotes were and were not recorded. With this additional piece of information, we can proceed with formatting the data (i.e., counting the number of successes and failures for each grouping), starting with coyotes. We will build a dataframe to store the encounter/nonencounter information for each species.
 
 ```{r temp4}
 # Prepare data for model-based methods
@@ -76,15 +76,17 @@ occasions_Co$capt <- 0
 occasions_Wo <- occasions_Co
 ```
 
-Then, we populate these dataframes with the information recorded for coyote and wolf, respectively. We start with coyotes.
+Then, we populate these dataframes with the information recorded for coyotes and wolves, respectively. We start with coyotes.
 
 ```{r temp5}
 # Coyote data:
 # Store captures
 dat_Co <- dat %>% filter(Species == "Coyote")
 for(i in 1:nrow(dat_Co)){
-  occasions_Co[occasions_Co$Session == as.character(dat_Co$Session[i]) & occasions_Co$site == as.character(dat_Co$Station[i]) &
-                 occasions_Co$start <= dat_Co$DateTimeOriginal[i] & occasions_Co$end > dat_Co$DateTimeOriginal[i], "capt"] <- 1
+  occasions_Co[occasions_Co$Session == as.character(dat_Co$Session[i]) &
+                 occasions_Co$site == as.character(dat_Co$Station[i]) &
+                 occasions_Co$start <= dat_Co$DateTimeOriginal[i] & 
+                 occasions_Co$end > dat_Co$DateTimeOriginal[i], "capt"] <- 1
 }
 
 # Format data 
@@ -112,8 +114,10 @@ We repeat the same steps for wolves.
 # Store captures
 dat_Wo <- dat %>% filter(Species == "Wolf")
 for(i in 1:nrow(dat_Wo)){
-  occasions_Wo[occasions_Wo$Session == as.character(dat_Wo$Session[i]) & occasions_Wo$site == as.character(dat_Wo$Station[i]) &
-                 occasions_Wo$start <= dat_Wo$DateTimeOriginal[i] & occasions_Wo$end > dat_Wo$DateTimeOriginal[i], "capt"] <- 1
+  occasions_Wo[occasions_Wo$Session == as.character(dat_Wo$Session[i]) &
+                 occasions_Wo$site == as.character(dat_Wo$Station[i]) &
+                 occasions_Wo$start <= dat_Wo$DateTimeOriginal[i] & 
+                 occasions_Wo$end > dat_Wo$DateTimeOriginal[i], "capt"] <- 1
 }
 
 # Format data 
@@ -136,7 +140,7 @@ occasions_Wo_cbind <- occasions_Wo %>%
 
 For this species, we had 181 (out of 56 928) and 354 (out of 514 248) hourly intervals with at least 1 record of wolves at site-sessions in which coyotes were and were not recorded.
 
-We now proceed to fit a model for each species. For convenience, we run a trigonometric random intercept-only model, but more complex trigonometric GLMMs or cyclic cubic spline HGAMs can also be used, as we show below.
+We now proceed to fit a model to the data for each species. For convenience, we run a trigonometric random intercept-only model, but more complex trigonometric GLMMs or cyclic cubic spline HGAMs could be considered. 
 
 ```{r temp7}
 # run model: coyote
@@ -159,7 +163,7 @@ summary(mod_trig_Wo)
 
 ```
 
-We now plot the results for both coyotes and wolves in the presence and absence of the other species. We focus on estimating marginal mean activity patterns because our aim is to compare between two groups that differ in their characteristics (i.e. site-sessions with and without the other species). The only change to the code required to obtain the marginal means is to set the argument _marginal_ in the _effectPlotData_ function equal to _TRUE_.
+We now plot the results for both coyotes and wolves in the presence and absence of the other species. We focus on estimating marginal mean activity patterns because our aim is to compare between two groups that differ in their characteristics (i.e. site-sessions with and without the other species). The only change to the code required to obtain the marginal means is to set the argument `marginal` in the `effectPlotData` function equal to `TRUE`.
 
 ```{r temp8}
 # coyote
@@ -200,7 +204,9 @@ ggsave(plot = pl_trig, filename = "ms_figures/Fig5_Coyote_Wolf_patterns.jpg", de
 
 ```
 
-This figure and a comment on the results are presented in @Iannarilliea2024 (Figure 5). Here we proceed instead with addressing the same question using a cyclic cubic spline HGAM (without a site-specific smoother) for each species and then plotting the estimates of activity patterns to visually inspect the results.
+This figure is presented in @Iannarilliea2024 (Figure 5), where we offer additional discussion regarding the estimated activity curves. 
+
+Next, we consider a cyclic cubic spline HGAM (without a site-specific smoother) for each species, which we compare to the trigonometric GLMM below.
 
 ```{r temp9}
 # Cyclic cubic splines ('random intercept-only')
@@ -256,9 +262,9 @@ pl_trig2 <- pl_trig + labs(title = "A: Marginal mean (trigonometric GLMM)") + th
 ggarrange(pl_trig2, pl_cycl, nrow = 2, ncol = 1, common.legend = TRUE, legend = "right")
 ```
 
-We see that the trigonometric and the cyclic cubic spline HMs return the same pattern.
+We see that the trigonometric and the cyclic cubic spline HMs return the same general pattern.
 
-As in other examples, we can assess the importance of the variable of interest in driving a species activity patterns by comparing the models above with a version of the same model withut this covariate. In this example, this results in models without the interactions of the cosine terms with the variable *oth_sp*. However, it is preferable to run this comparison only considering the trigonometric models. When removing the effect of the covariate, we change the model structure to one that contains a global smoother and, as highlighted in @Pedersen2019, AIC might not be reliable when comparing HGAMs with and without a global smoother. In these cases, AIC tend to select the model without the global smoother.
+As with the other examples, we can assess the importance of the presence of the competitor species by comparing models with and without terms involving this covariate (i.e., `oth_sp`). We fit the reduced model below. <!---In this example, this results in models without the interactions of the cosine terms with the variable *oth_sp*. However, it is preferable to run this comparison only considering the trigonometric models. When removing the effect of the covariate, we change the model structure to one that contains a global smoother and, as highlighted in @Pedersen2019, AIC might not be reliable when comparing HGAMs with and without a global smoother. In these cases, AIC tend to select the model without the global smoother.--->
 
 ```{r temp10}
 # Trigonometric GLMM (random intercept-only)
@@ -298,4 +304,4 @@ AIC(mod_trig_Wo_null, mod_trig_Wo)
 AIC(mod_trig_Wo_null) - AIC(mod_trig_Wo)
 ```
 
-A similar conclusion is reached for the wolf. These results do not imply a casual effect, but rather define an association: in site-sessions when the species cooccur (i.e. in space and time), they tend to have activity patterns that differ compared to site-sessions when they do not cooccur. These differences might be driven by other factors (e.g., level of anthropization) not considered in the analysis.
+A similar conclusion is reached for the wolf. These results do not imply a casual effect, but rather define an association: in site-sessions where the species co-occur (i.e. in space and time), they tend to have activity patterns that differ compared to site-sessions when they do not co-occur. These differences might be driven by other factors (e.g., level of human disturbance) not considered in the analysis.
