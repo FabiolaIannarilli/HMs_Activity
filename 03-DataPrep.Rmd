@@ -59,9 +59,9 @@ for(i in 1:nrow(site)){
 }
 ```
 
-Then, we create a dataframe to store the information about when and when not the target species was encountered at the different locations and within temporal occasions of length of our choice. Here, we use temporal occasions 60 minutes long, but different durations (from seconds to several hours) can be used. Shorter lengths will increase computational time and could potentially lead to convergence problems if data are too sparse. In the code below, the argument _by = '60 min'_ can be changed to accommodate intervals of length other than 1 hour (e.g. _by = '30 min'_ when considering interval 30-min long). 
+Then, we create a dataframe to store the information about when the target species was and was not encountered at the different locations within each temporal observation window. Here, we use 60 minutes to define the temporal sampling units, but different durations (from seconds to several hours) can be used. Shorter lengths will increase computational time and could potentially lead to convergence problems if data are too sparse. In the code below, the argument `by = '60 min'` can be changed to accommodate other observation intervals (e.g. `by = '30 min'` leads to 30-min intervals). 
 
-For each site, we create a list of all the hourly occasions from the start to the end of the deployment of an active camera at that site. We then prepopulate the column _capt_ (which will track the encounter/non-encounter information) with zeros. 
+For each site, we create a list of all the hourly occasions from the start to the end of the deployment of the active camera at the site. We then prepopulate the column `capt` (which will track the encounter/non-encounter information) with zeros. 
 
 ```{r prep5}
 # Create dataframe to store captures 
@@ -79,20 +79,22 @@ occasions$capt <- 0
 head(occasions)
 ```
 
-For each record of coyote collected during the study, we assign the value 1 at the column _capt_ in the corresponding row for the combination of site and time interval that includes the time of the encounter event. 
+For each coyote observation collected during the study, we assign the value 1 to the column `capt` for the row corresponding to the site and time interval of the encounter event. 
 
 ```{r prep6}
 #' Store captures
 for(i in 1:nrow(coy)){
-  occasions[occasions$Session == as.character(coy$Session[i]) & occasions$Site == as.character(coy$Station[i]) &
-              occasions$start <= coy$DateTimeOriginal[i] & occasions$end > coy$DateTimeOriginal[i], "capt"] <- 1
+  occasions[occasions$Session == as.character(coy$Session[i]) 
+            & occasions$Site == as.character(coy$Station[i]) 
+            & occasions$start <= coy$DateTimeOriginal[i] 
+            & occasions$end > coy$DateTimeOriginal[i], "capt"] <- 1
 }
 table(occasions$capt)
 ```
 
-We have 251 and 570925 1-hour long occasions with and without encounters of coyotes, respectively. 
+We have 251 and 570,925 1-hour long occasions with and without encounters of coyotes, respectively. 
 
-Because we chose to use hourly occasions, we can extract the information about the hour of each interval and use it as the _Time_ variable in the models that we will run in the following chapters. If a different time length is used (e.g. 1-minute long), this step needs to be adapted accordingly. We also code _Site_ as a factor.
+Because we chose to use hourly occasions, we can extract the information about the hour of each interval and use it as the _Time_ variable in the models that we will run in the following chapters. If a different time length is used (e.g. 1-minute long), this step needs to be adapted accordingly. We also code `Site` as a factor variable.
 
 ```{r prep7}
 # Format data 
@@ -100,7 +102,7 @@ occasions$Time <- hour(occasions$start)
 occasions$Site <- as.factor(occasions$Site)
 nrow(occasions)
 ```
-Our dataset, _occasions_, contains now more than 570 000 rows. Running a HM on such dataset might likely take a long time and even be impossible without relying on a computing cluster. When the condition under which we test for variation in activity patterns does not varies across the period of sampling (as it instead happens e.g. with Julian day), we can summarize the encounter/non-encounter records counting the number of successes (i.e. interval with encounters) and failures (i.e. interval without encounters) at each site and hourly temporal occasion, and then run the HMs using the _cbind(success, failure)_ approach (see next chapter for examples).
+Our dataset, `occasions`, contains now more than 570,000 rows. Running an HM on such a large dataset might take a long time or require using a computing cluster. We can speed up model fitting by first summarizing the encounter/non-encounter records across the sampling period, counting the number of successes (i.e. intervals with encounters) and failures (i.e. intervals without encounters) at each site and hourly temporal occasion. We can then run the HMs using the `cbind(success, failure)` approach (see next chapter for examples). However, this approach will not work in cases where we want to model variation in activity as a function of additional temporally-varying covariates (e.g., Julian day). In those situations, we may be forced to work with the `occassions` data set and its binary encounter records. Below, we provide code for creating a dataset containing the number of successes and failures for each observation window.
 
 ```{r prep8}
 # format data for cbind(success, failure)
@@ -111,4 +113,4 @@ occasions_cbind <- occasions %>%
 head(occasions_cbind)
 ```
 
-The first row indicates that for Site 10A and Time interval 0 (i.e. from 00:00:00 to 00:59:59) we had 259 occasions (i.e. days in this case) without detecting a coyote and 0 occasion with a coyote encounter during this specific time of day. In the next chapter (chapter \@ref(unibim)), we see how to use this dataset to test hypotheses about coyotes' diel activity patterns. 
+The first row indicates that for `Site` 10A and `Time` interval 0 (i.e. from 00:00:00 to 00:59:59) we had 259 occasions (i.e. days in this case) without detecting a coyote and 0 occasions where we encountered a coyote. In the next chapter (chapter \@ref(unibim)), we see how to use this dataset to test hypotheses about coyotes' diel activity patterns. 
