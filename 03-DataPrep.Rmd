@@ -92,7 +92,7 @@ for(i in 1:nrow(coy)){
 table(occasions$capt)
 ```
 
-We have 251 and 570,925 1-hour long occasions with and without encounters of coyotes, respectively. 
+We have 251 and 570 925 1-hour long occasions with and without encounters of coyotes, respectively. 
 
 Because we chose to use hourly occasions, we can extract the information about the hour of each interval and use it as the _Time_ variable in the models that we will run in the following chapters. If a different time length is used (e.g. 1-minute long), this step needs to be adapted accordingly. We also code `Site` as a factor variable.
 
