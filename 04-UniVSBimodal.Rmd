@@ -1,14 +1,16 @@
-# Evaluating Hypotheses on the Shape of Activity Curves {#unibim}
+# Evaluating Hypotheses Regarding the Shape of Activity Curves {#unibim}
 
-In this first example based on real data, we illustrate how trigonometric HMs can be used to describe different structures of diel activity patterns. Contrary to trigonometric HMs, cyclic cubic spline HGAMs cannot easily be constrain to accommodate a specific shape of the resulting activity pattern. Thus, when the interest is in determining which general shape of the activity curve best describes the data collected, we recommend to rely on trigonometric GLMMs, as illustrated here.
+Traditionally, diel activity patterns have been classified as either:
 
-Traditionally, diel activity patterns are usually classified as:
+* **unimodal**: the species is mostly active during a restricted portion of the 24-hour cycle, and not (or almost not) active in the remaining time. The activity  curve is characterized by only one peak, and it is typical of species that are either diurnal or nocturnal.
+* **bimodal**: the species is mostly active during two specific times of 24-hour cycle, often corresponding to sunrise and sunset (i.e. crepuscular species) and inactive (or mostly inactive) during the rest of the time. The activity curve is characterized by having two peaks.
+* **cathemeral**: the species is equally active throughout the 24-hour cycle and the activity curve approximates a flat line.
 
-* **unimodal**: the species is mostly active during a restricted portion of the 24-hour cycle, and not (or almost not) active in the remaining time. The activity pattern curve is characterized by only one peak, and it is typical of species that are either diurnal or nocturnal.
-* **bimodal**: the species is mostly active during two specific times of 24-hour cycle, often corresponding to sunrise and sunset (i.e. crepuscular species) and inactive (or mostly inactive) during the rest of the time. The activity pattern curve is characterized by having two peaks.
-* **cathemeral**: the species is equally active throughout the 24-hour cycle and the activity pattern curve approximates a flat line.
+Here, we build and compare trigonometric HMs representing these three different diel activity patterns. To reiterate, we use independent camera-trap records of coyotes (*Canis latrans*) collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021], with the data organized as described in the previous chapter \@ref(dataprep). 
 
-Here, we build and compare model structures that represent these three different diel activity patterns. To reiterate, we use independent camera-trap records of coyotes (*Canis latrans*) collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021], with the data organized as described in the previous chapter \@ref(dataprep). 
+<!---JF note to Fabiola below--->
+<span style="color: red;">Can we delete this code and just read in the data from the previous chapter?</span>.
+
 
 ``` {r univsbim1, message = TRUE, warnings = TRUE}
 # Load libraries
@@ -120,9 +122,9 @@ We can also compare the models using a Likelihood Ratio Test (LRT).
 lrtest(null_mod, unimodal, bimodal)
 ```
 
-Both comparisons show that the bimodal pattern is the most supported model among those compared. We can, thus, conclude that coyotes have a bimodal activity pattern.
+Both comparisons suggest that the bimodal pattern is the most supported model among those compared. We can, thus, conclude that coyotes have a bimodal activity pattern.
 
-We can also visually compare predicted activity curves based on these models. As in other examples, we first use the function _GLMMadaptive::effectPlotData_ to predict the activity curves throughout the 24-hour cycle and then use _ggplot_ to plot the results.
+We can also visually compare predicted activity curves based on these models. As in other examples, we first use the function `GLMMadaptive::effectPlotData` to predict the activity curves throughout the 24-hour cycle and then use `ggplot` to plot the results.
 
 ``` {r univsbim7}
 # build a new dataset 
@@ -166,4 +168,4 @@ ggsave(plot = pl_shapes, filename = "ms_figures/Fig2_Uni_vs_Bim_comparison.jpg",
 
 ```
 
-We can test other hypotheses related to the shape of the activity pattern curve for our target species (e.g. three or more peaks in the activity pattern) by simply adding additional cosine terms to the model structure and then comparing the different structures using AIC or LRT. However, going beyond two peaks might be computationally intense, especially when a random slope is included. In these cases, an option would be to reduce model complexity by only including a random intercept.
+We can test other hypotheses related to the shape of the activity curve for our target species (e.g. three or more peaks) by simply adding additional cosine terms to the model structure and then comparing the different structures using AIC or LRT. However, going beyond two peaks might be computationally challenging, especially when a random slope is included. In these cases, one might need to consider reducing model complexity by only including a random intercept.
