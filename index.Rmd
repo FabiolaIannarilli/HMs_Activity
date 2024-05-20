@@ -1,5 +1,5 @@
 --- 
-title: "A 'How to' Guide for Estimating Animal Diel Activity Using Hierarchical Models: tutorials"
+title: "A 'How to' Guide for Estimating Animal Diel Activity Using Hierarchical Models"
 author: 
   - name: "Fabiola Iannarilli"
     email: fabiola.iannarilli@gmail.com
