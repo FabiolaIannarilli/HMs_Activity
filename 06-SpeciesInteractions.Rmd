@@ -4,7 +4,7 @@ Another common question related to activity patterns often asked by ecologists i
 
 As an example, we analyze temporal partitioning between coyotes and wolves (*Canis lupus*). We format the data as usual.
 
-```{r temp1, message = TRUE, warnings = TRUE}
+```{r temp1, message = FALSE, warnings = FALSE}
 # Load libraries
 rm(list = ls())
 set.seed(129)
@@ -14,6 +14,9 @@ library(GLMMadaptive)
 library(ggpubr)
 library(mgcv)
 library(forcats)
+```
+
+```{r temp1b, message = TRUE, warnings = TRUE}
 
 # Load data: Coyote/Wolf Species interactions
 dat <- read.csv("data_input/species_records.csv", as.is = TRUE) %>% 
@@ -24,7 +27,8 @@ cov <- read.csv("data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv", 
   mutate(Date_setup = mdy(Date_setup),
          Date_retr = mdy(Date_retr),
          Problem1_from = mdy(Problem1_from),
-         Problem1_to = mdy(Problem1_to)) 
+         Problem1_to = mdy(Problem1_to)
+         ) 
 ```
 
 However, before organizing the data using the `cbind(success, failure)` approach we need to include the additional information on whether the other species was also detected at least once at a certain site during a sampling session. We thus create two lists of *site X session* (hereafter, *site-session*) in which either wolves or coyotes have been encountered and then look at the overlap between these two lists.
@@ -40,7 +44,7 @@ site <- semi_join(site_Co, site_Wo, by = c("Session", "Station")) %>%
   mutate(Sess_site = paste(Session, Station, sep = "_"))
 ```
 
-Wolves and coyotes have been detected at `r nrow(site_Wo)` and `r nrow(site_Co)` site-sessions, respectively, with `r nrow(site)`   occurrences of both species at the same site-session. 
+Wolves and coyotes have been detected at `r nrow(site_Wo)` and `r nrow(site_Co)` site-sessions, respectively, with `r nrow(site)` occurrences of both species at the same site-session. 
 
 ```{r temp3}
 # Add binary variable for presence of other species
@@ -59,7 +63,10 @@ For each species (e.g., coyote), we used a dummy variable called `oth_sp` to des
 site_Co2 <- cov
 site_Co2$end <- ymd("2000-01-01")
 for(i in 1:nrow(site_Co2)){
-  site_Co2$end[i] <-  min(site_Co2$Date_retr[i], site_Co2$Problem1_from[i], na.rm = TRUE)
+  site_Co2$end[i] <-  min(site_Co2$Date_retr[i], 
+                          site_Co2$Problem1_from[i], 
+                          na.rm = TRUE
+                          )
 }
 
 # Create dataframe to store captures 
@@ -68,8 +75,12 @@ for(i in 1:nrow(site_Co2)){
   occasions_Co[[i]] <- data.frame(Session = site_Co2$Session[i],
                                   site = site_Co2$Site[i],
                                   start = seq(from = ymd_hms(paste(site_Co2$Date_setup[i], "00:00:00", sep = " ")), 
-                                              to = ymd_hms(paste(site_Co2$end[i], "23:59:59", sep = " ")), by = '60 min')) %>% 
-    mutate(end = c(start[2:length(start)], start[length(start)]+minutes(60))) 
+                                              to = ymd_hms(paste(site_Co2$end[i], "23:59:59", sep = " ")), by = '60 min')
+                                  ) %>% 
+    mutate(end = c(start[2:length(start)], 
+                   start[length(start)]+minutes(60)
+                   )
+           ) 
 }
 occasions_Co <- do.call(rbind.data.frame, occasions_Co)
 occasions_Co$capt <- 0
@@ -149,7 +160,8 @@ mod_trig_Co <- mixed_model(fixed = cbind(success, failure) ~ cos(2*pi*Time/24)*o
                            random = ~ 1 | site,
                            family = binomial(),
                            data = occasions_Co_cbind,
-                           iter_EM = 0) 
+                           iter_EM = 0
+                           ) 
 summary(mod_trig_Co)
 
 # run model: wolf
@@ -158,7 +170,8 @@ mod_trig_Wo <- mixed_model(fixed = cbind(success, failure) ~ cos(2*pi*Time/24)*o
                            random = ~ 1 | site,
                            family = binomial(),
                            data = occasions_Wo_cbind,
-                           iter_EM = 0) 
+                           iter_EM = 0
+                           ) 
 summary(mod_trig_Wo)
 
 ```
@@ -168,18 +181,26 @@ We now plot the results for both coyotes and wolves in the presence and absence 
 ```{r temp8}
 # coyote
 newdat <- with(occasions_Co_cbind, expand.grid(Time = seq(min(Time), 24, length.out = 48), 
-                                         oth_sp = as.factor(c(0,1))))
+                                               oth_sp = as.factor(c(0,1))
+                                               )
+               )
 cond_eff_Co <- effectPlotData(mod_trig_Co, newdat, marginal = TRUE)
 cond_eff_Co$Species <- "Coyote"
 
 # wolf
 newdat <- with(occasions_Wo_cbind, expand.grid(Time = seq(min(Time), 24, length.out = 48), 
-                                         oth_sp = as.factor(c(0,1))))
+                                               oth_sp = as.factor(c(0,1))
+                                               )
+               )
 cond_eff_Wo <- effectPlotData(mod_trig_Wo, newdat, marginal = TRUE)
 cond_eff_Wo$Species <- "Wolf"
 
 cond_eff <- rbind(cond_eff_Co, cond_eff_Wo) %>% 
   mutate(oth_sp_labels = fct_recode(oth_sp, "Without the other species" = "0", "With the other species" = "1"))
+
+```
+
+```{r temp8b, fig.cap="Predicted probability of activity by coyote and wolf and depening on each others presence or absence; shading corresponds to 95% confidence intervals."}
 (pl_trig <- ggplot(cond_eff, aes(Time, plogis(pred), color=Species, group=Species)) +
   geom_ribbon(aes(ymin=plogis(low), ymax=plogis(upp), fill=Species), alpha=0.5, linewidth = 0.25) +
   geom_line(size=1) +
@@ -197,9 +218,11 @@ cond_eff <- rbind(cond_eff_Co, cond_eff_Wo) %>%
         panel.grid.major.y = element_blank(),
         panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
         panel.grid.minor.x = element_blank(),
-        strip.text = element_text(face = "bold"))+
+        strip.text = element_text(face = "bold")
+        ) +
   scale_x_continuous(breaks=seq(0,24,4), labels=seq(0,24,4)) +
-  facet_wrap(~oth_sp_labels, scales = "fixed"))
+  facet_wrap(~oth_sp_labels, scales = "fixed")
+ )
 ggsave(plot = pl_trig, filename = "ms_figures/Fig5_Coyote_Wolf_patterns.jpg", device = "jpeg", units = "cm", width = 24, height = 10, dpi = 600)
 
 ```
@@ -212,32 +235,63 @@ Next, we consider a cyclic cubic spline HGAM (without a site-specific smoother) 
 # Cyclic cubic splines ('random intercept-only')
 # Coyote
 mod_cycl_Co <- bam(cbind(success, failure) ~ s(Time, bs = "cc", k = 12, by = oth_sp, m = 1) +
-                     oth_sp + 
-                     s(site, bs="re"), 
+                                              oth_sp + 
+                                              s(site, bs="re"), 
                    knots = list(Time=c(0,23)),
                    family = "binomial", 
-                   data = occasions_Co_cbind)
+                   data = occasions_Co_cbind
+                   )
 
 newdat <- with(occasions_Co_cbind, expand.grid(Time = seq(0, 24, 1), 
-                                         oth_sp = as.factor(c(0,1)), site = "10E")) #Site doesn't matter
-cycl_pred_Co <- predict.bam(mod_cycl_Co, newdata = newdat,  exclude = "s(site)", se.fit = TRUE, type = "response") 
-cycl_pred_Co <- cbind(newdat, fit=cycl_pred_Co$fit, se.fit=cycl_pred_Co$se.fit, Species = "Coyote")
+                                               oth_sp = as.factor(c(0,1)), 
+                                               site = "10E" #Site doesn't matter
+                                              ) 
+               ) 
+cycl_pred_Co <- predict.bam(mod_cycl_Co, 
+                            newdata = newdat,  
+                            exclude = "s(site)", 
+                            se.fit = TRUE, 
+                            type = "response"
+                            ) 
+cycl_pred_Co <- cbind(newdat, 
+                      fit=cycl_pred_Co$fit, 
+                      se.fit=cycl_pred_Co$se.fit, 
+                      Species = "Coyote"
+                      )
 
 # Wolf
 mod_cycl_Wo <- bam(cbind(success, failure) ~ s(Time, bs = "cc", k = 12, by = oth_sp, m = 1) +
-                     oth_sp + 
-                     s(site, bs="re"), 
+                                              oth_sp + 
+                                              s(site, bs="re"), 
                    knots = list(Time=c(0,23)),
                    family = "binomial", 
-                   data = occasions_Wo_cbind)
+                   data = occasions_Wo_cbind
+                   )
 
 newdat <- with(occasions_Wo_cbind, expand.grid(Time = seq(0, 24, 1), 
-                                         oth_sp = as.factor(c(0,1)), site = "10E")) #Site doesn't matter
-cycl_pred_Wo <- predict.bam(mod_cycl_Wo, newdata = newdat,  exclude = "s(site)", se.fit = TRUE, type = "response") 
-cycl_pred_Wo <- cbind(newdat, fit=cycl_pred_Wo$fit, se.fit=cycl_pred_Wo$se.fit, Species = "Wolf")
-
+                                               oth_sp = as.factor(c(0,1)), 
+                                               site = "10E" #Site doesn't matter
+                                               )
+               ) 
+cycl_pred_Wo <- predict.bam(mod_cycl_Wo, 
+                            newdata = newdat,  
+                            exclude = "s(site)", 
+                            se.fit = TRUE, 
+                            type = "response"
+                            ) 
+cycl_pred_Wo <- cbind(newdat, 
+                      fit=cycl_pred_Wo$fit, 
+                      se.fit=cycl_pred_Wo$se.fit, 
+                      Species = "Wolf"
+                      )
 cycl_pred <- rbind(cycl_pred_Co, cycl_pred_Wo) %>% 
   mutate(oth_sp_labels = fct_recode(oth_sp, "Without the other species" = "0", "With the other species" = "1"))
+
+```
+
+
+  
+```{r temp9b, fig.cap="Predicted probability of activity by coyote and wolf and depening on each others presence or absence from a trigonmetric (A) and cyclic cubic spline (B) hierarhical model; shading corresponds to 95% confidence intervals."}  
 pl_cycl <- ggplot(cycl_pred, aes(Time, fit, color=Species, group=Species)) +
   geom_ribbon(aes(ymin=fit-1.96*se.fit, ymax=fit+1.96*se.fit, fill=Species), alpha=0.5, size = 0.25) +
   geom_line(linewidth = 1) +
@@ -254,7 +308,8 @@ pl_cycl <- ggplot(cycl_pred, aes(Time, fit, color=Species, group=Species)) +
         panel.grid.major.y = element_blank(),
         panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', size=0.5),
         panel.grid.minor.x = element_blank(),
-        strip.text = element_text(face = "bold"))+
+        strip.text = element_text(face = "bold")
+        ) +
   scale_x_continuous(breaks=seq(0,24,4), labels=seq(0,24,4)) +
   facet_wrap(~oth_sp_labels, scales = "fixed")
 
@@ -270,19 +325,21 @@ As with the other examples, we can assess the importance of the presence of the 
 # Trigonometric GLMM (random intercept-only)
 # run model: coyote
 mod_trig_Co_null <- mixed_model(fixed = cbind(success, failure) ~ cos(2*pi*Time/24) + sin(2*pi*Time/24) +
-                                                             cos(2*pi*Time/12) + sin(2*pi*Time/12), 
-                           random = ~ 1 | site,
-                           family = binomial(),
-                           data = occasions_Co_cbind,
-                           iter_EM = 0) 
+                                                                  cos(2*pi*Time/12) + sin(2*pi*Time/12), 
+                                random = ~ 1 | site,
+                                family = binomial(),
+                                data = occasions_Co_cbind,
+                                iter_EM = 0
+                                ) 
 
 # run model: wolf
 mod_trig_Wo_null <- mixed_model(fixed = cbind(success, failure) ~ cos(2*pi*Time/24) + sin(2*pi*Time/24) +
-                                                             cos(2*pi*Time/12) + sin(2*pi*Time/12), 
-                           random = ~ 1 | site,
-                           family = binomial(),
-                           data = occasions_Wo_cbind,
-                           iter_EM = 0) 
+                                                                  cos(2*pi*Time/12) + sin(2*pi*Time/12), 
+                                random = ~ 1 | site,
+                                family = binomial(),
+                                data = occasions_Wo_cbind,
+                                iter_EM = 0
+                                ) 
 
 ```
 
