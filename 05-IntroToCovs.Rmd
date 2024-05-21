@@ -4,11 +4,11 @@ Many researchers exploring activity patterns from camera-trap data sooner or lat
 
 ## Categorical covariates {#cat}
 
-The task of comparing activity patterns among different levels of a categorical variable can be achieved also using KDE approaches. However, the process can be particularly cumbersome, especially when comparing more than two levels. It requires splitting the dataset of the independent records depending on the levels of the variable of interest, run a KDE for each group of records, and then comparing the results using an ad-hoc test. Conversely, the same task can be accomplished by fitting an HM to the whole dataset, as we describe here. In chapter \@ref(compkde), we repeat the analyses presented here using the KDE approach, and compare results to those obtained using the trigonometric and cyclic cubic spline HMs.
+The task of comparing activity patterns among different levels of a categorical variable can be achieved using KDE approaches. However, the process can be particularly cumbersome, especially when comparing more than two levels. It requires splitting the dataset of the independent records depending on the levels of the variable of interest, run a KDE for each group of records, and then comparing the results using an ad-hoc test. Conversely, the same task can be accomplished by fitting a HM to the whole dataset, as we describe here. In chapter \@ref(compkde), we repeat the analyses presented here using the KDE approach, and compare results to those obtained using the trigonometric and cyclic cubic spline HMs.
 
 Again, we use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA [@Iannarilliea2021]. This time, we use records of American black bear (*Ursus americanus*) and explore differences in activity patterns of this species between spring and fall. We again format the data using a `cbind(success, failure)` structure as described in chapter \@ref(dataprep), but this time we also create an additional column (*Season*) that contains the information about the season (i.e. Spring or Fall) in which the records were collected and use it as an additional grouping criterion.
 
-```{r cat1, message = TRUE, warnings = TRUE}
+```{r cat1, message = FALSE, warnings = FALSE}
 # Load Libraries
 rm(list = ls())
 set.seed(129)
@@ -18,7 +18,9 @@ library(GLMMadaptive)
 library(mgcv)
 library(ggpubr)
 library(forcats) 
+```
 
+```{r cat1b, message = TRUE, warnings = TRUE}
 # Load data
 dat <- read.csv("data_input/species_records.csv") %>% 
   filter(Species == "BlackBear") %>% droplevels() %>% 
@@ -27,7 +29,8 @@ cov <- read.csv("data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv", 
   mutate(Date_setup = mdy(Date_setup),
          Date_retr = mdy(Date_retr),
          Problem1_from = mdy(Problem1_from),
-         Problem1_to = mdy(Problem1_to)) 
+         Problem1_to = mdy(Problem1_to)
+         ) 
 
 # Extract Season information from Session column
 dat$Season <- as.factor(substr(dat$Session, 1, 1))
@@ -36,7 +39,10 @@ dat$Season <- as.factor(substr(dat$Session, 1, 1))
 site <- cov
 site$end <- ymd("2000-01-01")
 for(i in 1:nrow(site)){
-  site$end[i] <-  min(site$Date_retr[i], site$Problem1_from[i], na.rm = TRUE)
+  site$end[i] <-  min(site$Date_retr[i], 
+                      site$Problem1_from[i], 
+                      na.rm = TRUE
+                      )
 }
 
 # Create dataframe to store captures 
@@ -45,8 +51,13 @@ for(i in 1:nrow(site)){
   occasions[[i]] <- data.frame(Session = site$Session[i],
                                Site = site$Site[i],
                                start = seq(from = ymd_hms(paste(site$Date_setup[i], "00:00:00", sep = " ")), 
-                                           to = ymd_hms(paste(site$end[i], "23:59:59", sep = " ")), by = '60 min')) %>% 
-    mutate(end = c(start[2:length(start)], start[length(start)]+minutes(60))) 
+                                           to = ymd_hms(paste(site$end[i], "23:59:59", sep = " ")), by = '60 min'
+                                           )
+                               ) %>% 
+    mutate(end = c(start[2:length(start)], 
+                   start[length(start)]+minutes(60)
+                   )
+           ) 
 }
 occasions <- do.call(rbind.data.frame, occasions)
 occasions$capt <- 0
@@ -78,7 +89,7 @@ We obtained 5773 (out of 348 696) and 244 (out of 222 480) hourly occasions with
 
 ### Trigonometric GLMMs
 
-Extending the trigonometric HMs to explore the effect of a covariate on activity patterns only requires to include interactions between the trigonometric terms and the covariate. The interactions allow the coefficients of the trigonometric terms to vary by treatment group, that is, the two levels of the covariate *Season*. We start by fitting and visualizing  estimated activity curves for the two seasons based on a random-intercept only model in which the random intercept for *Site* accounts for repeated measures and varying levels of activity at each site:
+Extending the trigonometric HMs to explore the effect of a covariate on activity patterns only requires the inclusion of interactions between the trigonometric terms and the covariate. The interactions allow the coefficients of the trigonometric terms to vary by treatment group, that is, the two levels of the covariate, e.g. *Season*. We start by fitting and visualizing  estimated activity curves for the two seasons based on a random-intercept only model in which the random intercept for *Site* accounts for repeated measures and varying levels of activity at each site:
 
 ```{r cat2}
 # run model
@@ -87,15 +98,23 @@ trig_rand_int <- mixed_model(fixed = cbind(success, failure) ~
                                               sin(2 * pi * Time/24) * Season +
                                               sin(2 * pi * Time/12) * Season +
                                               cos(2 * pi * Time/12) * Season,
-            random = ~  1  |   Site,
-            data = occasions_cbind, family = binomial(), iter_EM = 0)
+                             random = ~  1  |   Site,
+                             data = occasions_cbind, 
+                             family = binomial(), 
+                             iter_EM = 0
+                             )
 summary(trig_rand_int)
 
 # build estimate of activity
-newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), 24, length.out = 48), 
-                                            Season = levels(Season)))
+newdat <- with(occasions_cbind, 
+               expand.grid(Time = seq(min(Time), 24, length.out = 48), 
+                           Season = levels(Season)
+                           )
+               )
 pred_rand_int <- effectPlotData(trig_rand_int, newdat, marginal = FALSE) 
+```
 
+```{r cat2b, class.source = "fold-hide", fig.cap="Predicted probability of activity of black bears in the spring (S) and fall (F) using a random interecpt only trigonemetric hierarchical model; shading corresponds to 95% confidence intervals."}
 # plot
 (pl_trig <- ggplot(pred_rand_int, aes(Time, plogis(pred))) +
   geom_ribbon(aes(ymin = plogis(low), ymax = plogis(upp), color = Season, fill = Season), alpha = 0.3, linewidth = 0.25) +
@@ -118,8 +137,10 @@ pred_rand_int <- effectPlotData(trig_rand_int, newdat, marginal = FALSE)
         panel.grid.major.y = element_blank(),
         panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
         panel.grid.minor.x = element_blank(),
-        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
-  scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4))) 
+        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0)
+        ) +
+  scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4))
+) 
 
 ```
 
@@ -130,15 +151,18 @@ Importantly, the two seasons were sampled for a different number of days since t
 
 **Model selection:** To test the importance of the seasonal effect on activity patterns of black bears, we can also compare the model above with a model that does not include the covariate using AIC:
 
-```{r cat4}
+```{r cat3}
 # run model
 trig_rand_int_no_cov <- mixed_model(fixed = cbind(success, failure) ~ 
                                               cos(2 * pi * Time/24) +
                                               sin(2 * pi * Time/24) +
                                               sin(2 * pi * Time/12) +
                                               cos(2 * pi * Time/12),
-            random = ~  1  |   Site,
-            data = occasions_cbind, family = binomial(), iter_EM = 0)
+                                    random = ~  1  |   Site,
+                                    data = occasions_cbind, 
+                                    family = binomial(), 
+                                    iter_EM = 0
+                                    )
 AIC(trig_rand_int, trig_rand_int_no_cov)
 ```
 
@@ -146,17 +170,20 @@ The AIC comparison supports the model that includes a seasonal effect on bears' 
 
 We could consider further extending the interaction model by including random slopes.
 
-```{r cat3, eval=FALSE}
+```{r cat4, eval=FALSE}
 trig_rand_slope <- mixed_model(fixed = cbind(success, failure) ~ 
                                               cos(2 * pi * Time/24) * Season +
                                               sin(2 * pi * Time/24) * Season +
                                               sin(2 * pi * Time/12) * Season +
                                               cos(2 * pi * Time/12) * Season,
-            random = ~  cos(2 * pi * Time/24) * Season +
-                        sin(2 * pi * Time/24) * Season +
-                        sin(2 * pi * Time/12) * Season +
-                        cos(2 * pi * Time/12) * Season  ||   Site,
-            data = occasions_cbind, family = binomial(), iter_EM = 0)
+                               random = ~  cos(2 * pi * Time/24) * Season +
+                                           sin(2 * pi * Time/24) * Season +
+                                           sin(2 * pi * Time/12) * Season +
+                                           cos(2 * pi * Time/12) * Season  ||   Site,
+                               data = occasions_cbind, 
+                               family = binomial(), 
+                               iter_EM = 0
+                               )
 summary(trig_rand_slope)
 
 ```
@@ -173,18 +200,34 @@ mod_cycl1 <- bam(cbind(success, failure) ~
                    Season + 
                    s(Time, bs = "cc", k = 12, by = Season, m = 1) +
                    s(Site, bs="re"), 
-                 knots = list(Time=c(0,23)),
-                 family = "binomial", 
-                 data = occasions_cbind)
+                  knots = list(Time=c(0,23)),
+                  family = "binomial", 
+                  data = occasions_cbind
+                 )
 
 # Predict activity patterns
-newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), max(Time), 1), 
-                                            Season = levels(Season), Site = "7B")) #Station doesn't matter
+newdat <- with(occasions_cbind, 
+               expand.grid(Time = seq(min(Time), max(Time), 1), 
+                           Season = levels(Season), 
+                           Site = "7B" #Station doesn't matter
+                           ) 
+               ) 
 
 
-cycl_pred1 <- predict.bam(mod_cycl1, newdata = newdat,  exclude = "s(Site)", se.fit = TRUE, type = "response") 
-cycl_pred1 <- cbind(newdat, fit=cycl_pred1$fit, se.fit=cycl_pred1$se.fit, Model = "Random-intercept only")
+cycl_pred1 <- predict.bam(mod_cycl1, 
+                          newdata = newdat,  
+                          exclude = "s(Site)", 
+                          se.fit = TRUE, 
+                          type = "response"
+                          ) 
+cycl_pred1 <- cbind(newdat, 
+                    fit=cycl_pred1$fit, 
+                    se.fit=cycl_pred1$se.fit, 
+                    Model = "Random-intercept only"
+                    )
+```
 
+```{r cat5b, class.source = "fold-hide", fig.cap="Predicted probability of activity of black bears in the spring (S) and fall (F) using a random interecpt only trigonometric hierarchical model (A) and a cyclic cubic spline hierarhical model (B); shading corresponds to 95% confidence intervals."}
 # Plot
 pl_cycl1 <- ggplot(cycl_pred1, aes(Time, fit)) +
   geom_ribbon(aes(ymin = fit-1.96*se.fit, ymax = fit+1.96*se.fit, color = Season, fill = Season), alpha = 0.3, linewidth = 0.25) +
@@ -207,7 +250,8 @@ pl_cycl1 <- ggplot(cycl_pred1, aes(Time, fit)) +
         panel.grid.major.y = element_blank(),
         panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
         panel.grid.minor.x = element_blank(),
-        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
+        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0)
+        ) +
   scale_x_continuous(breaks=seq(0,max(cycl_pred1$Time),length.out=7), labels=seq(0,24,4)) 
 
 # bringing HMs plot together
@@ -225,7 +269,8 @@ mod_cycl1_no_cov <- bam(cbind(success, failure) ~
                           s(Site, bs="re"), 
                         knots = list(Time=c(0,23)),
                         family = "binomial", 
-                        data = occasions_cbind)
+                        data = occasions_cbind
+                        )
 
 
 AIC(mod_cycl1, mod_cycl1_no_cov)
@@ -248,7 +293,8 @@ mod_cycl2 <- bam(cbind(success, failure) ~
                    s(Site, bs="re"), 
                  knots = list(Time=c(0,23)),
                  family = "binomial", 
-                 data = occasions_cbind)
+                 data = occasions_cbind
+                 )
 #summary(mod_cycl2)
 AIC(mod_cycl1) - AIC(mod_cycl2)
 ```
@@ -257,18 +303,44 @@ This model is more supported than the previous one. Plotting some of the estimat
 
 ```{r cat8}
 # Predict site-specific activity patterns
-newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), max(Time), 1), 
-                                            Season = levels(Season), Site =  unique(occasions_cbind$Site))) 
+newdat <- with(occasions_cbind, 
+               expand.grid(Time = seq(min(Time), max(Time), 1), 
+                           Season = levels(Season), 
+                           Site =  unique(occasions_cbind$Site)
+                           )
+               ) 
 
 
-cycl_pred1 <- predict.bam(mod_cycl1, newdata = newdat,  exclude = NULL, se.fit = TRUE, type = "response") 
-cycl_pred1 <- cbind(newdat, fit=cycl_pred1$fit, se.fit=cycl_pred1$se.fit, Model = "Random-intercept only")
+cycl_pred1 <- predict.bam(mod_cycl1, 
+                          newdata = newdat,  
+                          exclude = NULL, 
+                          se.fit = TRUE, 
+                          type = "response"
+                          ) 
 
-cycl_pred2 <- predict.bam(mod_cycl2, newdata = newdat,  exclude = NULL, se.fit = TRUE, type = "response") 
-cycl_pred2 <- cbind(newdat, fit=cycl_pred2$fit, se.fit=cycl_pred2$se.fit, Model = "Random intercept and slope")
+cycl_pred1 <- cbind(newdat, 
+                    fit=cycl_pred1$fit, 
+                    se.fit=cycl_pred1$se.fit, 
+                    Model = "Random-intercept only"
+                    )
+
+cycl_pred2 <- predict.bam(mod_cycl2, 
+                          newdata = newdat,  
+                          exclude = NULL, 
+                          se.fit = TRUE, 
+                          type = "response"
+                          ) 
+
+cycl_pred2 <- cbind(newdat, 
+                    fit=cycl_pred2$fit, 
+                    se.fit=cycl_pred2$se.fit, 
+                    Model = "Random intercept and slope"
+                    )
 
 cycl_pred <- rbind(cycl_pred1, cycl_pred2)
+```
 
+```{r cat8b, class.source = "fold-hide", fig.cap="Predicted probability of activity of black bears across a select group of sites using a cyclic cubic spline model with a random-intercept only (left column) and random-intercept and slope (right column)."}
 selected_sites <- c("2A", "2B", "3B", "4D","7B", "14B", "14C", "15A", "15E", "18C")
 pl_cycl <- cycl_pred %>% filter(Site %in% selected_sites) %>% 
   mutate(Season2 = ifelse(Season == "F", "Fall", "Spring")) %>% 
@@ -290,7 +362,8 @@ pl_cycl <- cycl_pred %>% filter(Site %in% selected_sites) %>%
           panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
           panel.grid.minor.x = element_blank(),
           strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0.5),
-          plot.margin = margin(0.1,0.1,0.5,0.1, "cm"))+
+          plot.margin = margin(0.1,0.1,0.5,0.1, "cm")
+          ) +
     scale_x_continuous(breaks=seq(0,max(cycl_pred$Time),length.out=7), labels=seq(0,24,4)) +
     facet_grid(Season2~Model)  
 
@@ -305,7 +378,7 @@ ggsave(plot = pl_cycl, filename = "ms_figures/Fig4_Site_specific_estimates.jpg",
 
 We use the same data to illustrate how HMs can be used to quantify effects of continuous covariates. Specifically, we explore how bear diel activity changes in response to anthropogenic modifications of the landscape quantified through the Global Human Modification index (GHM; @Kennedyea2020; @Kennedyea2019), a continuous measure of human modification of terrestrial landscapes that ranges between 0 and 1. A histogram of the values of GHM at the different sites indicates that the level of human-driven landscape modification is relatively low in the study area with most sites having a GHM value lower than 0.10.
 
-```{r cont1}
+```{r cont1, fig.cap="Frequency of observed global human modification index values across camera sites."}
 hist(cov$ghm)
 ```
 
@@ -335,17 +408,20 @@ We can now apply either trigonometric GLMMs or HGAMs to the data. As an example,
 mod_trig_cont <- mixed_model(fixed = cbind(success, failure) ~ cos(2 * pi * Time/24) * ghm + sin(2 * pi * Time/24) * ghm +
                                                                sin(2 * pi * Time/12) * ghm + cos(2 * pi * Time/12) * ghm,
                              random = ~  1  |   Site,
-                             data = occasions_cbind, family = binomial(), iter_EM = 0)
+                             data = occasions_cbind, 
+                             family = binomial(), 
+                             iter_EM = 0
+                             )
 summary(mod_trig_cont)
 
 # cyclic cubic spline HGAM without common smoother for Time
-mod_cycl1_cont <- bam(cbind(success, failure) ~ 
-                        ghm + 
+mod_cycl1_cont <- bam(cbind(success, failure) ~ ghm + 
                         s(Time, bs = "cc", k = 12, by = ghm, m = 1) +
                         s(Site, bs="re"), 
-                 knots = list(Time=c(0,23)),
-                 family = "binomial", 
-                 data = occasions_cbind)
+                      knots = list(Time=c(0,23)),
+                      family = "binomial", 
+                      data = occasions_cbind
+                      )
 summary(mod_cycl1_cont)
 
 ```
@@ -354,33 +430,47 @@ To facilitate understanding, we compare the model-based estimates of activity vi
 
 ```{r cont4}
 # create a new dataset for the estimates
-newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), 24, length.out = 48),
-                                            ghm = quantile(ghm, probs = c(0.025, 0.5, 0.975)),
-                                            Site = "7B")) %>% # Site does not matter
+newdat <- with(occasions_cbind, 
+               expand.grid(Time = seq(min(Time), 24, length.out = 48),
+                           ghm = quantile(ghm, probs = c(0.025, 0.5, 0.975)),
+                           Site = "7B" # Site does not matter
+                           )
+               ) %>% 
   mutate(ghm_ft = as.factor(ghm),
          ghm_ft = fct_recode(ghm_ft, 
                               "Low GHM" = levels(ghm_ft)[1], 
                               "Intermediate GHM" = levels(ghm_ft)[2], 
-                              "High GHM" = levels(ghm_ft)[3]))
+                              "High GHM" = levels(ghm_ft)[3])
+         )
 
 # trigonometric estimates
 cond_eff_cont <- effectPlotData(mod_trig_cont, newdat, marginal = FALSE) %>% 
   mutate(pred = plogis(pred),
          low = plogis(low),
          upp = plogis(upp),
-         Model = "Trig GLMM")
+         Model = "Trig GLMM"
+         )
 
 # cyclic cubic spline estimates
-cycl_pred1_cont <- predict.bam(mod_cycl1_cont, newdata = newdat,  exclude = "s(Site)", se.fit = TRUE, type = "response") 
+cycl_pred1_cont <- predict.bam(mod_cycl1_cont, 
+                               newdata = newdat,  
+                               exclude = "s(Site)", 
+                               se.fit = TRUE, 
+                               type = "response"
+                               ) 
+
 cycl_pred1_cont <- cbind(newdat, 
-                    pred = cycl_pred1_cont$fit, 
-                    low = cycl_pred1_cont$fit - 1.95*cycl_pred1_cont$se.fit, 
-                    upp = cycl_pred1_cont$fit + 1.95*cycl_pred1_cont$se.fit, 
-                    Model = "CC spline HGAM")
+                         pred = cycl_pred1_cont$fit, 
+                         low = cycl_pred1_cont$fit - 1.95*cycl_pred1_cont$se.fit, 
+                         upp = cycl_pred1_cont$fit + 1.95*cycl_pred1_cont$se.fit, 
+                         Model = "CC spline HGAM"
+                         )
 
 # bring together the estimates based on the two approaches
 pred_cont <- rbind(cond_eff_cont, cycl_pred1_cont)
+```
 
+```{r cont4b, fig.cap="Predicted probability of activity by black bears varying by levels of the continuous covariate global human modification index using a cyclic cubic spline hierarhical model (first row) and trigonometric hierarhical model (second row)."}
 # plot results
 ggplot(pred_cont, aes(Time, pred)) +
     geom_ribbon(aes(ymin = low, ymax = upp, color = ghm_ft, fill = ghm_ft), alpha = 0.3, linewidth = 0.25) +
@@ -403,7 +493,8 @@ ggplot(pred_cont, aes(Time, pred)) +
           panel.grid.major.y = element_blank(),
           panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
           panel.grid.minor.x = element_blank(),
-          strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
+          strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0)
+          ) +
     scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4)) +
     facet_grid(Model~ghm_ft)
 ```
@@ -415,18 +506,22 @@ We can further evaluate evidence for the effect of GHM on activity by comparing 
 ```{r cont5}
 # null random-intercept only trigonometric GLMM
 mod_trig_cont_null <- mixed_model(fixed = cbind(success, failure) ~ cos(2 * pi * Time/24) + sin(2 * pi * Time/24) +
-                                                               sin(2 * pi * Time/12) + cos(2 * pi * Time/12),
-                             random = ~  1  |   Site,
-                             data = occasions_cbind, family = binomial(), iter_EM = 0)
+                                                                    sin(2 * pi * Time/12) + cos(2 * pi * Time/12),
+                                  random = ~  1  |   Site,
+                                  data = occasions_cbind, 
+                                  family = binomial(), 
+                                  iter_EM = 0
+                                  )
 
 
 # null cyclic cubic spline HGAM without common smoother for Time
 mod_cycl1_cont_null <- bam(cbind(success, failure) ~ 
-                   s(Time, bs = "cc", k = 12, m = 1) +
-                   s(Site, bs="re"), 
-                 knots = list(Time=c(0,23)),
-                 family = "binomial", 
-                 data = occasions_cbind)
+                             s(Time, bs = "cc", k = 12, m = 1) +
+                             s(Site, bs="re"), 
+                            knots = list(Time=c(0,23)),
+                            family = "binomial", 
+                            data = occasions_cbind
+                           )
 
 # Comparing trig GLMMs
 AIC(mod_trig_cont, mod_trig_cont_null)
