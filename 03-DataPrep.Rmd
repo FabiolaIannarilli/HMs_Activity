@@ -1,12 +1,12 @@
 # Data preparation {#dataprep}
 
-In the previous chapters, we use simulated data to introduce the concept of variability in activity patterns (chapter \@ref(var)) and to illustrate the use of HM-based approaches for  estimating activity patterns (chapter \@ref(est)). We now switch gears. In this and the following three chapters, we fit trigonometric and cyclic cubic spline HMs to real camera-trap data to answer some of the most common ecological questions related to the study of activity patterns.
+In the previous chapters, we use simulated data to introduce the concept of variability in activity patterns (chapter \@ref(var)) and to illustrate the use of HM-based approaches for  estimating activity patterns (chapter \@ref(est)). We now switch gears. In this and the following three chapters, we fit trigonometric and cyclic cubic spline HMs to empirical camera-trap data to address common ecological questions related to the study of activity patterns.
 
-In this chapter we explain how to prepare the data to analyze activity patterns from camera-trap datasets using HMs. This procedure is applied throughout the tutorial every time we use a new set of real data. To minimize redundancy, we illustrate the procedure in detail here only once, and then refer to the code (and possibly extend it), when necessary. 
+In this chapter, we explain how to prepare data to analyze activity patterns from camera-trap datasets using HMs. This procedure is applied throughout the tutorial every time we use a new set of real data. To minimize redundancy, we illustrate the procedure in detail here only once, and then refer to the code (and possibly extend it), when necessary. 
 
 We start by loading the data and showing a preview of what it looks like. Here, we select camera-trap records of coyotes (*Canis latrans*). We also load some libraries to wrangle the data and get it in the desired format.
 
-```{r prep1, message = TRUE, warnings = TRUE}
+```{r prep1, message = FALSE, warnings = FALSE}
 # Load libraries
 rm(list = ls())
 set.seed(129)
@@ -24,13 +24,13 @@ head(coy)
 
 ```
 
-To estimate activity patterns, at a minimum, we need information on the location id (or geographic coordinates) and time of the day in which the different encounter events for a certain species occurred. In this dataset, each row corresponds to one image. We are interested in the location id (or geographic coordinates) and the time of day in which each event has been recorded. These values are stored in the columns named `Station` and `Time`, respectively. Because we set up our cameras to collect a burst of three pictures every time a camera was triggered, some images have the exact same time and location (see for example the first and second rows above).
+To estimate activity patterns, at a minimum, we need information on the location id (or geographic coordinates) of the spatial sampling site (e.g., camera trap) and the time of day in which the different encounter events for a certain species occurred. In this dataset, each row corresponds to one image. We are interested in the location id and the time of day in which each event has been recorded. These values are stored in the columns named `Station` and `Time`, respectively. Because we set up our cameras to collect a burst of three pictures every time a camera was triggered, some images have the exact same time and location (see for example the first and second rows above).
 
-Individuals often spend several minutes in front of a camera, triggering the sensor several times in a short period of time. This leads to highly autocorrelated camera-trap encounter events (once a camera has been triggered, it is likely that it will be triggered again in the following few minutes). When using KDEs, the resulting short-term autocorrelation will impact the choice of smoothing parameter, which is typically chosen to minimize the mean integrated squared error under the assumption that all observations are independent. To reduce the level of autocorrelation, camera-trap data are often aggregated based on some time threshold (often between 1 and 60 minutes, commonly 30; @Burtonea2015 and @Iannarilliea2021); images collected at the same site and within this time threshold are combined into a single unique encounter event. This process, often referred to as _data aggregation_, is often highly recommended (although not strictly required, see discussion in @Peral2022) as a preparatory step before applying KDEs. We compare KDEs with and without data aggregation in chapter \@ref(dataprepkdes). 
+Individual or groups of animals often spend several minutes in front of a camera, triggering the sensor several times in a short period of time. This leads to highly autocorrelated camera-trap encounter events (once a camera has been triggered, it is likely that it will be triggered again in the following few minutes). When using KDEs, the resulting short-term autocorrelation will impact the choice of smoothing parameter, which is typically chosen to minimize the mean integrated squared error under the assumption that all observations are independent. To reduce the level of autocorrelation, camera-trap data are often aggregated based on some time threshold (often between 1 and 60 minutes, commonly 30; @Burtonea2015 and @Iannarilliea2021); images collected at the same site and within this time threshold are combined into a single unique encounter event. This process, often referred to as _data aggregation_, is often highly recommended (although not strictly required, see discussion in @Peral2022) as a preparatory step before applying KDEs. We compare KDEs with and without data aggregation in chapter \@ref(dataprepkdes). 
 
-Data aggregation is not necessary when using trigonometric and cyclic cubic spline HMs. Thus, we use the raw (non-aggregated) dataset in all the real-case studies presented in this Tutorial, except chapter \@ref(cat), where we apply data aggregation to facilitate comparison of estimated activity patterns using HMs and KDEs. 
+Data aggregation is **not necessary** when using trigonometric and cyclic cubic spline HMs. Thus, we use the raw (non-aggregated) dataset in all the empirical-case studies presented in this Tutorial, except chapter \@ref(cat), where we apply data aggregation to facilitate comparison of estimated activity patterns using HMs and KDEs. 
 
-Unlike KDEs, trigonometric and cyclic GLMMs allow us to leverage not only the times an encounter was recorded but also the times in which cameras were active at a location and no encounter occurred. This, in turn, allows us to estimate activity while accounting for variable sampling effort and makes comparisons of relative probabilities of activity across sites (or e.g. environmental and anthropogenic conditions) possible.
+Unlike KDEs, trigonometric and cyclic HMs allow us to leverage not only the times an encounter was recorded but also the times in which cameras were active at a location and no encounter occurred. This, in turn, allows us to estimate activity while accounting for variable sampling effort and makes comparisons of relative probabilities of activity across sites (or e.g. environmental and anthropogenic conditions) possible.
 
 To account for sampling effort, we have to build a matrix that stores information about when a camera was active at each site, and in how many of these days (or shorter occasions, see later) we recorded the target species.
 
@@ -55,13 +55,16 @@ In this format, the information about the last day a camera was active is spread
 site <- cov
 site$end <- ymd("2000-01-01")
 for(i in 1:nrow(site)){
-  site$end[i] <-  min(site$Date_retr[i], site$Problem1_from[i], na.rm = TRUE)
+  site$end[i] <-  min(site$Date_retr[i], 
+                      site$Problem1_from[i], 
+                      na.rm = TRUE
+                      )
 }
 ```
 
-Then, we create a dataframe to store the information about when the target species was and was not encountered at the different locations within each temporal observation window. Here, we use 60 minutes to define the temporal sampling units, but different durations (from seconds to several hours) can be used. Shorter lengths will increase computational time and could potentially lead to convergence problems if data are too sparse. In the code below, the argument `by = '60 min'` can be changed to accommodate other observation intervals (e.g. `by = '30 min'` leads to 30-min intervals). 
+Then, we create a dataframe to store the information about when the target species was and was not encountered at the different locations within each temporal observation window. Here, we use 60 minutes to define the temporal sampling units, but different durations (from seconds to several hours) can be used. Shorter lengths will increase model fitting computation time and could potentially lead to parameter convergence problems if data are too sparse. In the code below, the argument `by = '60 min'` can be changed to accommodate other observation intervals (e.g. `by = '30 min'` leads to 30-min intervals). 
 
-For each site, we create a list of all the hourly occasions from the start to the end of the deployment of the active camera at the site. We then prepopulate the column `capt` (which will track the encounter/non-encounter information) with zeros. 
+For each site, we create a list of all the hourly occasions from the start to the end of the deployment of the active camera at the site. We then pre-populate the column `capt` (which will track the encounter/non-encounter information) with zeros. 
 
 ```{r prep5}
 # Create dataframe to store captures 
@@ -71,8 +74,14 @@ for(i in 1:nrow(site)){
   occasions[[i]] <- data.frame(Session = site$Session[i],
                                Site = site$Site[i],
                                start = seq(from = ymd_hms(paste(site$Date_setup[i], "00:00:00", sep = " ")), 
-                                           to = ymd_hms(paste(site$end[i], "23:59:59", sep = " ")), by = '60 min')) %>% 
-    mutate(end = c(start[2:length(start)], start[length(start)]+minutes(60))) 
+                                           to = ymd_hms(paste(site$end[i], "23:59:59", sep = " ")), 
+                                           by = '60 min'
+                                           )
+                               ) %>% 
+    mutate(end = c(start[2:length(start)], 
+                   start[length(start)]+minutes(60)
+                   )
+           ) 
 }
 occasions <- do.call(rbind.data.frame, occasions)
 occasions$capt <- 0
@@ -102,14 +111,15 @@ occasions$Time <- hour(occasions$start)
 occasions$Site <- as.factor(occasions$Site)
 nrow(occasions)
 ```
-Our dataset, `occasions`, contains now more than 570,000 rows. Running an HM on such a large dataset might take a long time or require using a computing cluster. We can speed up model fitting by first summarizing the encounter/non-encounter records across the sampling period, counting the number of successes (i.e. intervals with encounters) and failures (i.e. intervals without encounters) at each site and hourly temporal occasion. We can then run the HMs using the `cbind(success, failure)` approach (see next chapter for examples). However, this approach will not work in cases where we want to model variation in activity as a function of additional temporally-varying covariates (e.g., Julian day). In those situations, we may be forced to work with the `occassions` data set and its binary encounter records. Below, we provide code for creating a dataset containing the number of successes and failures for each observation window.
+Our dataset, `occasions`, now contains more than 570,000 rows. Running an HM on such a large dataset might take a long time or require using a computing cluster. We can speed up model fitting by first summarizing the encounter/non-encounter records across the sampling period, counting the number of successes (i.e. intervals with encounters) and failures (i.e. intervals without encounters) at each site and hourly temporal occasion. We can then run the HMs using the `cbind(success, failure)` approach (see next chapter for examples). However, this approach will not work in cases where we want to model variation in activity as a function of additional temporally-varying covariates (e.g., Julian day). In those situations, we may be forced to work with the `occassions` data set and its binary encounter records. Below, we provide code for creating a dataset containing the number of successes and failures for each observation window.
 
 ```{r prep8}
 # format data for cbind(success, failure)
 occasions_cbind <- occasions %>% 
   group_by(Site, Time) %>% 
   summarize(success = sum(capt),
-            failure = n() - success)
+            failure = n() - success
+            )
 head(occasions_cbind)
 ```
 
