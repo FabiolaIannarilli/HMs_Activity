@@ -8,14 +8,14 @@ We begin the tutorial by illustrating how site-to-site variability can affect an
 
 Here, we illustrate these two components separately in the context of a bimodal activity pattern (i.e. a pattern in which an animal's activity is concentrated at two times of the 24-hour cycle), then to a unimodal activity pattern (i.e. a pattern in which an animal's activity is concentrated at one specific time within the 24-hour cycle). Real activity patterns are likely to exhibit both sources of variability, so, in chapter \@ref(est), we present an example in which we simulate activity patterns by simultaneously varying both the frequency of site-use and variability in timing of activity peaks.
 
-We simulated data under equation 1 explained in the main text (Materials and Results in @Iannarilliea2024) and reported here:
+We simulated data under equation 1 explained in the main text (Materials and Results in @Iannarilliea2024) and reported here as:
 
 $$
 y_{it} \sim Bernoulli(p_{it})
 $$
 
 $$
-logit(p_{it}) = \beta_0 + \beta_1*cos(\frac{2\pi t}{24} + (\theta_0 + \gamma_i)) + \beta_2*cos(\frac{2\pi t}{12} + (\theta_1 + \gamma_i)) + \tau_i
+\text{logit}(p_{it}) = \beta_0 + \beta_1*\text{cos}(\frac{2\pi t}{24} + (\theta_0 + \gamma_i)) + \beta_2*\text{cos}(\frac{2\pi t}{12} + (\theta_1 + \gamma_i)) + \tau_i
 $$
 
 $$
@@ -28,14 +28,16 @@ $$ We load the necessary libraries and set the intercept $\beta_0$, and the two 
 
 The parameters $\tau_i$ and $\gamma_i$ (and their associated distributions) control the level of variability in site-use (i.e. vertical shift among the activity curves) and timing of peak activity (i.e. horizontal shift among activity curves), respectively. For illustrative purposes, here we assign predefined values to $\tau_i$ and $\gamma_i$, and vary only one of them at a time.
 
-```{r sim1, message = TRUE, warnings = TRUE}
-# Load libraries and set equations' parameters
+```{r sim1, message = FALSE, warnings = FALSE}
+# Load libraries 
 rm(list = ls())
 set.seed(129)
 library(dplyr)
 library(grid)
 library(gridExtra)
 library(ggplot2)
+
+#Set equation parameters
 wavelength = 24
 b0 = -3
 b1 = 1 
@@ -55,13 +57,22 @@ To create examples of *variability in frequency of site-use*, we set $\gamma_i =
 p_df<-data.frame()
 for(i in 1:7){
  p_df<-rbind(p_df, 
-   data.frame(p =plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + 
-                b2*cos(2*pi*time/(12)+ theta1 + gamma_i[4]) + tau_i[i]),
+   data.frame(p = plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + 
+                         b2*cos(2*pi*time/(12)+ theta1 + gamma_i[4]) + tau_i[i]
+                         ),
              time = time, 
-             curvesID = rep(as.factor(i), length(time))))
+             curvesID = rep(as.factor(i), length(time))
+             )
+   )
 }
-p_df$curvesLeg = as.factor(rep(c("+/- 0.5 SD", "+/- 1 SD", "+/- 1.5 SD", "Conditional", "+/- 0.5 SD", "+/- 1 SD", "+/- 1.5 SD"), each = length(time)))
-p_df$mean <- c(rep(rep("off", length(time)),3), rep("on", length(time)), rep(rep("off", length(time)),3))
+p_df$curvesLeg = as.factor(rep(c("+/- 0.5 SD", "+/- 1 SD", "+/- 1.5 SD", "Conditional", "+/- 0.5 SD", "+/- 1 SD", "+/- 1.5 SD"), 
+                               each = length(time)
+                               )
+                           )
+p_df$mean <- c(rep(rep("off", length(time)),3), 
+               rep("on", length(time)), 
+               rep(rep("off", length(time)),3)
+               )
 ```
 
 We can then calculate the marginal mean by integrating over the distribution of the random effects.
@@ -70,26 +81,30 @@ We can then calculate the marginal mean by integrating over the distribution of 
 p_marg <- matrix(NA,length(time), 1)
 for(i in 1:length(time)){
   intfun<-function(tau_x){
-    plogis(b0 + b1*cos(2*pi*time[i]/(24)+ theta0 + gamma_i[4]) +
-             b2*cos(2*pi*time[i]/(12) + theta1 + gamma_i[4]) + tau_x) * 
-             dnorm(tau_x, mean = 0, sd = 1)
+    plogis(b0 + b1*cos(2*pi*time[i]/(24) + theta0 + gamma_i[4]) +
+           b2*cos(2*pi*time[i]/(12) + theta1 + gamma_i[4]) + tau_x
+           ) * dnorm(tau_x, mean = 0, sd = 1)
   }
     p_marg[i]<-integrate(intfun,-Inf, Inf)[1]
 }
 ```
 
-We discuss differences between conditional and marginal means in detail in chapter \@ref(condvsmarg) and in Box 1 in the main text [@Iannarilliea2024]. Although we can consider conditional means for any site, it is often instructive to consider the conditional mean curve for a "typical site" obtained by setting all the random effects equal to zero. And, this is the conditional mean we are referring to if we do not mention a specific site. We can plot the conditional and marginal curves using the code below:
+We discuss differences between conditional and marginal means in detail in chapter \@ref(condvsmarg) and in Box 1 in the main text [@Iannarilliea2024]. Although we can consider conditional means for any site, it is often instructive to consider the conditional mean curve for a "typical site" obtained by setting all the random effects equal to zero; it is this conditional mean we are referring to if we do not mention a specific site. We can plot the conditional and marginal curves using the code below:
 
 ```{r sim2c}
+# Combine dataframes for plotting
 p_df2 <- data.frame(p = unlist(p_marg),
                     time = time,
                     mean = "on", 
                     curvesID = as.factor(8),
-                    curvesLeg = as.factor("Marginal"))
+                    curvesLeg = as.factor("Marginal")
+                    )
 p_df <- rbind(p_df, p_df2)
+```
 
 
-# plot
+```{r sim2d, class.source = "fold-hide", fig.cap="Probability activity curves across sites (dashed line) along with the marginal mean curve (black line) and conditional mean curve (red line). "}
+# plot activity curves
 (pl_vert <- ggplot(p_df, aes(x = time, y = p, group = curvesID)) +
   geom_line(aes(color = curvesLeg, linewidth = mean, linetype = mean)) +
   scale_color_manual(values = c("grey40", "grey60", "grey80", "red", "black")) +
@@ -105,43 +120,53 @@ p_df <- rbind(p_df, p_df2)
         axis.title=element_text(size = 8,face = "bold"),
         plot.title=element_text(size = 9,face = "bold"),
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_blank()) + 
+        panel.grid.major = element_blank()
+        ) + 
   geom_segment(aes(x=12, y=min(p), xend=12, yend=min(p)-0.05), arrow=arrow(length= unit(0.5, "cm")), 
                linewidth = 1, color = "orange", linejoin = "mitre") +
   geom_segment(aes(x=12, y=0.25+0.003, xend=12, yend=0.25+0.053), arrow=arrow(length= unit(0.5, "cm")), 
                linewidth = 1, color = "orange", linejoin = "mitre")+
-  scale_x_continuous(breaks=seq(0,24,length.out=7), labels=seq(0,24,4))) 
+  scale_x_continuous(breaks=seq(0,24,length.out=7), labels=seq(0,24,4))
+ ) 
 
 ```
 
 In this first plot, the dashed grey curves represent the curves generated using the different values assigned to $\tau_i$ (darker to lighter colors from lower to higher in absolute values). All other things equal, these different values of $\tau_i$ lead to a vertical shift in the activity curves, which corresponds to a change in the frequency of site-use. The red curve gives the conditional mean for a "typical site" (estiamted by setting $\tau_i = 0$ and $\gamma_i = 0$ in equation 1), and the black curve gives the marginal mean.
 
 
-
 ## Variability in timing of activity peaks
 
-To create examples of *variability in timing of activity peaks*, we set the random phaseshift $\gamma_i$ as equal to 0, $\pm$ 0.5, $\pm$ 1.0, and $\pm$ 1.5, while keeping $\tau_i = 0$ and the remaining parameters with the same values used before. We create and plot the curves. Then, we joint the two plots to created the first portion of Figure 1, reported in the main text [@Iannarilliea2024].
+To create examples of *variability in timing of activity peaks*, we set the random phaseshift $\gamma_i$ as equal to 0, $\pm$ 0.5, $\pm$ 1.0, and $\pm$ 1.5, while keeping $\tau_i = 0$ and the remaining parameters with the same values used before. Second, we create and plot the curves. Lastly,  we join the two plots to create the first portion of Figure 1, reported in the main text [@Iannarilliea2024].
 
 ```{r sim3}
 # create the curves
 p_df<-data.frame()
 for(i in 1:7){
  p_df<-rbind(p_df, 
-   data.frame(p =plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[i]) + 
-                b2*cos(2*pi*time/(12)+ theta1 + gamma_i[i]) + tau_i[4]),
-             time = time, 
-             curvesID = rep(as.factor(i), length(time))))
+             data.frame(p = plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[i]) + 
+                                   b2*cos(2*pi*time/(12)+ theta1 + gamma_i[i]) + tau_i[4]
+                                   ),
+                        time = time, 
+                        curvesID = rep(as.factor(i), length(time))
+                        )
+            )
 }
-p_df$curvesLeg = as.factor(rep(c("+/- 0.5 SD", "+/- 1 SD", "+/- 1.5 SD", "Conditional", "+/- 0.5 SD", "+/- 1 SD", "+/- 1.5 SD"), each = length(time)))
-p_df$mean <- c(rep(rep("off", length(time)),3), rep("on", length(time)), rep(rep("off", length(time)),3))
+p_df$curvesLeg = as.factor(rep(c("+/- 0.5 SD", "+/- 1 SD", "+/- 1.5 SD", "Conditional", "+/- 0.5 SD", "+/- 1 SD", "+/- 1.5 SD"), 
+                               each = length(time)
+                               )
+                           )
+p_df$mean <- c(rep(rep("off", length(time)),3), 
+               rep("on", length(time)), 
+               rep(rep("off", length(time)),3)
+               )
 
 # calculate the marginal mean activity curve by integrating over the distribution of the random effects
 p_marg <- matrix(NA,length(time), 1)
 for(i in 1:length(time)){
   intfun<-function(gamma_x){
      plogis(b0 + b1*cos(2*pi*time[i]/(24)+ theta0 + gamma_x) +
-              b2*cos(2*pi*time[i]/(12)+theta1 + gamma_x) + tau_i[4]) * 
-        dnorm(gamma_x, mean = 0, sd = 1)
+            b2*cos(2*pi*time[i]/(12)+theta1 + gamma_x) + tau_i[4]
+            ) *dnorm(gamma_x, mean = 0, sd = 1)
        }
        p_marg[i]<-integrate(intfun,-Inf, Inf)[1]
 }
@@ -149,9 +174,12 @@ p_df2 <- data.frame(p = unlist(p_marg),
                     time = time,
                     mean = "on", 
                     curvesID = as.factor(8),
-                    curvesLeg = as.factor("Marginal"))
+                    curvesLeg = as.factor("Marginal")
+                    )
 p_df <- rbind(p_df, p_df2)
+```
 
+```{r sim3b, class.source = "fold-hide", fig.cap="Bimodal probability activity curves showing variability in frequency of site-use (A) and variability in timing of activity peaks (B); displayed are activity curves across sites (dashed line) along with the marginal mean curve (black line) and conditional mean curve (red line)."}
 # plot
 pl_hor <- ggplot(p_df, aes(x = time, y = p, group = curvesID)) +
   geom_line(aes(color = curvesLeg, linewidth = mean, linetype = mean)) +
@@ -167,7 +195,8 @@ pl_hor <- ggplot(p_df, aes(x = time, y = p, group = curvesID)) +
         axis.title=element_text(size=8,face="bold"),
         plot.title=element_text(size=9,face="bold"),
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_blank()) +
+        panel.grid.major = element_blank()
+        ) +
   geom_segment(aes(x=12 - 0.75, y=max(p) + 0.02, xend=12 - 7, yend=max(p) + 0.02), arrow=arrow(length= unit(0.5, "cm")), 
                linewidth = 1, color = "orange", linejoin = "mitre") +
   geom_segment(aes(x=12 + 0.75, y=max(p) + 0.02, xend=12 + 7, yend=max(p) + 0.02), arrow=arrow(length= unit(0.5, "cm")), 
@@ -181,28 +210,38 @@ pl <- grid.arrange(pl_vert, pl_hor, ncol = 2)
 
 ```
 
-The dashed lines in panel B represent curves simulated using different values of $\gamma_i$ (darker to lighter colors from lower to higher in absolute values). Varying the random phaseshift $\gamma_i$ results in activity curves that are shifted horizontally. Because we are simulating data using two cosine terms, the cumulative effects of the two random phaseshifts (one per cosine term) also affect the intensity of site-use.  
+The dashed lines in Figure \@ref(fig:sim3b) panel B represent curves simulated using different values of $\gamma_i$ (darker to lighter colors from lower to higher in absolute values). Varying the random phaseshift $\gamma_i$ results in activity curves that are shifted horizontally. Because we are simulating data using two cosine terms, the cumulative effects of the two random phaseshifts (one per cosine term) also affect the intensity of site-use.  
 
-*Site-to-site variability in a unimodal pattern.* For completeness, we also present how variability affects a unimodal activity pattern. We can simulate this activity pattern by re-running the code above without the second cosine term (or, by $\beta_2 = 0$).
+**Site-to-site variability in a unimodal pattern.** For completeness, we also present how variability affects a unimodal activity pattern. We can simulate this activity pattern by re-running the code above without the second cosine term (or, by $\beta_2 = 0$).
 
 ```{r sim4}
+#Setup data
 p_df<-data.frame()
 for(i in 1:7){
  p_df<-rbind(p_df, 
-   data.frame(p =plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + tau_i[i]),
-             time = time, 
-             curvesID = rep(as.factor(i), length(time))))
+             data.frame(p = plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[4]) + tau_i[i]),
+                        time = time, 
+                        curvesID = rep(as.factor(i), length(time))
+                        )
+            )
 }
-p_df$curvesLeg = as.factor(rep(c("+/- 0.5 SD", "+/- 1 SD", "+/- 1.5 SD", "Conditional", "+/- 0.5 SD", "+/- 1 SD", "+/- 1.5 SD"), each = length(time)))
-p_df$mean <- c(rep(rep("off", length(time)),3), rep("on", length(time)), rep(rep("off", length(time)),3))# change in frequency of site-use
+p_df$curvesLeg = as.factor(rep(c("+/- 0.5 SD", "+/- 1 SD", "+/- 1.5 SD", "Conditional", "+/- 0.5 SD", "+/- 1 SD", "+/- 1.5 SD"), 
+                               each = length(time)
+                               )
+                           )
+# change in frequency of site-use
+p_df$mean <- c(rep(rep("off", length(time)),3), 
+               rep("on", length(time)), 
+               rep(rep("off", length(time)),3)
+               )
  
 
 # calculate the marginal mean activity curve
 p_marg <- matrix(NA,length(time), 1)
 for(i in 1:length(time)){
   intfun<-function(tau_x){
-    plogis(b0 + b1*cos(2*pi*time[i]/(24)+ theta0 + gamma_i[4]) +
-             tau_x) * dnorm(tau_x, mean = 0, sd = 1)
+    plogis(b0 + b1*cos(2*pi*time[i]/(24)+ theta0 + gamma_i[4]) + tau_x
+           ) *  dnorm(tau_x, mean = 0, sd = 1)
   }
     p_marg[i]<-integrate(intfun,-Inf, Inf)[1]
 }
@@ -210,10 +249,14 @@ p_df2 <- data.frame(p = unlist(p_marg),
                     time = time,
                     mean = "on", 
                     curvesID = as.factor(8),
-                    curvesLeg = as.factor("Marginal"))
+                    curvesLeg = as.factor("Marginal")
+                    )
 p_df <- rbind(p_df, p_df2)
 
+```
 
+
+```{r sim4b, class.source = "fold-hide", fig.cap="Unimodal probability activity curves showing variability in frequency of site-use (A) and variability in timing of activity peaks (B); displayed are activity curves across sites (dashed line) along with the marginal mean curve (black line) and conditional mean curve (red line)."}
 # plot
 pl_vert_uni <- ggplot(p_df, aes(x = time, y = p, group = curvesID)) +
   geom_line(aes(color = curvesLeg, linewidth = mean, linetype = mean)) +
@@ -229,7 +272,8 @@ pl_vert_uni <- ggplot(p_df, aes(x = time, y = p, group = curvesID)) +
         axis.text.y = element_blank(), #element_text(size=8),
         axis.title=element_text(size=10,face="bold"),
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_blank()) + 
+        panel.grid.major = element_blank()
+        ) + 
   geom_segment(aes(x=12, y=min(p), xend=12, yend=min(p)-0.05), arrow=arrow(length= unit(0.5, "cm")), 
                linewidth = 1, color = "orange", linejoin = "mitre") +
   geom_segment(aes(x=12, y=max(p)+0.003, xend=12, yend=max(p)+0.053), arrow=arrow(length= unit(0.5, "cm")), 
@@ -241,19 +285,24 @@ pl_vert_uni <- ggplot(p_df, aes(x = time, y = p, group = curvesID)) +
 p_df<-data.frame()
 for(i in 1:7){
  p_df<-rbind(p_df, 
-   data.frame(p =plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[i]) +  tau_i[4]),
-             time = time, 
-             curvesID = rep(as.factor(i), length(time))))
+             data.frame(p = plogis(b0 + b1*cos(2*pi*time/(24)+theta0 + gamma_i[i]) +  tau_i[4]),
+                        time = time, 
+                        curvesID = rep(as.factor(i), length(time))
+                        )
+            )
 }
-p_df$curvesLeg = as.factor(rep(c("+/- 0.5 SD", "+/- 1 SD", "+/- 1.5 SD", "Conditional", "+/- 0.5 SD", "+/- 1 SD", "+/- 1.5 SD"), each = length(time)))
+p_df$curvesLeg = as.factor(rep(c("+/- 0.5 SD", "+/- 1 SD", "+/- 1.5 SD", "Conditional", "+/- 0.5 SD", "+/- 1 SD", "+/- 1.5 SD"), 
+                               each = length(time)
+                               )
+                           )
 p_df$mean <- c(rep(rep("off", length(time)),3), rep("on", length(time)), rep(rep("off", length(time)),3))
 
 # calculate the marginal mean activity curve by integrating over the distribution of the random effects
 p_marg <- matrix(NA,length(time), 1)
 for(i in 1:length(time)){
   intfun<-function(gamma_x){
-     plogis(b0 + b1*cos(2*pi*time[i]/(24)+ theta0 + gamma_x) +
-              tau_i[4]) * dnorm(gamma_x, mean = 0, sd = 1)
+     plogis(b0 + b1*cos(2*pi*time[i]/(24)+ theta0 + gamma_x) +tau_i[4]
+            ) * dnorm(gamma_x, mean = 0, sd = 1)
        }
        p_marg[i]<-integrate(intfun,-Inf, Inf)[1]
 }
@@ -261,7 +310,8 @@ p_df2 <- data.frame(p = unlist(p_marg),
                     time = time,
                     mean = "on", 
                     curvesID = as.factor(8),
-                    curvesLeg = as.factor("Marginal"))
+                    curvesLeg = as.factor("Marginal")
+                    )
 p_df <- rbind(p_df, p_df2)
 
 # plot
@@ -278,12 +328,13 @@ pl_hor_uni <- ggplot(p_df, aes(x = time, y = p, group = curvesID)) +
         axis.text.y = element_blank(), #element_text(size=8),
         axis.title=element_text(size=10,face="bold"),
         panel.grid.minor = element_blank(),
-        panel.grid.major = element_blank()) +
+        panel.grid.major = element_blank()
+        ) +
   geom_segment(aes(x=13.5 - 0.75, y=max(p) + 0.02, xend=13.5 - 7, yend=max(p) + 0.02), arrow=arrow(length= unit(0.5, "cm")), 
                linewidth = 1, color = "orange", linejoin = "mitre") +
   geom_segment(aes(x=13.5 + 0.75, y=max(p) + 0.02, xend=13.5 + 7, yend=max(p) + 0.02), arrow=arrow(length= unit(0.5, "cm")), 
                linewidth = 1, color = "orange", linejoin = "mitre") +
-  scale_x_continuous(breaks=seq(0,24,length.out=7), labels=seq(0,24,4))+
+  scale_x_continuous(breaks=seq(0,24,length.out=7), labels=seq(0,24,4)) +
   guides(linetype=element_blank())
 
 
@@ -291,6 +342,6 @@ pl_hor_uni <- ggplot(p_df, aes(x = time, y = p, group = curvesID)) +
 pl_uni <- grid.arrange(pl_vert_uni, pl_hor_uni, ncol = 2)
 ```
 
-This second example clearly illustrates how varying $\gamma_i$ (while keeping all the other parameters constant) leads to the horizontal shift of the curves, with peaks in activity equal across time but occurring at different times of the diel cycle.
+This second example (Figure \@ref(fig:sim4b)) clearly illustrates how varying $\gamma_i$ (while keeping all the other parameters constant) leads to the horizontal shift of the curves, with peaks in activity equal across time but occurring at different times of the diel cycle.
 
 In the next chapter, we simulate data drawing values of $\tau_i$ and $\gamma_i$ from the normal distributions specified at the beginning of this chapter. We use these simulated data to illustrate how trigonometric and cyclic cubic regression spline HMs can be used to estimate activity patterns. We will further elaborate on differences between conditional and marginal mean activity patterns in chapter \@ref(condvsmarg). 
