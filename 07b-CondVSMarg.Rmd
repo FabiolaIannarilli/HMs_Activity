@@ -9,19 +9,19 @@ We use simulated data to illustrate how random intercept-only and random interce
 ## Data simulation 
 Using the approach and the `sim_activity` function introduced in chapters \@ref(var) and \@ref(est), we simulate encounter events for a species with a bimodal activity pattern using camera traps set at 100 sites with 30 days of sampling at each site. In addition to simulating the data, the `sim_activity` function also returns the 'true' conditional activity pattern for a typical site (one with random effects $\tau_i = 0$ and $\gamma_i = 0$) at each of 513 equally spaced points $j$ between 0 and 23 hours (i.e. covering the diel activity pattern) using: 
 
-$$E[Y_{it} |\tau_i=0,\gamma_i=0] =  \frac{exp^{\beta_0 + \beta_1*cos(\frac{2\pi t}{24} + \theta_0) + \beta_2*cos(\frac{2\pi t}{12} + \theta_1)}}{1+exp^{\beta_0 + \beta_1*cos(\frac{2\pi t}{24} + \theta_0) + \beta_2*cos(\frac{2\pi t}{12} + \theta_1)}}$$
+$$E[Y_{it} |\tau_i=0,\gamma_i=0] =  \frac{exp^{\beta_0 + \beta_1*\text{cos}(\frac{2\pi t}{24} + \theta_0) + \beta_2*\text{cos}(\frac{2\pi t}{12} + \theta_1)}}{1+exp^{\beta_0 + \beta_1*\text{cos}(\frac{2\pi t}{24} + \theta_0) + \beta_2*\text{cos}(\frac{2\pi t}{12} + \theta_1)}}$$
 
 where $\beta_0$, $\beta_1$, $\beta_2$, $\theta_0$, and $\theta_1$ corresponded to the parameter values used to simulate the data (see chapter \@ref(est)).
 
 In addition, the `sim_activity` function returns the  'true' marginal mean activity pattern, which is formed by averaging activity patterns across sites. To determine marginal means, we have to integrate over the distribution of the random effects: 
 
-$$E[Y_{t}] =  \left[\int_{-\infty}^{\infty}\int_{-\infty}^{\infty} \frac{\exp^{\beta_0 + \beta_1cos(\frac{2\pi t}{24} + (\theta_0 + \gamma_i)) + \beta_2cos(\frac{2\pi t}{12} + (\theta_1 + \gamma_i))+ \tau_i}}{1+\exp^{\beta_0 + \beta_1cos(\frac{2\pi t}{24} + (\theta_0+\gamma_i)) + \beta_2cos(\frac{2\pi t}{12} + (\theta_1+\gamma_i))+ \tau_i}} \frac{\exp^{\frac{-\tau^{2}}{2\sigma_{\tau}^2}}}{\sqrt{2\pi}\sigma_{\tau}} \frac{\exp^{\frac{-\gamma^{2}}{2\sigma_{\gamma}^2}}}{\sqrt{2\pi}\sigma_{\gamma}} \; d\tau d\gamma\right]$$
+$$E[Y_{t}] =  \left[\int_{-\infty}^{\infty}\int_{-\infty}^{\infty} \frac{\exp^{\beta_0 + \beta_1\text{cos}(\frac{2\pi t}{24} + (\theta_0 + \gamma_i)) + \beta_2\text{cos}(\frac{2\pi t}{12} + (\theta_1 + \gamma_i))+ \tau_i}}{1+\exp^{\beta_0 + \beta_1\text{cos}(\frac{2\pi t}{24} + (\theta_0+\gamma_i)) + \beta_2\text{cos}(\frac{2\pi t}{12} + (\theta_1+\gamma_i))+ \tau_i}} \frac{\exp^{\frac{-\tau^{2}}{2\sigma_{\tau}^2}}}{\sqrt{2\pi}\sigma_{\tau}} \frac{\exp^{\frac{-\gamma^{2}}{2\sigma_{\gamma}^2}}}{\sqrt{2\pi}\sigma_{\gamma}} \; d\tau d\gamma\right]$$
 Because this integral has no closed-form solutions, the `sim_activity` function estimates the marginal mean curve using a simulation approach in which it randomly selects 100,000 sites and their associated values of $\tau_i$ and $\gamma_i$, determines site-specific activity patterns for these sites on the probability scale, and then averages these site-specific activity patterns at each of the 513 reference points $j$ between 0 and 23 hours.
 
 If we plot the estimated conditional and marginal mean activity curves (Figure \@ref(fig:condvsmarg1), we see that for this set of parameter values, the two means have a similar shape. However, marginal mean is higher than the conditional mean, suggesting a higher level of overall activity when measured at the population level compared to the activity level at a typical site.
 
 (ref:condvsmargcap) Conditional activity pattern for a typical site (one with random effects $\tau_i = 0$ and $\gamma_i = 0$) and marginal mean activity pattern formed by averaging site-specific activity patterns across a population of sites. 
-```{r condvsmarg1, message = TRUE, warnings = TRUE}
+```{r condvsmarg1, message = FALSE, warnings = FALSE}
 #' Load libraries and function to simulate activity patterns
 rm(list = ls())
 set.seed(129)
@@ -32,7 +32,9 @@ library(tidyr)
 source("source_functions/sim_activity.R")
 source("source_functions/sim_to_minute.R")
 set.seed(129)
+```
 
+```{r condvsmargb, message = TRUE, warnings = TRUE}
 # Set equations' parameters
 M = 100
 J = 30
@@ -48,26 +50,25 @@ sd_gamma = 0.3
 time <- seq(0, wavelength, wavelength/512)
 
 dat <- sim_activity(M = M, 
-                     J = J, 
-                     wavelength = wavelength, 
-                     n_peak = n_peak, 
-                     n_sim = 1, 
-                     b0 = -3, 
-                     b0_constant = TRUE, # common intercept
-                     tau_constant = FALSE, 
-                     sdtau = sd_tau, # ~site-specific intercept
-                     b1 = b1, 
-                     b2 = b2, # amplitude of the cosine terms 
-                     theta0 = theta0, 
-                     theta1 = theta1, # common phaseshifts for the cosine terms
-                     phaseshift_constant = FALSE, 
-                     sd_phaseshift = sd_gamma, # site-specific phaseshift (equal for both cosine terms)
-                     plot_true_act = TRUE)
+                    J = J, 
+                    wavelength = wavelength, 
+                    n_peak = n_peak, 
+                    n_sim = 1, 
+                    b0 = -3, 
+                    b0_constant = TRUE, # common intercept
+                    tau_constant = FALSE, 
+                    sdtau = sd_tau, # ~site-specific intercept
+                    b1 = b1, 
+                    b2 = b2, # amplitude of the cosine terms 
+                    theta0 = theta0, 
+                    theta1 = theta1, # common phaseshifts for the cosine terms
+                    phaseshift_constant = FALSE, 
+                    sd_phaseshift = sd_gamma, # site-specific phaseshift (equal for both cosine terms)
+                    plot_true_act = TRUE
+                    )
 
 ```
 
-
- 
 
 ## Estimating Conditional and Marginal Mean Activity Patterns
 
@@ -84,13 +85,18 @@ Before fitting models, we need to prepare the data. We will use the code from ch
 y <- as.data.frame(dat$sim_data)
 
 # summarize aggregated data
-y <- data.frame(id=paste("A", seq(1,M,1), sep=""), y=as.data.frame(y))
-colnames(y) <- c("id", paste0("S", seq(1, ncol(y)-1, 1), sep=""))
+y <- data.frame(id=paste("A", seq(1,M,1), sep=""), 
+                y=as.data.frame(y)
+                )
+colnames(y) <- c("id", 
+                 paste0("S", seq(1, ncol(y)-1, 1), sep="")
+                 )
 
 # Format data in long format
 y_long <- pivot_longer(data = y, cols = -id, names_to = "time", values_to = "y") %>%
                 mutate(time=as.numeric(substr(time,2,10)),
-                       id = factor(id))
+                       id = factor(id)
+                       )
 
 # create variable to describe time as hour (between 0 and 23)
 y_long$hour <- sim_to_minute(y_long$time, group = wavelength)
@@ -112,13 +118,14 @@ We begin by fitting the model, similar to other sections of this tutorial (note,
 ```{r condvsmarg3, cache=TRUE, cache.path="cache/"}
 # Modelling activity pattern using trigonometric GLMMs in the parametric modelling framework
 trig_rand_slope <- mixed_model(fixed = cbind(success, failure) ~ 
-                      cos(2 * pi * Time/24)  + sin(2 * pi * Time/24) +
-                      cos(2 * pi * Time/12)  + sin(2 * pi * Time/12),
-                    random = ~  cos(2 * pi * Time/24)  + sin(2 * pi * Time/24) +
-                                  cos(2 * pi * Time/12)  + sin(2 * pi * Time/12)  ||   Site,
-                    data = occasions_cbind, 
-                    family = binomial(), 
-                    iter_EM = 0)
+                                      cos(2 * pi * Time/24)  + sin(2 * pi * Time/24) +
+                                      cos(2 * pi * Time/12)  + sin(2 * pi * Time/12),
+                               random = ~  cos(2 * pi * Time/24)  + sin(2 * pi * Time/24) +
+                                           cos(2 * pi * Time/12)  + sin(2 * pi * Time/12)  ||   Site,
+                               data = occasions_cbind, 
+                               family = binomial(), 
+                               iter_EM = 0
+                               )
 
 summary(trig_rand_slope)
 ```      
@@ -128,33 +135,40 @@ In chapters \@ref(unibim) and \@ref(cov), we summarized model results using the 
 We can estimate marginal means using numerical integration (as done in chapter \@ref(var)), simulation, or various approximation methods [see e.g., section 19.2 of @fieberg2024]. The primary reason we will explore `mixed_model` in the `GLMMadaptive` package  is because it will do the hard work for us (i.e. it will use simulations to estimate marginal means). To calculate the predicted marginal mean activity pattern, we only need to change the argument `marginal` from `FALSE` to `TRUE` in the `effectPlotData` function. 
 
 ```{r condvsmarg4}
-newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), 24, length.out = 48)))
+newdat <- with(occasions_cbind, 
+               expand.grid(Time = seq(min(Time), 24, length.out = 48))
+               )
 cond_eff <- effectPlotData(trig_rand_slope, newdat, marginal = FALSE) %>% 
   mutate(pred = plogis(pred),
          low = plogis(low),
          upp = plogis(upp),
          Method = "effectPlotData",
-         Mean = "Conditional")
+         Mean = "Conditional"
+         )
 
 marg_eff <- effectPlotData(trig_rand_slope, newdat, marginal = TRUE) %>% 
   mutate(pred = plogis(pred),
          low = plogis(low),
          upp = plogis(upp),
          Method = "effectPlotData",
-         Mean = "Marginal")
+         Mean = "Marginal"
+         )
 ```
 
 
 `GLMMadaptive` also has a `marginal_coefs` function, which returns "marginal coefficients" that can be used to approximate the marginal mean for any combination of predictor values (see @Hedeker_ea_2018 and section 19.2 of @fieberg2024 for more details).  We can then use these coefficients, or the conditional coefficients returned when fitting the model, to calculate the desired activity curve (marginal or conditional) using:
 
-$$p_t = \frac{\exp^{\hat{\beta_0} + \hat{\alpha_1}*cos(\frac{2\pi t}{24}) + \hat{\alpha_2}*sin(\frac{2\pi t}{24}) + \hat{\alpha_3}*cos(\frac{2\pi t}{12}) + \hat{\alpha_4}*sin(\frac{2\pi t}{12})}}{1+ \exp^{\hat{\beta_0} + \hat{\alpha_1}*cos(\frac{2\pi t}{24}) + \hat{\alpha_2}*sin(\frac{2\pi t}{24}) + \hat{\alpha_3}*cos(\frac{2\pi t}{12}) + \hat{\alpha_4}*sin(\frac{2\pi t}{12})}}$$
+$$p_t = \frac{\exp^{\hat{\beta_0} + \hat{\alpha_1}*\text{cos}(\frac{2\pi t}{24}) + \hat{\alpha_2}*\text{sin}(\frac{2\pi t}{24}) + \hat{\alpha_3}*\text{cos}(\frac{2\pi t}{12}) + \hat{\alpha_4}*\text{sin}(\frac{2\pi t}{12})}}{1+ \exp^{\hat{\beta_0} + \hat{\alpha_1}*\text{cos}(\frac{2\pi t}{24}) + \hat{\alpha_2}*\text{sin}(\frac{2\pi t}{24}) + \hat{\alpha_3}*\text{cos}(\frac{2\pi t}{12}) + \hat{\alpha_4}*\text{sin}(\frac{2\pi t}{12})}}$$
 
 Below, we demonstrate these calculations, which will return identical values to those returned by the `effectPlotData` function.
 
 ```{r condvsmarg5}
 betas <- matrix(c(t(GLMMadaptive::fixef(trig_rand_slope)), 
-                  t(GLMMadaptive::marginal_coefs(trig_rand_slope, std_errors = FALSE)$betas)), 
-                  ncol=5, nrow = 2, byrow = TRUE)
+                  t(GLMMadaptive::marginal_coefs(trig_rand_slope, std_errors = FALSE)$betas)
+                  ), 
+                ncol=5, nrow = 2, 
+                byrow = TRUE
+                )
 colnames(betas) <- colnames(t(GLMMadaptive::fixef(trig_rand_slope)))
 rownames(betas) <- c("Conditional", "Marginal")
 
@@ -164,25 +178,29 @@ cond <- plogis(betas[1,1] +
                betas[1,2] * cos(2*pi*time/24) +
                betas[1,3] * sin(2*pi*time/24) +
                betas[1,4] * cos(2*pi*time/12) +
-               betas[1,5] * sin(2*pi*time/12))
+               betas[1,5] * sin(2*pi*time/12)
+               )
 phat_cond <- data.frame(Time = time,
                         pred = cond,
                         low = NA,
                         upp = NA,
                         Method = "coeff. estimates",
-                        Mean = "Conditional")
+                        Mean = "Conditional"
+                        )
 
 marg <- plogis(betas[2,1] +
                betas[2,2] * cos(2*pi*time/24) +
                betas[2,3] * sin(2*pi*time/24)+
                betas[2,4] * cos(2*pi*time/12) +
-               betas[2,5] * sin(2*pi*time/12))
+               betas[2,5] * sin(2*pi*time/12)
+               )
 phat_marg <- data.frame(Time = time,
                         pred = marg,
                         low = NA,
                         upp = NA,
                         Method = "coeff. estimates",
-                        Mean = "Marginal")
+                        Mean = "Marginal"
+                        )
 ```
 
 We visually compare the estimates of conditional and marginal means calculated using the coefficients (as above) and using the `effectPlotData` function, below.
@@ -208,7 +226,9 @@ marg_true <- dat$Marginal %>%
 # bring all the information together in one dataset
 res <- rbind(cond_true, marg_true, cond_eff, marg_eff, phat_cond, phat_marg)
 
+```
 
+```{r condvsmarg, fig.cap="Mean conditional and marginal predicted probability of activity from simulated data compared to the true values; shading corresponds to 95% confidence intervals."}
 ggplot(res, aes(x = Time, y= pred, col = Method)) +
   geom_ribbon(aes(ymin = low, ymax = upp, fill = Method), alpha = 0.1) +
   geom_line(linewidth = 1) +
@@ -227,7 +247,8 @@ ggplot(res, aes(x = Time, y= pred, col = Method)) +
         panel.grid.major.y = element_blank(),
         panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
         panel.grid.minor.x = element_blank(),
-        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
+        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0)
+        ) +
   scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4)) +
   facet_wrap(~Mean) 
       
