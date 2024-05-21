@@ -14,14 +14,16 @@ To show how trigonometric and cyclic cubic spline HMs can successfully recover t
 
 To keep the focus on estimating activity patterns, we encapsulate the code to simulate the data in the function `sim_activity`, that we source after loading the necessary libraries. This function simulates data based on equation 1 (chapter \@ref(var) and Materials and Results in @Iannarilliea2024). The function, including a description of its arguments and outputs, is provided in chapter \@ref(app).  
 
-```{r est1, message = TRUE, warnings = TRUE}
+```{r est1, message = FALSE, warnings = FALSE}
 # Load libraries and function to simulate activity patterns
 set.seed(129)
-library(dplyr)
-library(GLMMadaptive)
-library(ggpubr)
-library(mgcv)
-library(tidyr)
+suppressWarnings({ 
+  library(dplyr)
+  library(GLMMadaptive)
+  library(ggpubr)
+  library(mgcv)
+  library(tidyr)
+})
 source("source_functions/sim_activity.R")
 source("source_functions/sim_to_minute.R")
 
@@ -46,21 +48,23 @@ time <- seq(0, 23, length.out = 100)
 
 # simulate data
 dat <- sim_activity(M = M, 
-                     J = J, 
-                     wavelength = wavelength, 
-                     n_peak = n_peak, 
-                     n_sim = 1, 
-                     b0 = b0, 
-                     b0_constant = TRUE, # common intercept
-                     tau_constant = FALSE, 
-                     sdtau = sd_tau, # ~site-specific intercept
-                     b1 = b1, 
-                     b2 = b2, # amplitude of the cosine terms 
-                     theta0 = theta0, 
-                     theta1 = theta1, # common phaseshifts for the cosine terms
-                     phaseshift_constant = FALSE, 
-                     sd_phaseshift = sd_gamma, # site-specific phaseshift (equal for both cosine terms)
-                     plot_true_act = FALSE)
+                    J = J, 
+                    wavelength = wavelength, 
+                    n_peak = n_peak, 
+                    n_sim = 1, 
+                    b0 = b0, 
+                    b0_constant = TRUE, # common intercept
+                    tau_constant = FALSE, 
+                    sdtau = sd_tau, # ~site-specific intercept
+                    b1 = b1, 
+                    b2 = b2, # amplitude of the cosine terms 
+                    theta0 = theta0, 
+                    theta1 = theta1, # common phaseshifts for the cosine terms
+                    phaseshift_constant = FALSE, 
+                    sd_phaseshift = sd_gamma, # site-specific phaseshift (equal for both cosine terms)
+                    plot_true_act = FALSE
+                    )
+#Observe the structure of the new object
 str(dat)
 
 ```
@@ -70,13 +74,16 @@ The `sim_activity` function returns a list containing several objects, including
 We access the information for a randomly selected set of these sites and plot their true activity patterns, along with the conditional and marginal mean activity patterns (the red and black curves, respectively, in the following plot).
 
 ```{r est3}
-# plot true conditional and marginal with 10 simulated sites
+# Organize data for plotting
 sites_i <- sample(x = 1:M, size = 10, replace = FALSE)
 sample_sites <- cbind(sites_i, dat$true_activity_prob[sites_i, 0:25]) 
 colnames(sample_sites) <- c("sites", 00:24)
 sample_sites <- as.data.frame(sample_sites) %>% 
   pivot_longer(cols = -sites, names_to = "time", values_to = "prob")
-  
+```
+
+```{r est3b, class.source = "fold-hide", fig.cap="Bimodal probability activity curves showing variability in both the frequency of site-use and variability in timing of activity peaks; displayed are activity curves across sites (dashed line) along with the marginal mean curve (black line) and conditional mean curve (red line)."}
+#plot true conditional and marginal with 10 simulated sites
 (pl_sites <- ggplot() +
   geom_line(data = sample_sites, aes(x = as.numeric(time), y = prob, group = sites, color = as.factor(sites)), 
             linewidth = 0.5, alpha = 0.7, linetype = 2) +
@@ -116,14 +123,16 @@ To create Figure 1 in @Iannarilliea2024, we bring together this plot and the two
 
 ```{r ms_fig1}
 ggarrange(pl, pl_sites, widths = c(66, 34)) %>%   
-ggsave(filename = "ms_figures/Fig1_Site_Variability_in_Activity_bimodal.jpg", device = "jpeg", units = "cm", width = 24, height = 10, dpi = 600)
+ggsave(filename = "ms_figures/Fig1_Site_Variability_in_Activity_bimodal.jpg", 
+       device = "jpeg", units = "cm", width = 24, height = 10, dpi = 600
+       )
 ```
 
 ## Data preparation
 
-The first step to analyze the simulated activity patterns is to arrange the simulated encounter data in a specific format. These data are stored in the object `sim_data` in the list created by the `sim_activity` function. This object has a number of rows equal to the number of simulated sites (100) and a number of columns equal to 24 (hours) times the length (in days) of the simulated sampling period, which we set to 30 days. This corresponds to 720 columns ($24 hours \times 30 days$), that is, 720 hourly encounter occasions.
+The first step to analyze the simulated activity patterns is to arrange the simulated encounter data in a specific format. These data are stored in the object `sim_data` in the list created by the `sim_activity` function. This object has a number of rows equal to the number of simulated sites (100) and a number of columns equal to 24 (hours) times the length (in days) of the simulated sampling period, which we set to 30 days. This corresponds to 720 columns ($24 \text{hours} \times 30 \text{days}$), that is, 720 hourly encounter occasions.
 
-We access the encounter data and store them in an object called `y`. We add a column that specifies an unique identifier for each site (e.g. `id = A1`) and assign a name to each of the columns to represent the consecutive time occasions (e.g. from 1 to 720). Then, we reorganize the data from the wide to the long format using the `id` column as the reference and convert the consecutive time occasions in the relative time of day (e.g. `time = 35` is converted to `Hour = 11` of the second day of sampling).
+We access the encounter data and store them in an object called `y`. We add a column that specifies a unique identifier for each site (e.g. `id = A1`) and assign a name to each of the columns to represent the consecutive time occasions (e.g. from 1 to 720). Then, we reorganize the data from the wide to the long format using the `id` column as the reference and convert the consecutive time occasions in the relative time of day (e.g. `time = 35` is converted to `Hour = 11` of the second day of sampling).
 
 ```{r est4}
 # The data
@@ -131,13 +140,18 @@ y <- as.data.frame(dat$sim_data)
 dim(y)
 
 # summarize aggregated data
-y <- data.frame(id=paste("A", seq(1,M,1), sep=""), y=as.data.frame(y))
-colnames(y) <- c("id", paste0("S", seq(1, ncol(y)-1, 1), sep=""))
+y <- data.frame(id=paste("A", seq(1,M,1), sep=""), 
+                y=as.data.frame(y)
+                )
+colnames(y) <- c("id", 
+                 paste0("S", seq(1, ncol(y)-1, 1), sep="")
+                 )
 
 # Format data in long format
 y_long <- pivot_longer(data = y, cols = -id, names_to = "time", values_to = "y") %>%
                 mutate(time=as.numeric(substr(time,2,10)),
-                       id = factor(id))
+                       id = factor(id)
+                       )
 
 # create variable to describe time as hour (between 0 and 23)
 y_long$hour <- sim_to_minute(y_long$time, group = wavelength)
@@ -148,7 +162,7 @@ knitr::kable(head(y_long))
 
 We obtain a dataset in which each row specifies the outcome (i.e. encounter or non-encounter of the target species) at a certain site during a specific hour of a certain day of sampling.
 
-We can use this dataset for our analysis as it is, considering `y` as our response variable. Alternatively, we can reduce the computational time by counting the number of hourly-long occasions in which the species was observed (i.e. successes) and the number of occasions in which the species was not observed (i.e. failures) for each combination of hourly time interval (e.g., `time = 1`) and camera site (e.g. `id = A1`).
+We can use this dataset for our analysis as it is, considering `y` as our response variable. Alternatively, we can reduce model fitting computational time by counting the number of hourly-long occasions in which the species was observed (i.e. successes) and the number of occasions in which the species was not observed (i.e. failures) for each combination of hourly time interval (e.g., `time = 1`) and camera site (e.g. `id = A1`).
 
 ```{r est5}
 # count successes and failures at each site-occasion
@@ -168,14 +182,14 @@ In this new version of the dataset, each row specifies how many times a species 
 
 ## Trigonometric GLMMs
 
-Equation 1 in chapter \@ref(var) is non-linear due the presence of the phaseshift parameters. Currently, we are unaware of any out-of-the-box options in R for fitting trigonometric non-linear mixed models using a frequentist approach. To overcome this challenge, we rewrite equation 1 using compound angle formulas (see also main text @Iannarilliea2024): 
+Equation 1 in chapter \@ref(var) is non-linear due the presence of the phaseshift parameters. Currently, we are unaware of any out-of-the-box options in the R programming language for fitting trigonometric non-linear mixed models using a frequentist approach. To overcome this challenge, we rewrite equation 1 using compound angle formulas (see also main text @Iannarilliea2024): 
 
 $$
-logit(p_t) = \beta_0 + \alpha_1 \times cos(\frac{2\pi t}{24}) + \alpha_2 \times sin(\frac{2\pi t}{24}) + \alpha_3 \times cos(\frac{2\pi t}{12}) + \alpha_4 \times sin(\frac{2\pi t}{12}) + \tau_i
+\text{logit}(p_t) = \beta_0 + \alpha_1 \times \text{cos}(\frac{2\pi t}{24}) + \alpha_2 \times \text{sin}(\frac{2\pi t}{24}) + \alpha_3 \times \text{cos}(\frac{2\pi t}{12}) + \alpha_4 \times \text{sin}(\frac{2\pi t}{12}) + \tau_i
 $$ 
 where 
 
-$\alpha_1 = \beta_1 \times cos(\theta_0 + \gamma_i)$, $\alpha_2= -\beta_1 \times sin(\theta_0 + \gamma_i)$, $\alpha_3= \beta_2 \times cos(\theta_1 + \gamma_i)$, and $\alpha_4= -\beta_2 \times sin(\theta_1 + \gamma_i)$.
+$\alpha_1 = \beta_1 \times \text{cos}(\theta_0 + \gamma_i)$, $\alpha_2= -\beta_1 \times \text{sin}(\theta_0 + \gamma_i)$, $\alpha_3= \beta_2 \times \text{cos}(\theta_1 + \gamma_i)$, and $\alpha_4= -\beta_2 \times \text{sin}(\theta_1 + \gamma_i)$.
 
 In this version (labeled as equation 2 in @Iannarilliea2024), we can model activity patterns using any R package available for fitting GLMMs; we list some of these options in Tables 1 and 2 in @Iannarilliea2024. Here, we choose the `GLMMadaptive` library [@Rizopoulos2022] because it facilitates estimation of both conditional and marginal mean activity patterns (see chapter \@ref(condvsmarg)).
 
@@ -184,17 +198,17 @@ The simplest trigonometric GLMM we can run is one that includes only a random in
 ```{r est6}
 # run model
 trig_rand_int <- mixed_model(fixed = cbind(success, failure) ~ 
-                      cos(2 * pi * Time/24)  + sin(2 * pi * Time/24) +
-                      cos(2 * pi * Time/12)  + sin(2 * pi * Time/12),
-                    random = ~  1  |   Site, 
-                    data = occasions_cbind, 
-                    family = binomial(), 
-                    iter_EM = 0)
+                              cos(2 * pi * Time/24)  + sin(2 * pi * Time/24) +
+                              cos(2 * pi * Time/12)  + sin(2 * pi * Time/12),
+                             random = ~  1  |   Site, 
+                             data = occasions_cbind, 
+                             family = binomial(), 
+                             iter_EM = 0
+                             )
 summary(trig_rand_int)
-
 ```
 
-For trigonometric models, it is difficult to interpret the coefficients. An easier and effective way to explore these results is to visually check the activity patterns predicted based on the model itself. Thus, we predict the estimated (conditional) activity patterns, backtrasform the results from logit to the probability scale, and plot the estimated activity pattern along with the true simulated (conditional) activity patterns.
+For trigonometric models, it is difficult to interpret the coefficients. An easier and effective way to explore these results is to visually check the activity patterns predicted based on the model itself. Thus, we predict the estimated (conditional mean) activity patterns, backtrasform the results from logit to the probability scale, and plot the estimated activity pattern along with the true simulated (conditional mean) activity patterns.
 
 ```{r est7, warning=TRUE}
 # estimated activity pattern
@@ -215,7 +229,9 @@ cond_true <- dat$Conditional %>%
 
 # combine the two for visualization  purposes
 cond_eff <- rbind(cond_true, cond_eff0)
+```
 
+```{r est7b, class.source = "fold-hide", fig.cap="Comparison of simulated and estimated probability of activity conditional mean curves with variability in the frequency of site-use from a trigonometric hierarchical model; shading corresponds to 95% confidence intervals."}
 # plot
 (pl_trig1 <- ggplot(cond_eff, aes(Time, pred)) +
   geom_ribbon(aes(ymin = low, ymax = upp, color = Mod, fill = Mod), alpha = 0.3, linewidth = 0.25) + 
@@ -250,19 +266,20 @@ To allow site-to-site variability in the timing of peak activity, we can add ran
 ```{r est8, cache=TRUE, cache.path="cache/"}
 # run model
 trig_rand_slope <- mixed_model(fixed = cbind(success, failure) ~ 
-                      cos(2 * pi * Time/24)  + sin(2 * pi * Time/24) +
-                      cos(2 * pi * Time/12)  + sin(2 * pi * Time/12),
-                    random = ~  cos(2 * pi * Time/24)  + sin(2 * pi * Time/24) +
-                                  cos(2 * pi * Time/12)  + sin(2 * pi * Time/12)  ||   Site,
-                    data = occasions_cbind, 
-                    family = binomial(), 
-                    iter_EM = 0)
+                                  cos(2 * pi * Time/24)  + sin(2 * pi * Time/24) +
+                                  cos(2 * pi * Time/12)  + sin(2 * pi * Time/12),
+                               random = ~  cos(2 * pi * Time/24)  + sin(2 * pi * Time/24) +
+                                        cos(2 * pi * Time/12)  + sin(2 * pi * Time/12)  ||   Site,
+                               data = occasions_cbind, 
+                               family = binomial(), 
+                               iter_EM = 0
+                               )
 
 summary(trig_rand_slope)
 
 ```
 
-As before, we visually inspect the (conditional) estimated activity pattern based on this model and compare it with the simulated (conditional) mean activity pattern.
+As before, we visually inspect the estimated conditional mean activity pattern based on this model and compare it with the simulated conditional mean activity pattern.
 
 ```{r est9}
 # estimated activity pattern
@@ -283,6 +300,9 @@ cond_true <- dat$Conditional %>%
 
 # combine the two for visualization  purposes
 cond_eff <- rbind(cond_true, cond_eff1)
+```
+
+```{r, class.source = "fold-hide", fig.cap="Comparison of simulated and estimated probability of activity conditional mean curve with variability in the frequency of site-use and timing of peak activity from a trigonometric hierarchical model; shading corresponds to 95% confidence intervals."}
 
 # plot
 (pl_trig2 <- ggplot(cond_eff, aes(Time, pred)) +
@@ -290,7 +310,9 @@ cond_eff <- rbind(cond_true, cond_eff1)
   geom_line(aes(color = Mod), linewidth = 1) + #
   scale_color_manual(values = c("blue", "red")) +
   scale_fill_manual(values = c("blue", "red")) +
-  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "Estimated vs Simulated Activity Patterns")+
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", 
+       title = "Estimated vs Simulated Activity Patterns"
+       )+
   theme_minimal()+
   theme(legend.position = "bottom",
         legend.title = element_blank(),
@@ -306,8 +328,10 @@ cond_eff <- rbind(cond_true, cond_eff1)
         panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
         panel.grid.minor.x = element_blank(),
         strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0),
-        plot.margin = margin(0.1,0.1,0.5,0.1, "cm"))+
-  scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4)))
+        plot.margin = margin(0.1,0.1,0.5,0.1, "cm")
+        )+
+  scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4))
+)
 
 ```
 
@@ -322,15 +346,18 @@ We fit a cyclic cubic spline HM using the `bam` function in package `mgcv` [@Woo
 ```{r est10}
 # run model
 cycl_rand_int <- bam(cbind(success, failure) ~ s(Time, bs = "cc", k = wavelength) + 
-                                          s(Site, bs="re"), 
-                                          family = "binomial", 
-                                          data = occasions_cbind, 
-                                          knots = list(Time=c(0,23))) 
+                                               s(Site, bs="re"), 
+                                               family = "binomial", 
+                                               data = occasions_cbind, 
+                                               knots = list(Time=c(0,23))
+                     ) 
 summary(cycl_rand_int)
 
 # build estimated activity curves
-newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), max(Time), 1),
-                                            Site = "A1")) #Site doesn't matter
+newdat <- with(occasions_cbind, 
+               expand.grid(Time = seq(min(Time), max(Time), 1),
+                           Site = "A1") #Site doesn't matter
+               ) 
 temp <- predict.bam(cycl_rand_int, newdata = newdat,  exclude = "s(Site)", se.fit = TRUE, type = "response") 
 cycl_pred <- newdat  %>% 
   mutate(pred = temp$fit,
@@ -341,6 +368,9 @@ cycl_pred <- newdat  %>%
 
 # combine true and estimated curves for visualization  purposes
 cond_eff <- rbind(cond_true, cycl_pred)
+```
+
+```{r est10b, class.source = "fold-hide", fig.cap="Comparison of simulated and HGAM estimated probability of activity conditional mean curves with variability in the frequency of site-use; shading corresponds to 95% confidence intervals."}
 
 # plot
 (pl_cycl1 <- ggplot(cond_eff, aes(Time, pred)) +
@@ -348,7 +378,9 @@ cond_eff <- rbind(cond_true, cycl_pred)
   geom_line(aes(color = Mod), size = 1) + #
   scale_color_manual(values = c("blue", "red")) +
   scale_fill_manual(values = c("blue", "red")) +
-  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "Estimated vs Simulated Activity Patterns")+
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", 
+       title = "Estimated vs Simulated Activity Patterns"
+       )+
   theme_minimal()+
   theme(legend.position = "bottom",
         legend.title = element_blank(),
@@ -364,31 +396,42 @@ cond_eff <- rbind(cond_true, cycl_pred)
         panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
         panel.grid.minor.x = element_blank(),
         strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0),
-        plot.margin = margin(0.1,0.1,0.5,0.1, "cm"))+
-  scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4)))
+        plot.margin = margin(0.1,0.1,0.5,0.1, "cm")
+        )+
+  scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4))
+)
   
 ```
 
-This model corresponds, in general terms, to the trigonometric random intercept-only model we ran earlier.  Thus, it only accommodates variability in the frequency of site use and not in the timing of activity peaks. The model again captures the general shape of the simulated conditional mean activity curve. <!---, but the mean activity estimated for the first peak is quite low compared to the simulated pattern. JF - I don't see this --->
+This model corresponds, in general terms, to the trigonometric random intercept-only model we ran earlier.  Thus, it only accommodates variability in the frequency of site use and not in the timing of activity peaks. The model again captures the general shape of the simulated conditional mean activity curve. <!---, but the mean activity estimated for the first peak is quite low compared to the simulated pattern. JF - I don't see this; BDG- also not seeing this--->
 
 We can add complexity and include a smoother that shrinks the site-specific estimates toward a common smooth. This model structure resembles the random slope component in trigonometric random intercept and random slope models and allows the site-specific estimates to vary also in the timing of activity peak. In *mgcv*, there is no need to explicitly force the independence between the random intercept and the random slope (as done before for the trigonometric HMs) because there is no covariance term between two random effects.
 
 ```{r est11, cache=TRUE, cache.path="cache/"}
-
 # Fit model with general smoother for Time
 cycl_rand_slope <- bam(cbind(success, failure) ~ 
-                   s(Time, bs = "cc", k = 12) + # general smoother
-                   s(Time, bs = "cc", k = 12, by = Site, m = 1) +
-                   s(Site, bs="re"), 
-                 knots = list(Time=c(0,23)),
-                 family = "binomial", 
-                 data = occasions_cbind)
+                       s(Time, bs = "cc", k = 12) + # general smoother
+                       s(Time, bs = "cc", k = 12, by = Site, m = 1) +
+                       s(Site, bs="re"), 
+                       knots = list(Time=c(0,23)),
+                       family = "binomial", 
+                       data = occasions_cbind
+                       )
 summary(cycl_rand_slope)
 
 # build the estimated activity patterns
-newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), max(Time), 1),
-                                            Site = "A1")) #Site doesn't matter
-temp <- predict.bam(cycl_rand_slope, newdata = newdat,  exclude = "s(Site)", se.fit = TRUE, type = "response") 
+newdat <- with(occasions_cbind, 
+               expand.grid(Time = seq(min(Time), max(Time), 1), 
+                           Site = "A1" #Site doesn't matter
+                           )  
+               )
+temp <- predict.bam(cycl_rand_slope, 
+                    newdata = newdat,  
+                    exclude = "s(Site)", 
+                    se.fit = TRUE, 
+                    type = "response"
+                    )
+
 cycl_pred <- newdat  %>% 
   mutate(pred = temp$fit,
          low = pred - 1.96*temp$se.fit,
@@ -398,14 +441,18 @@ cycl_pred <- newdat  %>%
 
 # combine the true and estimated curves for visualization  purposes
 cond_eff <- rbind(cond_true, cycl_pred)
+```
 
+```{r est11b, class.source = "fold-hide", fig.cap="Comparison of simulated and HGAM estimated probability of activity conditional mean curves with variability in the frequency of site-use and timing of peak activity; shading corresponds to 95% confidence intervals."}
 # plot
 (pl_cycl2 <- ggplot(cond_eff, aes(Time, pred)) +
   geom_ribbon(aes(ymin = low, ymax = upp, color = Mod, fill = Mod), alpha = 0.3, linewidth = 0.25) + #
   geom_line(aes(color = Mod), size = 1) + #
   scale_color_manual(values = c("blue", "red")) +
   scale_fill_manual(values = c("blue", "red")) +
-  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "Estimated vs Simulated Activity Patterns")+
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", 
+       title = "Estimated vs Simulated Activity Patterns"
+       )+
   theme_minimal()+
   theme(legend.position = "bottom",
         legend.title = element_blank(),
