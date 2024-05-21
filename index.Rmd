@@ -31,7 +31,7 @@ pdf_document:
 # Preface {#preface}
 <!-- paragraph to fix once we have defined the final order of the chapters -->
 
-This vignette accompanies @Iannarilliea2024 and contains step-by-step examples on how to use trigonometric and cyclic cubic spline Hierarchical Models (HMs) to analyze activity patterns from time-stamped data (chapters \@ref(est), \@ref(unibim)). In this tutorial, we present case studies based on camera-trap data, but the approaches described can be applied to data collected via other static sensors (e.g., acoustic recorders). The tutorial also includes examples demonstrating how one can test for hypothesized effects of covariates on activity patterns (chapter \@ref(cov)), and additional resources for understanding the difference between conditional and marginal mean activity patterns (chapter \@ref(condvsmarg)) and the application of Kernel Density Estimators to activity data (chapter \@ref(kdes)).
+This vignette accompanies @Iannarilliea2024 and contains step-by-step examples on how to use trigonometric and cyclic cubic spline hierarchical models (HMs) to analyze activity patterns from time-stamped data (chapters \@ref(est), \@ref(unibim)). In this tutorial, we present case studies based on camera-trap data, but the approaches described can be applied to data collected via other static sensors (e.g., acoustic recorders). The tutorial also includes examples demonstrating how one can test for hypothesized effects of covariates on activity patterns (chapter \@ref(cov)), and additional resources for understanding the difference between conditional and marginal mean activity patterns (chapter \@ref(condvsmarg)) and the application of Kernel Density Estimators to activity data (chapter \@ref(kdes)).
 
 All analyses presented in the following chapters were performed in @R-base. The camera-trap data used in the real-case examples were collected at 100 locations sampled between 2016 and 2018 in Northern Minnesota, USA [@Iannarilliea2021] and can be accessed at XXXX. Further details on these data can be found in @Iannarilliea2021.
 
@@ -43,7 +43,8 @@ Throughout this tutorial, we use several packages. Users interested in compiling
 ``` {r preface1, eval=FALSE}
 list.of.packages <- c("dplyr", "grid", "gridExtra", "GLMMadaptive", "ggpubr", "mgcv", 
                       "tidyr", "lubridate", "lmtest", "activity", "overlap", "circular", 
-                      "nimble", "brms", "forcats", "MESS")
+                      "nimble", "brms", "forcats", "MESS"
+                      )
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)>0) install.packages(new.packages)
 if(!("Diel.Niche" %in% installed.packages()[,"Package"])){
@@ -51,9 +52,8 @@ if(!("Diel.Niche" %in% installed.packages()[,"Package"])){
   devtools::install_github("diel-project/Diel-Niche-Modeling",
                          ref="main", dependencies = TRUE,
                          build_vignettes = FALSE
-)
+                         )
 } 
-
 ```
 
 In chapter \@ref(est), we use the function *sim_activity*, a custom function that we built to simulate activity patterns under different conditions. A description of this function is provided in chapter \@ref(app) at the end of this tutorial.
