@@ -1,10 +1,10 @@
 # Evaluating Hypotheses Regarding the Shape of Activity Curves {#unibim}
 
-Traditionally, diel activity patterns have been classified as either:
+Diel activity patterns are often described or classified as either:
 
 * **unimodal**: the species is mostly active during a restricted portion of the 24-hour cycle, and not (or almost not) active in the remaining time. The activity  curve is characterized by only one peak, and it is typical of species that are either diurnal or nocturnal.
 * **bimodal**: the species is mostly active during two specific times of 24-hour cycle, often corresponding to sunrise and sunset (i.e. crepuscular species) and inactive (or mostly inactive) during the rest of the time. The activity curve is characterized by having two peaks.
-* **cathemeral**: the species is equally active throughout the 24-hour cycle and the activity curve approximates a flat line.
+* **cathemeral (non-modal)**: the species is equally active throughout the 24-hour cycle and the activity curve approximates a flat line.
 
 Here, we build and compare trigonometric HMs representing these three different diel activity patterns. To reiterate, we use independent camera-trap records of coyotes (*Canis latrans*) collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021], with the data organized as described in the previous chapter \@ref(dataprep). 
 
@@ -12,7 +12,7 @@ Here, we build and compare trigonometric HMs representing these three different 
 <span style="color: red;">Can we delete this code and just read in the data from the previous chapter?</span>.
 
 
-``` {r univsbim1, message = TRUE, warnings = TRUE}
+``` {r univsbim1, message = FALSE, warnings = FALSE}
 # Load libraries
 rm(list = ls())
 set.seed(129)
@@ -21,7 +21,9 @@ library(lubridate)
 library(GLMMadaptive)
 library(lmtest)
 library(ggpubr)
+```
 
+``` {r univsbim1b, message = TRUE, warnings = TRUE}
 # Load data: Coyote 
 dat <- read.csv("data_input/species_records.csv") %>% 
   filter(Species == "Coyote") %>% droplevels %>%  
@@ -31,13 +33,17 @@ cov <- read.csv("data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv", 
   mutate(Date_setup = mdy(Date_setup),
          Date_retr = mdy(Date_retr),
          Problem1_from = mdy(Problem1_from),
-         Problem1_to = mdy(Problem1_to)) 
+         Problem1_to = mdy(Problem1_to)
+         ) 
 
 # Merge time of deployment and retrieval + problems
 site <- cov
 site$end <- ymd("2000-01-01")
 for(i in 1:nrow(site)){
-  site$end[i] <-  min(site$Date_retr[i], site$Problem1_from[i], na.rm = TRUE)
+  site$end[i] <-  min(site$Date_retr[i], 
+                      site$Problem1_from[i], 
+                      na.rm = TRUE
+                      )
 }
 
 
@@ -80,7 +86,8 @@ We start by fitting a model that describes a *unimodal* activity pattern. This s
 unimodal <- mixed_model(fixed = cbind(success, failure) ~ cos(2*pi*Time/24) + sin(2*pi*Time/24), 
                         random = ~ cos(2*pi*Time/24) + sin(2*pi*Time/24) || Site,
                         family = binomial(),
-                        data = occasions_cbind)
+                        data = occasions_cbind
+                        )
 
 summary(unimodal)
 ```
@@ -94,7 +101,8 @@ bimodal <- mixed_model(fixed = cbind(success, failure) ~ cos(2*pi*Time/24) + sin
                        random = ~ cos(2*pi*Time/24) + sin(2*pi*Time/24)+
                                   cos(2*pi*Time/12) + sin(2*pi*Time/12) || Site,
                        family = binomial(),
-                       data = occasions_cbind)
+                       data = occasions_cbind
+                       )
 
 summary(bimodal)
 ```
@@ -105,7 +113,8 @@ Finally, we use a model without any cosine term to describe a *cathemeral* activ
 null_mod <- mixed_model(fixed = cbind(success, failure) ~ 1, 
                         random = ~ 1 | Site,
                         family = binomial(),
-                        data = occasions_cbind)
+                        data = occasions_cbind
+                        )
 summary(null_mod)
 ```
 
@@ -128,7 +137,10 @@ We can also visually compare predicted activity curves based on these models. As
 
 ``` {r univsbim7}
 # build a new dataset 
-newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), max(Time), length.out = 24)))
+newdat <- with(occasions_cbind, 
+               expand.grid(Time = seq(min(Time), max(Time), length.out = 24)
+                           )
+               )
 
 # obtain the estimated activity curves
 predict_unimodal <- effectPlotData(unimodal, newdat, marginal = FALSE) %>% 
@@ -137,7 +149,10 @@ predict_bimodal <- effectPlotData(bimodal, newdat, marginal = FALSE) %>%
   mutate(Model = "Bimodal")
 predict_cathemeral <- effectPlotData(null_mod, newdat, marginal = FALSE) %>% 
   mutate(Model = "Cathemeral")
+```
 
+
+``` {r univsbim7b, class.source = "fold-hide", fig.cap="Predicted probability of activity by three hypotheses: unimodal, bimodal, and cathemeral; shading represented 95% confidence intervals."}
 # join and plot results
 pl_shapes <- rbind(predict_unimodal, predict_bimodal, predict_cathemeral) %>% 
   ggplot(., aes(x = Time, y = plogis(pred), group = Model, fill = Model)) +
@@ -158,7 +173,8 @@ pl_shapes <- rbind(predict_unimodal, predict_bimodal, predict_cathemeral) %>%
         panel.grid.major.y = element_blank(),
         panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
         panel.grid.minor.x = element_blank(),
-        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
+        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0)
+        ) +
   #panel.grid.minor.x = element_line(colour='deepskyblue4', linetype = 'dotted', size=0.35))+
   scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4))
 pl_shapes
