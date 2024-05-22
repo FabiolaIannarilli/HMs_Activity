@@ -103,7 +103,8 @@ dat_event$Time_Rad <- (hour(dat_event$Time)*60 + minute(dat_event$Time))/(60*24)
 plot((hour(dat_event$Time)*60 + minute(dat_event$Time)), 
      dat_event$Time_Rad, 
      xlab = "Original Timestamp (in minute in a day)", 
-     ylab = "Time in radians")
+     ylab = "Time in radians"
+     )
 ```
 
 The plot above shows the match in time of the records expressed as minutes (x axis) and radians (y axis).  
@@ -131,7 +132,9 @@ res_over <- densityPlot(dat_event$Time_Rad,
          Package = "Overlap",
          Data = "Aggregated") 
 dev.off()
+```
 
+``` {r kdespkg1b, class.source = "fold-hide"}
 # store plot in object
 pl_over <- ggplot(res_over, aes(x=x, y=y, group=Data)) +
   geom_line(aes(linetype=Data, color=Data), linewidth=1) +
@@ -150,7 +153,8 @@ pl_over <- ggplot(res_over, aes(x=x, y=y, group=Data)) +
         panel.grid.major.y = element_blank(),
         panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
         panel.grid.minor.x = element_blank(),
-        strip.text = element_text(size = 10, colour = "black", face = "bold")) +
+        strip.text = element_text(size = 10, colour = "black", face = "bold")
+        ) +
   scale_x_continuous(breaks=seq(0,24*60,60*4), labels=seq(0,24,4), expand = expand_scale(mult = c(0.02,0.02)))+
   scale_y_continuous(expand = expansion(mult = c(0.02, 0.02)))
 
@@ -168,11 +172,14 @@ The `fitact` function within the `activity` package [@Rowcliffeea2014; @activity
 res_acti <- as.data.frame(fitact(dat_event$Time_Rad, 
                                  reps = 999, 
                                  sample = "data", 
-                                 show = FALSE)@pdf[,1:3]) %>% 
+                                 show = FALSE)@pdf[,1:3]
+                          ) %>% 
   mutate(x = x/(2*pi)*24*60, # to bring results back to the minutes scale,
          Package = "Activity",
          Data = "Aggregated") 
+```
 
+``` {r kdespkg2b, class.source = "fold-hide"}
 # store plot in an object
 pl_acti <- ggplot(res_acti, aes(x=x, y=y, group=Data)) +
   geom_ribbon(aes(ymin=y-1.96*se, ymax=y+1.96*se, color=Data, fill=Data), alpha=0.3) +
@@ -192,7 +199,8 @@ pl_acti <- ggplot(res_acti, aes(x=x, y=y, group=Data)) +
         panel.grid.major.y = element_blank(),
         panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
         panel.grid.minor.x = element_blank(),
-        strip.text = element_text(size = 10, colour = "black", face = "bold")) +
+        strip.text = element_text(size = 10, colour = "black", face = "bold")
+        ) +
   scale_x_continuous(breaks=seq(0,24*60,60*4), labels=seq(0,24,4), expand = expand_scale(mult = c(0.02,0.02)))+
   scale_y_continuous(expand = expansion(mult = c(0.02, 0.02)))
 
@@ -213,7 +221,8 @@ dat_event$Time_Rad_circ <- as.circular(dat_event$Time_Rad,
                                        zero=0, 
                                        type="angles", 
                                        modulo = "2pi",
-                                       rotation="counter")
+                                       rotation="counter"
+                                       )
 
 # determine bandwidth
 bw2 <- bw.cv.ml.circular(dat_event$Time_Rad_circ, kernel = "vonmises") 
@@ -223,20 +232,25 @@ temp2 <- modal.region.circular(dat_event$Time_Rad_circ,
                                kernel = "vonmises", 
                                q = 0.5, 
                                adjust = 1, 
-                               bw = bw2) 
+                               bw = bw2
+                               ) 
 
 # organize the output in a datafram to match those of the other packages
 res_circ <- data.frame(x=temp2$density$x, 
-                       y=temp2$density$y) %>% 
-                mutate(x = x/(2*pi)*24*60, # to bring results back to the minute scale,
-                       se = NA, 
-                       Package = "Circular",
-         Data = "Aggregated")
+                       y=temp2$density$y
+                       ) %>% 
+            mutate(x = x/(2*pi)*24*60, # to bring results back to the minute scale,
+                   se = NA, 
+                   Package = "Circular",
+                   Data = "Aggregated"
+                   )
 
 # extra step specific to this package: to extract the information related to the core areas of activity
 res_area1 <- res_circ %>% filter(x>temp2$zeros[1,1]/(2*pi)*24*60 & x<temp2$zeros[1,2]/(2*pi)*24*60)
 res_area2 <- res_circ %>% filter(x>temp2$zeros[2,1]/(2*pi)*24*60 & x<temp2$zeros[2,2]/(2*pi)*24*60)
+```
 
+``` {r kdespkg3b, class.source = "fold-hide"}
 # store plot in an object
 pl_circ <- ggplot(res_circ, aes(x=x, y=y, group=Data)) +
   geom_line(aes(linetype=Data, color=Data), linewidth=1) +
@@ -256,7 +270,8 @@ pl_circ <- ggplot(res_circ, aes(x=x, y=y, group=Data)) +
         panel.grid.major.y = element_blank(),
         panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
         panel.grid.minor.x = element_blank(),
-        strip.text = element_text(size = 10, colour = "black", face = "bold")) +
+        strip.text = element_text(size = 10, colour = "black", face = "bold")
+        ) +
   scale_x_continuous(breaks=seq(0,24*60,60*4), labels=seq(0,24,4), expand = expand_scale(mult = c(0.02,0.02)))+
   scale_y_continuous(expand = expansion(mult = c(0.02, 0.02)))
 
@@ -272,8 +287,14 @@ We now can visually compare the estimates of activity patterns returned by the t
 ```{r kdespkg4, fig.cap='Activity patterns based on Kernel Density Estimates of American black bear camera-trap data collected in northern-Minnesota between mid-May and mid-July 2017. Estimates were obtained using R-package: A) overlap (Ridout and Linkie 2009); B) activity (Rowcliffe et al. 2014); C) circular (Agostinelli and Lund 2017). We removed records less than 30 minutes apart to minimize short-term correlation in detection due to animals lingering in front of the cameras. Lines represent mean estimates. Shaded areas represent 95% confidence intervals in B, and activity range cores (50% isopleth) in C.', out.width='80%', fig.asp=.75, fig.align='center', message = FALSE}
 
 # Combine results of the 3 methods
-(pl <- grid.arrange(pl_over, pl_acti, pl_circ, nrow = 1, bottom=textGrob("Time of day (Hour)", gp=gpar(fontsize=10, fontface="bold")),
-                    top = textGrob("KDE-based estimates of activity patterns using:",gp=gpar(fontsize=20,font=3))))
+(pl <- grid.arrange(pl_over, 
+                    pl_acti, 
+                    pl_circ, 
+                    nrow = 1, 
+                    bottom=textGrob("Time of day (Hour)", gp=gpar(fontsize=10, fontface="bold")),
+                    top = textGrob("KDE-based estimates of activity patterns using:",gp=gpar(fontsize=20,font=3))
+                    )
+ )
 ```
 
 The three packages return patterns in activity that match in the timing of peaks and overall shape of the curves. However, there are some differences. The `overlap` package [@RidoutLinkie2009; @R-overlap] converts estimates so that the area under the curve is equal to one. The `activity` package [@Rowcliffeea2014; @activity2022] has the additional option to estimate 95% confidence intervals using bootstrap approaches; the main function implemented in this package, named `activity::fitact`, also has an argument to correct for differences in detection probability (e.g., between day and night) while the function `activity::solartime` enable double-anchoring procedures to adjust the timestamp associated with the different records based on sunrise and sunset times [for details, see @Vazquezea2019]. Finally, the `circular` package [@circular2022; @Oliveira-Santos2013] can identify periods of higher levels of activity using an isopleth approach similar to that applied in the analysis of telemetry data to identify core areas in estimates of home ranges. Notably, the y-axis associated to the estimates produced using `overlap` differs from those returned by the other two packages. These differences are due to an additional step that takes place within the `densityPlot` function and converts estimates so that the area under the curve is equal to one.
@@ -294,38 +315,63 @@ dat$Time_Rad <- (hour(dat$Time)*60 + minute(dat$Time))/(60*24)*2*pi
 pdf(file = NULL) 
 
 # Estimate activity patterns and store values in an object 
-res_over_NonAggr <- densityPlot(dat$Time_Rad, rug = FALSE, adjust = 1, xscale = 24*60, n.grid = 513, extend = NULL) %>% 
+res_over_NonAggr <- densityPlot(dat$Time_Rad, 
+                                rug = FALSE, 
+                                adjust = 1, 
+                                xscale = 24*60, 
+                                n.grid = 513, 
+                                extend = NULL
+                                ) %>% 
   mutate(se = NA,
          Package = "Overlap", 
-         Data = "Non-Aggregated") 
+         Data = "Non-Aggregated"
+         ) 
 dev.off()
 
 # ACTIVITY
 # Estimate activity patterns and store values in an object 
-res_acti_NonAggr <- as.data.frame(fitact(dat$Time_Rad, reps = 999, sample = "data", show = FALSE)@pdf[,1:3]) %>% 
-  mutate(x = x/(2*pi)*24*60, # to bring results back to the minute scale,
+res_acti_NonAggr <- as.data.frame(fitact(dat$Time_Rad, 
+                                         reps = 999, 
+                                         sample = "data", 
+                                         show = FALSE
+                                         )@pdf[,1:3]
+                                  ) %>% 
+      mutate(x = x/(2*pi)*24*60, # to bring results back to the minute scale,
          Package = "Activity", 
-         Data = "Non-Aggregated") 
+         Data = "Non-Aggregated"
+         ) 
 
 # CIRCULAR
 # prepare the specific format required by circular
-dat$Time_Rad_circ <- as.circular(dat$Time_Rad, units = "radians",
-template = "none", zero=0, type="angles", modulo = "2pi",
-rotation="counter")
+dat$Time_Rad_circ <- as.circular(dat$Time_Rad, 
+                                 units = "radians",
+                                 template = "none", 
+                                 zero=0, 
+                                 type="angles", 
+                                 modulo = "2pi",
+                                 rotation="counter"
+                                 )
 
 # determine bandwidth
 bw1 <- bw.cv.ml.circular(dat$Time_Rad_circ, kernel = "vonmises") 
 
 # estimate activity patterns
-temp1 <- modal.region.circular(dat$Time_Rad_circ, kernel = "vonmises", q = 0.5, adjust = 1, bw = bw1) 
+temp1 <- modal.region.circular(dat$Time_Rad_circ, 
+                               kernel = "vonmises", 
+                               q = 0.5, 
+                               adjust = 1, 
+                               bw = bw1
+                               ) 
 
 # organize the output in a datafram to match those of the other packages
 res_circ_NonAggr <- data.frame(x=temp1$density$x, 
-                       y=temp1$density$y) %>% 
-                mutate(x = x/(2*pi)*24*60, # to bring results back to the minute scale,
-                       se = NA, 
-                       Package = "Circular", 
-         Data = "Non-Aggregated")
+                               y=temp1$density$y
+                               ) %>% 
+                      mutate(x = x/(2*pi)*24*60, # to bring results back to the minute scale,
+                             se = NA, 
+                             Package = "Circular", 
+                             Data = "Non-Aggregated"
+                             )
 
 res_area3 <- res_circ_NonAggr %>% filter(x>temp1$zeros[1,1]/(2*pi)*24*60 & x<temp1$zeros[1,2]/(2*pi)*24*60)
 res_area4 <- res_circ_NonAggr %>% filter(x>temp1$zeros[2,1]/(2*pi)*24*60 & x<temp1$zeros[2,2]/(2*pi)*24*60)
@@ -334,7 +380,7 @@ res_area4 <- res_circ_NonAggr %>% filter(x>temp1$zeros[2,1]/(2*pi)*24*60 & x<tem
 ```
 We plot the results based on the aggregated and non-aggregated data and visually compare them.
 
-```{r kdedataaggr2, fig.cap='Activity patterns based on Kernel Density Estimates of American black bear camera-trap data collected in northern-Minnesota between mid-May and mid-July 2017. Estimates were obtained using R-package: A) overlap (Ridout and Linkie 2009); B) activity (Rowcliffe et al. 2014); C) circular (Agostinelli and Lund 2017). Non-aggregated data included all photographic records; in the aggregated data, we removed records less than 30 minutes apart to minimize short-term correlation in detection due to animals lingering in front of the cameras. Lines represent mean estimates. Shaded areas represent 95% confidence intervals in B, and activity range cores (50% isopleth) in C.', out.width='100%', fig.asp=.75, fig.align='center'}
+```{r kdedataaggr2, class.source = "fold-hide", fig.cap='Activity patterns based on Kernel Density Estimates of American black bear camera-trap data collected in northern-Minnesota between mid-May and mid-July 2017. Estimates were obtained using R-package: A) overlap (Ridout and Linkie 2009); B) activity (Rowcliffe et al. 2014); C) circular (Agostinelli and Lund 2017). Non-aggregated data included all photographic records; in the aggregated data, we removed records less than 30 minutes apart to minimize short-term correlation in detection due to animals lingering in front of the cameras. Lines represent mean estimates. Shaded areas represent 95% confidence intervals in B, and activity range cores (50% isopleth) in C.', out.width='100%', fig.asp=.75, fig.align='center'}
 
 # plot OVERLAP
 # Join results and plot
@@ -357,7 +403,8 @@ pl_over <- ggplot(res_over_both, aes(x=x, y=y, group=Data)) +
         panel.grid.major.y = element_blank(),
         panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', size=0.5),#element_line(colour = 'grey', linetype = 'solid', size=0.5),
         panel.grid.minor.x = element_blank(),
-        strip.text = element_text(size = 10, colour = "black", face = "bold")) +
+        strip.text = element_text(size = 10, colour = "black", face = "bold")
+        ) +
   scale_x_continuous(breaks=seq(0,24*60,60*4), labels=seq(0,24,4), expand = expand_scale(mult = c(0.02,0.02)))+
   scale_y_continuous(expand = expand_scale(mult = c(0.02, 0.02)))
 
@@ -382,7 +429,8 @@ pl_acti <- ggplot(res_acti_both, aes(x=x, y=y, group=Data)) +
         panel.grid.major.y = element_blank(),
         panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', size=0.5),#element_line(colour = 'grey', linetype = 'solid', size=0.5),
         panel.grid.minor.x = element_blank(),
-        strip.text = element_text(size = 10, colour = "black", face = "bold")) +
+        strip.text = element_text(size = 10, colour = "black", face = "bold")
+        ) +
   scale_x_continuous(breaks=seq(0,24*60,60*4), labels=seq(0,24,4), expand = expand_scale(mult = c(0.02,0.02)))+
   scale_y_continuous(expand = expand_scale(mult = c(0.02, 0.02)))
 
@@ -409,13 +457,20 @@ pl_circ <- ggplot(res_circ_both, aes(x=x, y=y, group=Data)) +
         panel.grid.major.y = element_blank(),
         panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', size=0.5),#element_line(colour = 'grey', linetype = 'solid', size=0.5),
         panel.grid.minor.x = element_blank(),
-        strip.text = element_text(size = 10, colour = "black", face = "bold")) +
+        strip.text = element_text(size = 10, colour = "black", face = "bold")
+        ) +
   scale_x_continuous(breaks=seq(0,24*60,60*4), labels=seq(0,24,4), expand = expand_scale(mult = c(0.02,0.02)))+
   scale_y_continuous(expand = expand_scale(mult = c(0.02, 0.02)))
 
 #' Combine results of the 3 methods
-(pl_both <- grid.arrange(pl_over, pl_acti, pl_circ, nrow = 1, bottom=textGrob("Time of day (Hour)", gp=gpar(fontsize=10, fontface="bold")),
-                    top = textGrob("KDE-based estimates of activity patterns using:",gp=gpar(fontsize=20,font=3))))
+(pl_both <- grid.arrange(pl_over, 
+                         pl_acti, 
+                         pl_circ, 
+                         nrow = 1, 
+                         bottom=textGrob("Time of day (Hour)", gp=gpar(fontsize=10, fontface="bold")),
+                         top = textGrob("KDE-based estimates of activity patterns using:",gp=gpar(fontsize=20,font=3))
+                         )
+  )
 ```
 
 We see that applying KDEs to non-aggregated data leads to estimates of activity curves that are extremely wiggly due to the choice of smoothing parameter which assumes the observations are independent. This could make the interpretation of the results particularly challenging and even lead to biased conclusions when results are driven by one or two individuals staying in front of a camera for an extensive amount of time (but see @Peral2022 for a different perspective on this topic).
@@ -440,7 +495,8 @@ cov <- read.csv("data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv", 
   mutate(Date_setup = mdy(Date_setup),
          Date_retr = mdy(Date_retr),
          Problem1_from = mdy(Problem1_from),
-         Problem1_to = mdy(Problem1_to)) 
+         Problem1_to = mdy(Problem1_to)
+         ) 
 
 # Extract Season information from Session column
 dat$Season <- as.factor(substr(dat$Session, 1, 1))
@@ -477,7 +533,8 @@ for(i in 1:nrow(site)){
   occasions[[i]] <- data.frame(Session = site$Session[i],
                                Site = site$Site[i],
                                start = seq(from = ymd_hms(paste(site$Date_setup[i], "00:00:00", sep = " ")), 
-                                           to = ymd_hms(paste(site$end[i], "23:59:59", sep = " ")), by = '60 min')) %>% 
+                                           to = ymd_hms(paste(site$end[i], "23:59:59", sep = " ")), by = '60 min')
+                               ) %>% 
     mutate(end = c(start[2:length(start)], start[length(start)]+minutes(60))) 
 }
 occasions <- do.call(rbind.data.frame, occasions)
@@ -499,7 +556,8 @@ occasions$Site <- as.factor(occasions$Site)
 occasions_cbind <- occasions %>% 
   group_by(Site, Time, Season) %>% 
   summarize(success = sum(capt),
-            failure = n() - success)
+            failure = n() - success
+            )
 
 ```
 
@@ -524,7 +582,9 @@ for(i in 1:length(dat_ls)){
   KDE_ls[[i]]$Season <- unique(dat_ls[[i]]$Season)
 }
 KDE <- do.call(rbind.data.frame, KDE_ls)
+```
 
+```{r compkde2b,class.source = "fold-hide"}
 # store plot
 pl_KDE <- ggplot(KDE, aes(x = x/(2*pi)*24, y = y)) +
   geom_ribbon(aes(ymin = y - 1.96*se, ymax = y +1.96*se, color = Season, fill = Season), alpha = 0.3, size = 0.25) +
@@ -546,7 +606,8 @@ pl_KDE <- ggplot(KDE, aes(x = x/(2*pi)*24, y = y)) +
         panel.grid.minor.y = element_blank(),
         panel.grid.major.y = element_blank(),
         panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth = 0.5),
-        panel.grid.minor.x = element_blank())+
+        panel.grid.minor.x = element_blank()
+        ) +
   scale_x_continuous(breaks=seq(0,24,4), labels=seq(0,24,4))
 ```
 Next, we re-run the analysis using the HM approach. In particular, we fit a trigonometric random intercept-only model and cyclic cubic spline with a smoother for `Time` that depends on `Season`. Both models account for variability in site-use, but not for variability in timing of activity peaks. 
@@ -559,15 +620,23 @@ trig_rand_int <- mixed_model(fixed = cbind(success, failure) ~
                                               sin(2 * pi * Time/24) * Season +
                                               sin(2 * pi * Time/12) * Season +
                                               cos(2 * pi * Time/12) * Season,
-            random = ~  1  |   Site,
-            data = occasions_cbind, family = binomial(), iter_EM = 0)
+                             random = ~  1  |   Site,
+                             data = occasions_cbind, 
+                             family = binomial(), 
+                             iter_EM = 0
+                             )
 summary(trig_rand_int)
 
 # build estimate of activity
-newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), 24, length.out = 48), 
-                                            Season = levels(Season)))
+newdat <- with(occasions_cbind, 
+               expand.grid(Time = seq(min(Time), 24, length.out = 48), 
+                           Season = levels(Season)
+                           )
+               )
 pred_rand_int <- effectPlotData(trig_rand_int, newdat, marginal = FALSE) 
+```
 
+```{r compkde3b,class.source = "fold-hide"}
 # store plot
 pl_trig <- ggplot(pred_rand_int, aes(Time, plogis(pred))) +
   geom_ribbon(aes(ymin = plogis(low), ymax = plogis(upp), color = Season, fill = Season), alpha = 0.3, linewidth = 0.25) +
@@ -589,9 +658,13 @@ pl_trig <- ggplot(pred_rand_int, aes(Time, plogis(pred))) +
         panel.grid.major.y = element_blank(),
         panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
         panel.grid.minor.x = element_blank(),
-        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
+        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0)
+        ) +
   scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4))
 
+```
+
+```{r compkde3c}
 # Cyclic cubic spline HGAMs 
 mod_cycl <- bam(cbind(success, failure) ~ 
                    s(Time, bs = "cc", k = 12, by = Season, m = 1) +
@@ -599,18 +672,35 @@ mod_cycl <- bam(cbind(success, failure) ~
                    s(Site, bs="re"), 
                  knots = list(Time=c(0,23)),
                  family = "binomial", 
-                 data = occasions_cbind)
+                 data = occasions_cbind
+                )
 summary(mod_cycl)
 
 
 # Predict activity patterns
-newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), max(Time), 1), 
-                                            Season = levels(Season), Site = "7B")) #Station doesn't matter
+newdat <- with(occasions_cbind, 
+               expand.grid(Time = seq(min(Time), max(Time), 1), 
+                           Season = levels(Season), 
+                           Site = "7B" #Station doesn't matter
+                           )
+               ) 
 
 
-cycl_pred <- predict.bam(mod_cycl, newdata = newdat,  exclude = "s(Site)", se.fit = TRUE, type = "response") 
-cycl_pred <- cbind(newdat, fit=cycl_pred$fit, se.fit=cycl_pred$se.fit, Model = "Random-intercept only")
+cycl_pred <- predict.bam(mod_cycl, 
+                         newdata = newdat,  
+                         exclude = "s(Site)", 
+                         se.fit = TRUE, 
+                         type = "response"
+                         ) 
+cycl_pred <- cbind(newdat, 
+                   fit=cycl_pred$fit, 
+                   se.fit=cycl_pred$se.fit, 
+                   Model = "Random-intercept only"
+                   )
 
+```
+
+```{r compkde3d,class.source = "fold-hide"}
 pl_cycl <- ggplot(cycl_pred, aes(Time, fit)) +
   geom_ribbon(aes(ymin = fit-1.96*se.fit, ymax = fit+1.96*se.fit, color = Season, fill = Season), alpha = 0.3, size = 0.25) +
   geom_line(aes(color = Season), size = 1) +
@@ -632,7 +722,8 @@ pl_cycl <- ggplot(cycl_pred, aes(Time, fit)) +
         panel.grid.major.y = element_blank(),
         panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
         panel.grid.minor.x = element_blank(),
-        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0))+
+        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0)
+        ) +
   scale_x_continuous(breaks=seq(0,max(cycl_pred$Time),length.out=7), labels=seq(0,24,4)) 
 ```
 
@@ -657,18 +748,21 @@ trig_rand_int_null <- mixed_model(fixed = cbind(success, failure) ~
                                               sin(2 * pi * Time/24) +
                                               sin(2 * pi * Time/12) +
                                               cos(2 * pi * Time/12) ,
-            random = ~  1  |   Site,
-            data = occasions_cbind, family = binomial(), iter_EM = 0)
+                                  random = ~  1  |   Site,
+                                  data = occasions_cbind, 
+                                  family = binomial(), 
+                                  iter_EM = 0
+                                  )
 summary(trig_rand_int_null)
 AIC(trig_rand_int_null) - AIC(trig_rand_int)
 
 # Cyclic cubic spline HGAMs 
 # null model
-mod_cycl_null <- bam(cbind(success, failure) ~ 
-                   s(Site, bs="re"), 
+mod_cycl_null <- bam(cbind(success, failure) ~ s(Site, bs="re"), 
                  knots = list(Time=c(0,23)),
                  family = "binomial", 
-                 data = occasions_cbind)
+                 data = occasions_cbind
+                 )
 summary(mod_cycl_null)
 AIC(mod_cycl_null) - AIC(mod_cycl)
 ```
