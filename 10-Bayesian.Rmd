@@ -72,7 +72,7 @@ time[1:10, 1:10]
 
 ### Model Setup
 
-We can now specify a model that exactly mirrors the structure of equation 1. To note that we incorporated the site-level random intercept $\tau_i$ into the intercept $\beta_0$.  
+We can now specify a model that exactly mirrors the structure of equation 1. 
 
 ``` {r bay3}
 # Specify model
@@ -98,10 +98,8 @@ Act_bay <-nimbleCode({
     for(j in 1:J){
       y[i,j] ~ dbern(p[i,j])
       logit(p[i,j]) <- beta0[i] + beta1*cos((pi*2*time[i,j])/24 + theta0[i]) + beta2*cos((pi*2*time[i,j])/12 + theta1[i])
-      
     }
   }
-  
 }
 )
 ```
@@ -115,8 +113,8 @@ We now need to specify the initial values and MCMC settings and run the model us
   inits <- function() list(beta0 = runif(nrow(sim_data), 0, 3), theta0 = runif(nrow(sim_data), 0, 2*pi),
                            theta1 = runif(nrow(sim_data), 0, 2*pi))
   params <- c("mu.beta0", "sd.beta0", "beta1", "beta2", "mean.theta0", "mean.theta1", "sd.theta")
-  #ni <- 120000; nt <- 1; nb <- 5000; nc <- 3;   n.adapt = 500
-  ni <- 200; nt <- 1; nb <- 1; nc <- 3;   n.adapt = 500
+  ni <- 120000; nt <- 1; nb <- 5000; nc <- 3;   n.adapt = 500
+ # ni <- 200; nt <- 1; nb <- 1; nc <- 3;   n.adapt = 500
 
   nimble.constants <- list(time=time, M=nrow(sim_data), J=ncol(sim_data), pi=pi)
   nimble.data<-list(y=sim_data)
@@ -265,9 +263,11 @@ Models defined in a Bayesian framework can better mirror the structure in equati
 
 ## Bayesian cyclic cubic spline model with random intercept-only 
 
+In this section, we will briefly demonstrate how the `brms` package [@brms] can be used to fit an HGAM with random-intercepts.
+
 ### Data Preparation
 
-The first step is to rearrange the specific format of the data created by the `sim_activity` function (see also chapter \ref(est4)). We access the encounter data and store them in an object called `y`, which has a number of rows equal to the number of simulated sites and a number of columns equal to 24 (hours) times the length (in days) of the simulated sampling period (e.g. 24 hour * 30 days = 720 encounter occasions). We add a column which contains a unique identifier for each site (e.g. `id = A1`) and assign a name to each column that represents the time occasion (e.g. from 1 to 720), then convert the data in long format using the `id` column as reference.
+The first step is to rearrange the specific format of the data created by the `sim_activity` function (see also chapter \@ref(est4)). We access the encounter data and store them in an object called `y`, which has a number of rows equal to the number of simulated sites and a number of columns equal to 24 (hours) times the length (in days) of the simulated sampling period (e.g. 24 hour * 30 days = 720 encounter occasions). We add a column which contains a unique identifier for each site (e.g. `id = A1`) and assign a name to each column that represents the time occasion (e.g. from 1 to 720), then convert the data in long format using the `id` column as reference.
 
 ```{r data.prep.bayes.cc.1}
 # The data
@@ -292,7 +292,7 @@ knitr::kable(head(y_long))
 
 We obtain a data set in which each row specifies the outcome (i.e. encounter or non-encounter of the target species) at a certain site during a specific hour of a certain day of sampling.
 
-To optimize computational time, we can reduce the number of rows in the dataset by counting the number of hourly-long occasions in which the species was observed (i.e. successes) and the number of occasion in which the species was not observed (i.e. failures) for each hourly time interval and camera site (see also \ref(est5)).
+To optimize computational time, we can reduce the number of rows in the dataset by counting the number of hour-long occasions in which the species was observed (i.e. successes) and the number of occasion in which the species was not observed (i.e. failures) for each hourly time interval and camera site (see also \@ref(est5)).
 
 ```{r data.prep.bayes.cc.2, message = FALSE, warnings = FALSE}
 # count successes and failures at each site-occasion
@@ -307,11 +307,12 @@ To optimize computational time, we can reduce the number of rows in the dataset 
 # show first few rows of the dataset created
   knitr::kable(head(occasions_cbind))
 ```
+
 ### Model Setup and Fitting
 
-We are now ready to setup the Bayesian cyclic cubic spline model using similar code as \ref(est10). However, here we wrap our code in the `brm` function from the package `brms` [@brms]. We also need to change our notation slightly by specifying the number of successes and failure as `success| trial(add variable here)`. From the `brms` R package vignette, "cbind() syntax will not work in `brms` in the expected way because this syntax is reserved for other purposes." Note that we only considering random intercepts, but we can include random slope terms also by addiding this to our model definition: `s(Time, Site, bs="re")`.
+We are now ready to setup the Bayesian cyclic cubic spline model using  code similar to that shown in Chapter \@ref(est10). However, here we wrap our code in the `brm` function from the package `brms` [@brms]. We also need to change our notation slightly to specify the number of successes and the number of trials using `success| trials(n_events)`. <!---From the `brms` R package vignette, "cbind() syntax will not work in `brms` in the expected way because this syntax is reserved for other purposes."---> Note that below, we only consider random intercepts, but we could also include random slopes by adding `s(Time, Site, bs="re")`.
 
-Something also to consider is how we go about fitting the random effect term in `brms`. The main consequences of how we go about doing this is whether we can easily estimate the conditional mean or not. Note that `brms` functions do not allow excluding smooth terms, such as `s(Site, bs="re")` when making predictions ([see here](https://discourse.mc-stan.org/t/excluding-a-smooth-term-in-brms-using-posterior-linpred/10960/4)). We can consider a slightly different parameterization than \ref(est10), which makes it straightforward in estimating the conditional mean. Let's consider both approaches...
+The random intercept can be specified in one of two ways, `s(Site, bs="re")` or `(1 | Site)`. Note that `brms` functions do not allow excluding smooth terms, such as `s(Site, bs="re")` when making predictions ([see here](https://discourse.mc-stan.org/t/excluding-a-smooth-term-in-brms-using-posterior-linpred/10960/4)), so the latter approach is necessary if we want to estimate the conditional mean for a typical site. We compare these two approaches, below.
 
 
 ```{r fit.bayes.cc.3, cache=TRUE, cache.path="cache/", eval=TRUE, echo=TRUE}
@@ -371,7 +372,7 @@ summary(cycl_rand_int_alt)
 
 ### Model Predictions
 
-First, let's predict the site-level variability
+We use the first parameterization (with `s(Site, bs="re")`) to explore site-level variability in the activity patterns:
 
 ```{r fit.bayes.cc.pred1}
 # Predict the mean site-level activity pattern
@@ -386,7 +387,7 @@ ggplot( aes(x=Time, y=Estimate, group=Site, color=Site), data=preds) +
 ```
 
 
-Next, we can predict the marginal mean activity curve by averaging across the site-level variation.
+We can then approximate the marginal mean activity curve by averaging across the site-level variation.
 
 ```{r fit.bayes.cc.pred2, class.source = 'fold-hide'}
 #Average across sites to get the marginal mean
@@ -404,14 +405,14 @@ legend("topright",lwd=c(3,1,1,3),col=c(1,1,1,2),
          legend=c("Marginal Mean", "Lower Marginal Mean","Upper Marginal Mean", "True Marginal Mean"))
 ```
 
-Next, lets predict the conditional mean activity. The benefit of the `cycl_rand_int_alt` parameterization is simply to conveniently estimate the conditional mean activity curve. Note how the first model structure with a random effect spline has no random effects according to `brms`. However, the second model structure does..
+Next, we predict the conditional mean activity using the second parameterization (with `(1 | Site)`.  <!---Note, the first model structure with a random effect spline has no random effects according to `brms`. However, the second model structure does..
 
 ```{r fit.bayes.cc.note, error=TRUE}
 ranef(cycl_rand_int)
 ranef(cycl_rand_int_alt)$Site[1:5,,]
 ```
  
-Because `brms` does not allow smooth terms, such as `s(Site, bs="re")`, to be omitted when predicting, we will use the second model to predict the conditional mean activity curve. 
+Because `brms` does not allow smooth terms, such as `s(Site, bs="re")`, to be omitted when predicting, we will use the second model to predict the conditional mean activity curve. --->
 
 ```{r fit.bayes.cc.predict3, class.source = 'fold-hide'}
 # Predict the conditional mean activity
