@@ -1,7 +1,8 @@
 # Appendix {#app}
 
 ## The *sim_activity* function {#sim_function}
-Throughout the tutorial we use the *sim_activity* function for simulating activity patterns. This function simulate realized activity patterns based on a 'true' activity pattern distribution density build as specified in equation 1 reported in chapter \@ref(var) and introduced in @Iannarilliea2024. The arguments of the function specify the following:
+
+Throughout the tutorial we use the `sim_activity` function for simulating activity patterns. This function simulate realized activity patterns based on a 'true' activity pattern distribution density build as specified in equation 1 reported in chapter \@ref(var) and introduced in @Iannarilliea2024. The arguments of the function specify the following:
 
 *  `M`: Numeric. Number of sampling units (e.g. sites).
 *  `J`: Numeric. Number of cycles (e.g. days).
@@ -91,7 +92,7 @@ dat <- sim_activity(M = M,
 
 ```
 
-Activity patterns having the two peaks to be of the same height can be simulated setting `b1` = 0, `n_peak` = 2, and `b2` other than zero. This silence the first cosine term that has a frequency of 24 and impose a frequency of 12 on the second cosine term. 
+Activity patterns having  two peaks that are the same height can be simulated setting `b1` = 0, `n_peak` = 2, and `b2` to a value other than zero. These choices will silence the first cosine term (with frequency of 24) and impose single cosine with a frequency of 12. 
 
 ```{r app3}
 # Set equations' parameters (all others as used before)
@@ -121,7 +122,7 @@ dat <- sim_activity(M = M,
 
 ```
 
-## Probability Density Function Comparison {#poisson}
+## Binomial versus Other Distributions {#poisson}
 
 How we aggregate observations of activity will determine how we model our data. @Rees2024 modeled animal diel activity using a generalized additive modeling approach with a negative binomial distribution after determining there was overdispersion using a Poisson distribution. The Poisson probability density function (PDF) is a special case of the Negative Binomial. Throughout, we have used the binomial probability mass function to model diel activity in both trigonometric GLMMs and cyclic cubic splines HGAMs. The Poisson distribution is in fact a special case of the binomial when the number of 'trials' is very large. As such, we can gain similar inference using these different distributions, but we need to think about how sampling effort is accounted for. 
 
@@ -132,7 +133,7 @@ Below, we demonstrate the equivalence between using the binomial and Poisson pro
 
 ### Data preparation
 
-We use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021]. We will use the same data records of American black bear (*Ursus americanus*) as done in the chapter \@ref(cat). However, we will ignore examining a season covariate for simplicity and just focus on modeling the fall data. 
+We use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021]. We will use the same data records of American black bear (*Ursus americanus*) as done in the chapter \@ref(cat). However, we will ignore the season covariate for simplicity and just focus on modeling the fall data. 
 
 
 ```{r pdf1, message = TRUE, warnings = TRUE}
@@ -176,8 +177,10 @@ occasions$capt <- 0
 
 # Store captures
 for(i in 1:nrow(dat)){
-  occasions[occasions$Session == as.character(dat$Session[i]) & occasions$Site == as.character(dat$Station[i]) &
-              occasions$start <= dat$DateTimeOriginal[i] & occasions$end > dat$DateTimeOriginal[i], "capt"] <- 1
+  occasions[occasions$Session == as.character(dat$Session[i]) &
+              occasions$Site == as.character(dat$Station[i]) &
+              occasions$start <= dat$DateTimeOriginal[i] &
+              occasions$end > dat$DateTimeOriginal[i], "capt"] <- 1
 }
 
 # Format data 
@@ -204,7 +207,7 @@ y_fall$total <-  y_fall$success + y_fall$failure
 
 ### Trigonometric PDF Comparison
 
-Fit the model using 0 and 1 data with a binomial distribution and then fit the equivalent count data along with an offset to control for sampling effort.
+Fit the model using  a binomial distribution and then fit the equivalent count-based model with an offset to control for sampling effort.
 
 ```{r pdf2}
 # Fit the Binomial model
@@ -233,7 +236,7 @@ summary(trig_rand_int_P)
 First, note the similarity in the coefficient estimates. Next, we can predict the diel activity for each model. Note that to be equivalent, we need to consider the same predictions for 1 unit of sampling effort, thus we use 'total = 1'. 
 
 ```{r pdf3}
-newdat <- with(occasions_cbind, expand.grid(Time = seq(0, 24, length.out = 24),total=1))
+newdat <- with(occasions_cbind, expand.grid(Time = seq(0, 24, length.out = 24), total=1))
 pred_rand_int <- effectPlotData(trig_rand_int, newdat, marginal = FALSE) 
 pred_rand_int_P <- effectPlotData(trig_rand_int_P, newdat, marginal = FALSE) 
 ```
@@ -292,7 +295,7 @@ We can see that the predictions are equivalent.
 
 ### Cyclic cubic PDF Comparison
 
-Now, lets do the same comparison for fitting models in a generalized additive model framework.
+Now, let's do the same comparison when fitting models in a generalized additive model framework.
 
 ```{r pdf5}
 # Fit binomial model
@@ -433,13 +436,14 @@ pl_cycle1_P2 <- ggplot(cycl_pred_P2, aes(Time, plogis(fit))) +
 ggarrange(pl_cycle1_P, pl_cycle1_P2)
 ```
 
-We can see that the activity curve is the same shape, but the magnitude on the y-axis is different. Using the offset allows us to better represent animal activity in terms of when they are active and not active, similar to how some studies compare animal activity as detection rates across sites as the number of detections per site divided by the number of days the site was sampled; this measure is some times refereed to as a relative abundance index (RAI). 
+We can see that the activity curves have the same shape, but the magnitude on the y-axis is different. Using the offset allows us to better represent animal activity in terms of when they are active and not active. <!---, similar to how some studies compare animal activity as detection rates across sites as the number of detections per site divided by the number of days the site was sampled; this measure is some times refereed to as a relative abundance index (RAI). 
 
-## Estimating marginal means {#estmarg}
+If you add the above text, then I would add a citation for RAI --->
+
 
 ## Link to the Diel.Niche package {#Diel.Niche}
 
-In the ecology and evolution literature, animal activity is often discussed in terms of diel classifications or phenotypes, such as diurnal, nocturnal, crepuscular, or cathemeral. But, how much activity in what time period does it mean to be diurnal, nocturnal, etc.? To make comparable inference across studies, we should define these diel phenotypes mathematically so that we can make inference based on consistent definitions and thus make appropriate comparisons across species or projects. We can use the [`Diel.Niche` R package](https://github.com/diel-project/Diel-Niche-Modeling/) to do exactly this. First, we use our data to estimate animal diel activity across the 24-hour period and then second, we can classify predicted activity patterns into the corresponding diel phenotype. Here, we demonstrate using a hierarchical cyclic cubic spline model, but the process is the same for any model predicting 24-hr temporal activity.
+In the ecology and evolution literature, animal activity is often discussed in terms of diel classifications or phenotypes, such as diurnal, nocturnal, crepuscular, or cathemeral. But, how much activity in what time period does it mean to be diurnal, nocturnal, etc.? To make comparable inference across studies, we should define these diel phenotypes mathematically so that we can make inference based on consistent definitions and thus make appropriate comparisons across species or projects. We can use the [`Diel.Niche` R package](https://github.com/diel-project/Diel-Niche-Modeling/) to do exactly this. First, we use our data to estimate animal diel activity across the 24-hour period and then second, we can classify predicted activity patterns into the corresponding diel phenotype. Here, we demonstrate this approach using a hierarchical cyclic cubic spline model, but the process is the same for any model predicting 24-hr temporal activity.
 
 
 ### Data
@@ -476,7 +480,7 @@ cycl_rand_int_ML <- bam(cbind(success, failure) ~
 ```
 
 ### Model Predictions
-Lets now use our model to predict the conditional mean activity curve across all sites. We will then use those predictions to define the diel phenotype. Below, we will classify each predicted time period into twilight, daytime, and nighttime. To make sure we capture enough predictions to summarize each of these periods, we will predict the probability of activity at a smaller interval than how we modeled the data (e.g., 100 intervals instead of 24). 
+Let's now use our model to predict the conditional mean activity curve across all sites. We will then use those predictions to define the diel phenotype. Below, we will classify each predicted time period into twilight, daytime, and nighttime. To make sure we capture enough predictions to summarize each of these periods, we will predict the probability of activity at a smaller interval than how we modeled the data (e.g., 100 intervals instead of 24). 
 
 ```{r fit.ml.pred1}
 newdat <- with(occasions_cbind, expand.grid(Time = seq(0, 24, length.out=100),total=1, 
