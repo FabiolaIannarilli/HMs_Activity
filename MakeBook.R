@@ -1,5 +1,5 @@
 #' This will generate the book
-bookdown::render_book("index.Rmd", bookdown::gitbook(split_by="section", split_bib=FALSE, new_session = TRUE, code_folding = c("show")))
+bookdown::render_book("index.Rmd", bookdown::gitbook(split_by="section", split_bib=FALSE,  code_folding = c("show")))
 bookdown::render_book("index.Rmd", "bookdown::gitbook")
 bookdown::render_book("index.Rmd", "bookdown::gitbook", new_session=TRUE)
 bookdown::render_book("index.Rmd", bookdown::gitbook(split_bib=FALSE, new_session = TRUE))
