@@ -111,7 +111,8 @@ We now need to specify the initial values and MCMC settings and run the model us
 ``` {r bay4, cache=TRUE, cache.path="cache/", eval=TRUE}
 # MCMC settings
   inits <- function() list(beta0 = runif(nrow(sim_data), 0, 3), theta0 = runif(nrow(sim_data), 0, 2*pi),
-                           theta1 = runif(nrow(sim_data), 0, 2*pi))
+                           theta1 = runif(nrow(sim_data), 0, 2*pi)
+                           )
   params <- c("mu.beta0", "sd.beta0", "beta1", "beta2", "mean.theta0", "mean.theta1", "sd.theta")
   ni <- 120000; nt <- 1; nb <- 5000; nc <- 3;   n.adapt = 500
  # ni <- 200; nt <- 1; nb <- 1; nc <- 3;   n.adapt = 500
@@ -125,7 +126,8 @@ We now need to specify the initial values and MCMC settings and run the model us
                          inits = inits, 
                          monitors = params, 
                          code = Act_bay, 
-                         nchains = nc, niter = ni, nburnin = nb, thin = nt)
+                         nchains = nc, niter = ni, nburnin = nb, thin = nt
+                         )
 ```
 
 
@@ -133,7 +135,7 @@ We now need to specify the initial values and MCMC settings and run the model us
 
 We can explore the traceplots to assess convergence of the model.
 
-``` {r bay5, class.source = 'fold-hide'}
+``` {r bay5, class.source = 'fold-hide', fig.cap="Bayesian MCMC diagnostics."}
   samplesSummary(res.nimble$chain1)
   samplesSummary(res.nimble$chain2)
   samplesSummary(res.nimble$chain3)
@@ -203,15 +205,17 @@ truemarginalmean <- apply(pmt, 2, mean)
 ```
 
 ### Plot Predictions
-``` {r bayend, eval = TRUE, class.source = 'fold-hide'}
+``` {r bayend, eval = TRUE, class.source = 'fold-hide', fig.cap="Probability of mean and conditional mean activity."}
 par(mfrow=c(2,2))
 # TRUE
 plot(tim, truecond, type="l", xlab="hour", 
      ylab="Activity Label Not Scaled", col="red", 
-     main="TRUE",ylim=c(0,0.15))
+     main="TRUE",ylim=c(0,0.15)
+     )
 lines(tim, truemarginalmean, type="l", col="blue", lty=2)
 legend("topright", bty="n", c("Conditional", "Marginal"), 
-       col=c("red", "blue"), lty=c(1,2))
+       col=c("red", "blue"), lty=c(1,2)
+       )
 
 # Rescale and plot
 sc.tcondmean<-truecond/MESS::auc(tim, truecond)
@@ -221,10 +225,12 @@ lines(tim, sc.tmarginalmean, type="l", col="blue", lty=2)
 
 #Estimated
 plot(tim, conditionalmean, type="l", xlab="hour", 
-     ylab="Activity Label Not Scaled", col="red", main="Estimated",ylim=c(0,1))
+     ylab="Activity Label Not Scaled", col="red", main="Estimated",ylim=c(0,1)
+     )
 lines(tim, marginalmean, type="l", col="blue", lty=2)
 legend("topright", bty="n",c("Conditional", "Marginal"), 
-       col=c("red", "blue"), lty=c(1,2))
+       col=c("red", "blue"), lty=c(1,2)
+       )
 
 # Rescale and plot
 sc.condmean<-conditionalmean/MESS::auc(tim, conditionalmean)
@@ -240,7 +246,8 @@ condmeans <- matrix(NA, nrow(res.nimbleall), length(tim))
 #margmeans<-matrix(NA, nrow(res.nimbleall), length(tim))
 for(i in 1:length(tim)){
   condmeans[,i] <- plogis(res.nimbleall[,5] + res.nimbleall[,1]*cos((pi*2*tim[i])/24 + 
-                        res.nimbleall[,3]) + res.nimbleall[,2]*cos((pi*2*tim[i])/12 + res.nimbleall[,3]))
+                        res.nimbleall[,3]) + res.nimbleall[,2]*cos((pi*2*tim[i])/12 + res.nimbleall[,3])
+                        )
 }
 lowcond <- apply(condmeans,2,quantile, prob=0.025)
 upcond <- apply(condmeans,2,quantile, prob=0.975)
@@ -248,12 +255,14 @@ upcond <- apply(condmeans,2,quantile, prob=0.975)
 par(mfrow=c(1,1))
   plot(tim, conditionalmean, type="l", xlab="hour", ylab="Activity Label Not Scaled", 
        main= "True and Estimated Conditional Mean (with CI's)",
-       col="red",  ylim=c(0, max(upcond)))
+       col="red",  ylim=c(0, max(upcond))
+       )
   lines(tim, upcond, type="l", lty=2, col="red")
   lines(tim, lowcond, type="l", lty=2, col="red")
   lines(tim, truecond, type="l", col="black")
   legend("topright",  c("Estimated", "True"), 
-         lty=c(1,1), col="red", "black",bty="n")
+         lty=c(1,1), col="red", "black",bty="n"
+         )
 
 
 ```
@@ -275,13 +284,18 @@ y <- as.data.frame(dat$sim_data)
 dim(y)
 
 # summarize aggregated data
-y <- data.frame(id=paste("A", seq(1,M,1), sep=""), y=as.data.frame(y))
-colnames(y) <- c("id", paste0("S", seq(1, ncol(y)-1, 1), sep=""))
+y <- data.frame(id=paste("A", seq(1,M,1), sep=""), 
+                y=as.data.frame(y)
+                )
+colnames(y) <- c("id", 
+                 paste0("S", seq(1, ncol(y)-1, 1), sep="")
+                 )
 
 # Format data in long format
 y_long <- pivot_longer(data = y, cols = -id, names_to = "time", values_to = "y") %>%
                 mutate(time=as.numeric(substr(time,2,10)),
-                       id = factor(id))
+                       id = factor(id)
+                       )
 
 # create variable to describe time as hour (between 0 and 23)
 y_long$hour <- sim_to_minute(y_long$time, group = wavelength)
@@ -300,9 +314,11 @@ To optimize computational time, we can reduce the number of rows in the dataset 
     group_by(id, hour) %>% 
     summarise(success = sum(y),
               n_events = n(),
-              failure = n_events - success) %>% 
+              failure = n_events - success
+              ) %>% 
     dplyr::rename(Site = id,
-                 Time = hour)
+                 Time = hour
+                 )
 
 # show first few rows of the dataset created
   knitr::kable(head(occasions_cbind))
@@ -323,7 +339,10 @@ cycl_rand_int_setup <- brms::brm(bf(success| trials(n_events)  ~ s(Time, bs = "c
                                    family = "binomial", 
                                    data = occasions_cbind, 
                                    knots = list(Time = c(0,23)),
-                                   cores = 1, seed = 17,chains=0)
+                                   cores = 1, 
+                                   seed = 17,
+                                   chains=0
+                                 )
 
 
 cycl_rand_int_setup_alt <- brms::brm(bf(success| trials(n_events)  ~ s(Time, bs = "cc", k = wavelength) +
@@ -332,36 +351,43 @@ cycl_rand_int_setup_alt <- brms::brm(bf(success| trials(n_events)  ~ s(Time, bs 
                                        family = "binomial", 
                                        data = occasions_cbind, 
                                        knots = list(Time = c(0,23)),
-                                       cores = 1, seed = 17,chains=0)
+                                       cores = 1, 
+                                       seed = 17,
+                                       chains=0
+                                       )
 
 
 # Now fit the model
-cycl_rand_int <- update(cycl_rand_int_setup, recompile = FALSE, 
-                          newdata = occasions_cbind,
-                          chains = 3)
+cycl_rand_int <- update(cycl_rand_int_setup, 
+                        recompile = FALSE, 
+                        newdata = occasions_cbind,
+                        chains = 3
+                        )
   
-cycl_rand_int_alt <- update(cycl_rand_int_setup_alt, recompile = FALSE, 
-                              newdata = occasions_cbind,
-                              chains = 3)
+cycl_rand_int_alt <- update(cycl_rand_int_setup_alt, 
+                            recompile = FALSE, 
+                            newdata = occasions_cbind,
+                            chains = 3
+                            )
 ```
 
 
 ### Model Asssemment 
 
-```{r fit.bayes.cc.4}
+```{r fit.bayes.cc.4, fig.cap="Bayesian MCMC diagnostics and plotting."}
 #Traceplots to check convergence
-mcmc_plot(cycl_rand_int, 
-            type = "trace")
-mcmc_plot(cycl_rand_int_alt, 
-            type = "trace")
+mcmc_plot(cycl_rand_int, type = "trace")
+mcmc_plot(cycl_rand_int_alt, type = "trace")
 
 # Look at the coefficients for the two models and note their equivalence (parameters displayed in different orders)
 mcmc_plot(cycl_rand_int, 
          type = "areas",
-         prob = 0.95)
+         prob = 0.95
+         )
 mcmc_plot(cycl_rand_int_alt, 
          type = "areas",
-         prob = 0.95)
+         prob = 0.95
+         )
   
   
 #Summary of outputs - coefficients are the same
@@ -374,22 +400,27 @@ summary(cycl_rand_int_alt)
 
 We use the first parameterization (with `s(Site, bs="re")`) to explore site-level variability in the activity patterns:
 
-```{r fit.bayes.cc.pred1}
+```{r fit.bayes.cc.pred1, fig.cap="Predicted probability of activity across sites."}
 # Predict the mean site-level activity pattern
-newdata <- data.frame(Time=0:23,Site = occasions_cbind$Site, n_events=1)
+newdata <- data.frame(Time=0:23,
+                      Site = occasions_cbind$Site, 
+                      n_events=1
+                      )
 preds <- fitted(cycl_rand_int,scale="response",newdata=newdata)
 preds <- data.frame(newdata,preds)
 head(preds)
 
 # Plot site level mean activity
-ggplot( aes(x=Time, y=Estimate, group=Site, color=Site), data=preds) +
-      geom_line()+theme_minimal() + theme(legend.position = "none")
+ggplot(aes(x=Time, y=Estimate, group=Site, color=Site), data=preds) +
+      geom_line() + 
+      theme_minimal() + 
+      theme(legend.position = "none")
 ```
 
 
 We can then approximate the marginal mean activity curve by averaging across the site-level variation.
 
-```{r fit.bayes.cc.pred2, class.source = 'fold-hide'}
+```{r fit.bayes.cc.pred2, class.source = 'fold-hide', fig.cap="Predicted probability of the marginal mean activity."}
 #Average across sites to get the marginal mean
 marginal.mean = aggregate(preds$Estimate, list(preds$Time), FUN=mean)
 marginal.lower = aggregate(preds$Q2.5, list(preds$Time), FUN=mean)
@@ -397,12 +428,14 @@ marginal.upper = aggregate(preds$Q97.5, list(preds$Time), FUN=mean)
 
 # Plot the marginal mean and compare it to the simulated true mean
 plot(marginal.mean$Group.1,marginal.mean$x,type="l",lwd=3,col=1,
-       ylim=c(0,0.25),xlab="Time",ylab="Probability of Activity")
+       ylim=c(0,0.25),xlab="Time",ylab="Probability of Activity"
+     )
 lines(marginal.lower$Group.1,marginal.lower$x)
 lines(marginal.upper$Group.1,marginal.upper$x)
 lines(dat$Marginal[,2],dat$Marginal[,1],lwd=3,col=2)
 legend("topright",lwd=c(3,1,1,3),col=c(1,1,1,2),
-         legend=c("Marginal Mean", "Lower Marginal Mean","Upper Marginal Mean", "True Marginal Mean"))
+         legend=c("Marginal Mean", "Lower Marginal Mean","Upper Marginal Mean", "True Marginal Mean")
+       )
 ```
 
 Next, we predict the conditional mean activity using the second parameterization (with `(1 | Site)`.  <!---Note, the first model structure with a random effect spline has no random effects according to `brms`. However, the second model structure does..
@@ -414,20 +447,27 @@ ranef(cycl_rand_int_alt)$Site[1:5,,]
  
 Because `brms` does not allow smooth terms, such as `s(Site, bs="re")`, to be omitted when predicting, we will use the second model to predict the conditional mean activity curve. --->
 
-```{r fit.bayes.cc.predict3, class.source = 'fold-hide'}
+```{r fit.bayes.cc.predict3, class.source = 'fold-hide', fig.cap="Predicted probability of the conditional mean activity."}
 # Predict the conditional mean activity
-newdata2 = data.frame(Time=0:23,n_events=1)
-preds2=fitted(cycl_rand_int_alt,scale="response", newdata=newdata2,re_formula = NA)
+newdata2 = data.frame(Time=0:23,
+                      n_events=1
+                      )
+preds2=fitted(cycl_rand_int_alt,scale="response", 
+              newdata=newdata2,
+              re_formula = NA
+              )
   
 preds2=data.frame(newdata2,preds2)
 head(preds2)
 
-# Plot the onditional mean and compare it to the simulated true mean
+# Plot the conditional mean and compare it to the simulated true mean
 plot(preds2$Time, preds2$Estimate,type="l",lwd=3,col=1,ylim=c(0,0.25),
-       xlab="Time",ylab="Probability of Activity")
+       xlab="Time",ylab="Probability of Activity"
+     )
 lines(preds2$Time,preds2$Q2.5)
 lines(preds2$Time,preds2$Q97.5)
 lines(dat$Conditional[,2],dat$Conditional[,1],lwd=3,col=2)
 legend("topright",lwd=c(3,1,1,3),col=c(1,1,1,2),
-         legend=c("Conditional Mean", "Lower Conditional Mean","Upper Conditional Mean", "True Conditional Mean"))
+         legend=c("Conditional Mean", "Lower Conditional Mean","Upper Conditional Mean", "True Conditional Mean")
+       )
 ```
