@@ -12,12 +12,12 @@ $$E[Y_{it} |\tau_i=0,\gamma_i=0] =  \frac{exp^{\beta_0 + \beta_1*cos(\frac{2\pi 
 
 where $\beta_0$, $\beta_1$, $\beta_2$, $\theta_0$, and $\theta_1$ corresponded to the parameter values used to simulate the data (see Section \@ref(est)).
 
-In addition, the *sim_activity* function returns the  'true' marginal mean activity pattern, which is formed by averaging activity patterns across sites. To determine marginal means, we have to integrate over the distribution of the random effects: 
+In addition, the `sim_activity` function returns the  'true' marginal mean activity pattern, which is formed by averaging activity patterns across sites. To determine marginal means, we have to integrate over the distribution of the random effects: 
 
 $$E[Y_{t}] =  \left[\int_{-\infty}^{\infty}\int_{-\infty}^{\infty} \frac{\exp^{\beta_0 + \beta_1cos(\frac{2\pi t}{24} + (\theta_0 + \gamma_i)) + \beta_2cos(\frac{2\pi t}{12} + (\theta_1 + \gamma_i))+ \tau_i}}{1+\exp^{\beta_0 + \beta_1cos(\frac{2\pi t}{24} + (\theta_0+\gamma_i)) + \beta_2cos(\frac{2\pi t}{12} + (\theta_1+\gamma_i))+ \tau_i}} \frac{\exp^{\frac{-\tau^{2}}{2\sigma_{\tau}^2}}}{\sqrt{2\pi}\sigma_{\tau}} \frac{\exp^{\frac{-\gamma^{2}}{2\sigma_{\gamma}^2}}}{\sqrt{2\pi}\sigma_{\gamma}} \; d\tau d\gamma\right]$$
-Because this integral has no closed-form solutions, the *sim_activity* function estimates the marginal mean curve using a simulation approach in which it randomly selects 100,000 sites and their associated values of $\tau_i$ and $\gamma_i$, determines site-specific activity patterns for these sites on the probability scale, and then averages these site-specific activity patterns at each of the 513 reference points $j$ between 0 and 24 hours.
+Because this set of integrals has no closed-form solution, we must use approximation methods to solve for $E[Y_t]$.  In chapter \@ref(var), we used the `integrate` function to approximate $E[Y_t]$. Alternatively, the `sim_activity` function estimates the marginal mean curve using a simulation approach in which it randomly selects 100,000 sites and their associated values of $\tau_i$ and $\gamma_i$, determines site-specific activity patterns for these sites on the probability scale, and then averages these site-specific activity patterns at each of the 513 reference points $j$ between 0 and 23 hours. 
 
-If we plot the estimated conditional and marginal mean activity curves (Figure \@ref(fig:condvsmarg1), we see that for this set of parameter values, the two means have a similar shape. However, marginal mean is higher than the conditional mean, suggesting a higher level of overall activity when measured at the population level compared to the activity level at a typical site.
+If we plot the estimated conditional and marginal mean activity curves (Figure \@ref(fig:condvsmarg1)), we see that for this set of parameter values, the two means have a similar shape. However, marginal mean is higher than the conditional mean, suggesting a higher level of overall activity when measured at the population level compared to the activity level at a typical site.
 
 (ref:condvsmargcap) Conditional activity pattern for a typical site (one with random effects $\tau_i = 0$ and $\gamma_i = 0$) and marginal mean activity pattern formed by averaging site-specific activity patterns across a population of sites. 
 ```{r condvsmarg1, message = FALSE, warnings = FALSE}
@@ -68,9 +68,6 @@ dat <- sim_activity(M = M,
 
 ## Estimating Conditional and Marginal Mean Activity Patterns
 
-<!---ASK JOHN IF EQ. IS correct for random intercept + slope
-
-JF:  I'm not sure which equation you are referring to, but I think both are now correct.--->
 
 Before fitting models, we need to prepare the data. We will use the code from Section \@ref(est) to aggregate the data by site, resulting in a data set with the following variables:
 
@@ -130,9 +127,9 @@ trig_rand_slope <- mixed_model(fixed = cbind(success, failure) ~
 summary(trig_rand_slope)
 ```      
 
-In all the applications so far, we explored the model results using the predicted conditional mean activity patterns. We calculated these patterns using the function *effectPlotData*, which is included in the GLMMadaptive package, and setting the argument *marginal* as equal *FALSE*. We do the same here. The conditional mean can be easily estimated using other packages available in R to fit GLMMs by setting the random effect equal to 0 and then predict the activity pattern over the 24-hour cycle.
+In all the applications so far, we explored the model results using the predicted conditional mean activity patterns. We calculated these patterns using the function `effectPlotData`, which is included in the `GLMMadaptive` package, and setting the argument `marginal` as equal `FALSE`. We do the same here. The conditional mean can be easily estimated using other packages available in R to fit GLMMs by setting the random effect equal to 0 and then predict the activity pattern over the 24-hour cycle. For example, we can use the `predict` function with the argument `re.form = NA` to obtain conditional means when models are fit using the `glmer` function in the `lme4` package [@lme4].
 
-To our knoweldge, GLMMadaptive is the only package that allows the estimate of marginal means. To calculate the predicted marginal mean activity pattern, we only need to change from *marginal = FALSE* to *marginal = TRUE* in the *effectPlotData* function. 
+We can estimate marginal means using numerical integration (as done in chapter \@ref(var)), simulation, or using various approximation methods [see e.g., section 19.2 of @fieberg2024]. The primary reason we will explore `mixed_model` in the `GLMMadaptive` package  is because it will do the hard work for us. To calculate the predicted marginal mean activity pattern, we only need to change the argument `marginal` from `FALSE` to `TRUE` in the `effectPlotData` function. 
 
 ```{r condvsmarg4}
 newdat <- with(occasions_cbind, expand.grid(Time = seq(min(Time), 24, length.out = 48)))
@@ -151,7 +148,8 @@ marg_eff <- effectPlotData(trig_rand_slope, newdat, marginal = TRUE) %>%
          Mean = "Marginal")
 ```
 
-It is also possible to calculate both means using the estimated coefficients extracted directly from the fitted model. In this case, we can obtain estimates of the marginal coefficients that approximate the curve formed by integrating over the random effects using the *marginal_coefs* function in the GLMMadaptive packages, which uses a numerical approximation based on an adaptive Gauss-Hermite quadrature rule (@Hedeker_ea_2018) to calculate these values. From the parameter estimates, we can calculated the predicted conditional and marginal activity curves using the appropriate coefficient values along with the following equation:
+It is also possible to calculate both means using the estimated coefficients extracted directly from the fitted model. In this case, we can obtain estimates of the marginal coefficients that approximate the curve formed by integrating over the random effects using the `marginal_coefs` function in the GLMMadaptive packages, which uses a numerical approximation based on an adaptive Gauss-Hermite quadrature rule [@Hedeker_ea_2018] to calculate these values. From the parameter estimates, we can calculate the predicted conditional and marginal activity curves using the appropriate coefficient values along with the following equation:
+
 $$
 logit(p_t) = \hat{\beta_0} + \hat{\alpha_1}*cos(\frac{2\pi t}{24}) + \hat{\alpha_2}*sin(\frac{2\pi t}{24}) + \hat{\alpha_3}*cos(\frac{2\pi t}{12}) + \hat{\alpha_4}*sin(\frac{2\pi t}{12})
 $$
@@ -238,10 +236,7 @@ ggplot(res, aes(x = Time, y= pred, col = Method)) +
       
 ```
 
-The mean activity patterns returned by the *effectDataPlot* function and by the manual calculation match perfectly and both track closely the true, simulated conditional and marginal activity curves. The choice of which of the two predictive methods to use depends on the complexity of the fitted model. The *effectDataPlot* function can require long times to return a prediction when a random slope is included.
+The mean activity patterns returned by the `effectDataPlot` function and by the manual calculation match perfectly and both closely track the true, simulated conditional and marginal activity curves. The choice of which of the two predictive methods to use depends on the complexity of the fitted model. The `effectDataPlot` function can require long times to return a prediction when a random slope is included.
 
-We can estimate conditional and marginal activity patterns also when fitting **cyclic cubic spline GLMMs**.
-
-## ADD briefly, HOW TO DO THE SAME FOR CYCLIC AND KDEs JRF: This could be done in a separate “tutorial” that just demonstrates the approach to estimating marginal curves from fitted glmms similar to the chapter here: https://fw8051statistics4ecologists.netlify.app/glmm.html#glmminterp
 
 
