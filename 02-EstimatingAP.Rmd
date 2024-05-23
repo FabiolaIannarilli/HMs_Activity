@@ -117,7 +117,7 @@ sample_sites <- as.data.frame(sample_sites) %>%
 
 ```
 
-We see there is considerable variability in the frequency of use among the different sites and relatively smaller variation in timing of peak activity within the 24-hour cycle.
+We see there is considerable variability in the frequency of use among the different sites and relatively smaller variation in timing of activity within the 24-hour cycle.
 
 To create Figure 1 in @Iannarilliea2024, we bring together this plot and the two produced in the previous chapter.
 
@@ -259,9 +259,9 @@ cond_eff <- rbind(cond_true, cond_eff0)
 
 ```
 
-The estimated activity pattern from the random intercept-only trigonometric GLMM (in blue)  closely resembles the simulated conditional probability (in red) even though we ignored site-to-site variability in the timing of peak activity.
+The estimated activity pattern from the random intercept-only trigonometric GLMM (in blue)  closely resembles the simulated conditional probability (in red) even though we ignored site-to-site variability in the timing of activity.
 
-To allow site-to-site variability in the timing of peak activity, we can add random slopes to the model. The choice of the structure of the random slope effect is not trivial; we can include only parameters linked to the first cosine term in equation 1 (i.e. first two terms in equation 2), only terms for the second cosine term in equation 2 (i.e. third and forth terms in equation 2) or both. When possible, based on computational time and the information contained in the data, we recommend to include all the terms and allow for the random intercept to vary independently of the random slope^[By allowing these terms to vary independently, we eliminate the need to estimate several covariance terms, which may be difficult with small numbers of sites]. In `GLMMadaptive`, we ensure this independence by using the syntax \|\| when specifying the random effect component of the model. In Table 2 in @Iannarilliea2024, we provide guidance on the code syntax needed to run the equivalent model and the other models presented throughout the tutorial with other R packages.
+To allow site-to-site variability in the timing of activity, we can add random slopes to the model. The choice of the structure of the random slope effect is not trivial; we can include only parameters linked to the first cosine term in equation 1 (i.e. first two terms in equation 2), only terms for the second cosine term in equation 2 (i.e. third and forth terms in equation 2) or both. When possible, based on computational time and the information contained in the data, we recommend to include all the terms and allow for the random intercept to vary independently of the random slope^[By allowing these terms to vary independently, we eliminate the need to estimate several covariance terms, which may be difficult with small numbers of sites]. In `GLMMadaptive`, we ensure this independence by using the syntax \|\| when specifying the random effect component of the model. In Table 2 in @Iannarilliea2024, we provide guidance on the code syntax needed to run the equivalent model and the other models presented throughout the tutorial with other R packages.
 
 ```{r est8, cache=TRUE, cache.path="cache/"}
 # run model
@@ -302,7 +302,7 @@ cond_true <- dat$Conditional %>%
 cond_eff <- rbind(cond_true, cond_eff1)
 ```
 
-```{r, class.source = "fold-hide", fig.cap="Comparison of simulated and estimated probability of activity conditional mean curve with variability in the frequency of site-use and timing of peak activity from a trigonometric hierarchical model; shading corresponds to 95% confidence intervals."}
+```{r, class.source = "fold-hide", fig.cap="Comparison of simulated and estimated probability of activity conditional mean curve with variability in the frequency of site-use and timing of activity from a trigonometric hierarchical model; shading corresponds to 95% confidence intervals."}
 
 # plot
 (pl_trig2 <- ggplot(cond_eff, aes(Time, pred)) +
@@ -335,7 +335,7 @@ cond_eff <- rbind(cond_true, cond_eff1)
 
 ```
 
-Again, the estimated activity curve closely matches the true activity that was used to generate the data. In this case, adding a random slope improved the estimates only marginally. This will often by the case when there is only a low level of variation in the timing of peak activity across sites [@Iannarilli2020], as occurs in the data we simulated. In section \@ref(cat), we consider an example in which modelling variability in the timing of activity peaks reveals interesting site-to-site differences in activity patterns.  
+Again, the estimated activity curve closely matches the true activity that was used to generate the data. In this case, adding a random slope improved the estimates only marginally. This will often by the case when there is only a low level of variation in the timing of activity across sites [@Iannarilli2020], as occurs in the data we simulated. In section \@ref(cat), we consider an example in which modelling variability in the timing of activity peaks reveals interesting site-to-site differences in activity patterns.  
 
 ## Cyclic cubic spline HGAMs
 
@@ -403,9 +403,9 @@ cond_eff <- rbind(cond_true, cycl_pred)
   
 ```
 
-This model corresponds, in general terms, to the trigonometric random intercept-only model we ran earlier.  Thus, it only accommodates variability in the frequency of site use and not in the timing of activity peaks. The model again captures the general shape of the simulated conditional mean activity curve. <!---, but the mean activity estimated for the first peak is quite low compared to the simulated pattern. JF - I don't see this; BDG- also not seeing this--->
+This model corresponds, in general terms, to the trigonometric random intercept-only model we ran earlier.  Thus, it only accommodates variability in the frequency of site use and not in the timing of activity peaks. The model again captures the general shape of the simulated conditional mean activity curve. 
 
-We can add complexity and include a smoother that shrinks the site-specific estimates toward a common smooth. This model structure resembles the random slope component in trigonometric random intercept and random slope models and allows the site-specific estimates to vary also in the timing of activity peak. In *mgcv*, there is no need to explicitly force the independence between the random intercept and the random slope (as done before for the trigonometric HMs) because there is no covariance term between two random effects.
+We can add complexity and include a smoother that shrinks the site-specific estimates toward a common smooth. This model structure resembles the random slope component in trigonometric random intercept and random slope models and allows the site-specific estimates to vary also in the timing of activity peak. In `mgcv`, there is no need to explicitly force the independence between the random intercept and the random slope (as done before for the trigonometric HMs) because there is no covariance term between two random effects.
 
 ```{r est11, cache=TRUE, cache.path="cache/"}
 # Fit model with general smoother for Time
@@ -443,7 +443,7 @@ cycl_pred <- newdat  %>%
 cond_eff <- rbind(cond_true, cycl_pred)
 ```
 
-```{r est11b, class.source = "fold-hide", fig.cap="Comparison of simulated and HGAM estimated probability of activity conditional mean curves with variability in the frequency of site-use and timing of peak activity; shading corresponds to 95% confidence intervals."}
+```{r est11b, class.source = "fold-hide", fig.cap="Comparison of simulated and HGAM estimated probability of activity conditional mean curves with variability in the frequency of site-use and timing of activity; shading corresponds to 95% confidence intervals."}
 # plot
 (pl_cycl2 <- ggplot(cond_eff, aes(Time, pred)) +
   geom_ribbon(aes(ymin = low, ymax = upp, color = Mod, fill = Mod), alpha = 0.3, linewidth = 0.25) + #
@@ -473,6 +473,6 @@ cond_eff <- rbind(cond_true, cycl_pred)
   
 ```
 
-Adding a component that allows for variability in timing of peak activity seems to improve the model fit and provides an estimated activity pattern that more closely resembles the one used to simulated the data.
+Adding a component that allows for variability in timing of activity seems to improve the model fit and provides an estimated activity pattern that more closely resembles the one used to simulated the data.
 
 **Going forward**. Throughout the tutorial, we fit trigonometric GLMMs using a binomial distribution (`family = "binomial"` in the code); however, we can run these models also using a Poisson distribution with a few adjustments to data and model structures. We report an example in chapter \@ref(poisson). When working with large datasets, using a Poisson distribution might result in lower computational times.  
