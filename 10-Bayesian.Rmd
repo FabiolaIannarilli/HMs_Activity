@@ -438,7 +438,7 @@ legend("topright",lwd=c(3,1,1,3),col=c(1,1,1,2),
        )
 ```
 
-Next, we predict the conditional mean activity using the second parameterization (with `(1 | Site)`.  <!---Note, the first model structure with a random effect spline has no random effects according to `brms`. However, the second model structure does..
+Next, we predict the conditional mean activity using the second parameterization (with `(1 | Site)`).  <!---Note, the first model structure with a random effect spline has no random effects according to `brms`. However, the second model structure does..
 
 ```{r fit.bayes.cc.note, error=TRUE}
 ranef(cycl_rand_int)
