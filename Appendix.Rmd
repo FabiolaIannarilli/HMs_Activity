@@ -147,7 +147,8 @@ library(mgcv)
 library(ggpubr)
 
 # Load data
-occasions_cbind <- read.csv("data_output/occasions_cbind_Ursus_americanus_seasons.csv")
+occasions_cbind <- read.csv("data_output/occasions_cbind_Ursus_americanus_seasons.csv") %>% 
+  mutate(Site = as.factor(Site))
 
 #Subset the data to the Fall data only, thus removing Spring data.
 y_fall <-  occasions_cbind[which(occasions_cbind$Season == "F"),]
@@ -255,8 +256,8 @@ Now, let's do the same comparison when fitting models in a generalized additive 
 # Fit binomial model
 mod_cycl <- bam(cbind(success, failure) ~ 
                    s(Time, bs = "cc", k = 12) + 
-                   s(Site, bs="re"), 
-                 knots = list(Time=c(0,23)),
+                   s(Site, bs = "re"), 
+                 knots = list(Time = c(0,23)),
                  family = "binomial", 
                  data = y_fall)
 
@@ -274,8 +275,8 @@ cycl_pred <- data.frame(cycl_pred)
 #Fit Poisson model
 mod_cycl_P <- bam(success ~ 
                    s(Time, bs = "cc", k = 12) + 
-                   s(Site, bs="re") + offset(log(total)), 
-                 knots = list(Time=c(0,23)),
+                   s(Site, bs = "re") + offset(log(total)), 
+                 knots = list(Time = c(0,23)),
                  family = "poisson", 
                  data = y_fall)
 
@@ -398,7 +399,58 @@ Here, we use simulated data to illustrate how to fit Bayesian versions of the cy
 
 ### Data Preparation
 
-The first step is to rearrange the specific format of the data created by the `sim_activity` function (see also chapter \@ref(est4)). We access the encounter data and store them in an object called `y`, which has a number of rows equal to the number of simulated sites and a number of columns equal to 24 (hours) times the length (in days) of the simulated sampling period (e.g. 24 hour * 30 days = 720 encounter occasions). We add a column which contains a unique identifier for each site (e.g. `id = A1`) and assign a name to each column that represents the time occasion (e.g. from 1 to 720), then convert the data in long format using the `id` column as reference.
+We simulate data using the same approach and the same parameters presented in chapter \@ref(est). As such, the simulated data are generated from the same 'true' activity patterns. 
+
+``` {r bay1, message = FALSE, warnings = FALSE}
+# Load libraries and function to simulate activity patterns
+rm(list = ls())
+set.seed(129)
+library(dplyr)
+library(nimble)
+library(tidyr)
+library(brms)
+source("source_functions/sim_activity.R")
+source("source_functions/sim_to_minute.R")
+
+# Set equations' parameters
+M = 100 # The number of sites
+J = 30 # the number of binomial trials
+wavelength = 24 # 24 hour period
+n_peak = 2 # number of activity peaks
+b0 = -3
+b1 = 1 
+b2 = 0.7
+theta0 = 3
+theta1 = 2 
+sd_tau = 1
+sd_gamma = 0.3
+time <- seq(0, wavelength, wavelength/512)
+
+dat <- sim_activity(M = M, 
+                   J = J,  
+                   wavelength = wavelength, 
+                   n_peak = n_peak, 
+                   n_sim = 1,  #number of simulated datasets
+                   b0 = -3, 
+                   b0_constant = TRUE, # common intercept
+                   tau_constant = FALSE, 
+                   sdtau = sd_tau, # ~site-specific intercept
+                   b1 = b1, 
+                   b2 = b2, # amplitude of the cosine terms 
+                   theta0 = theta0, 
+                   theta1 = theta1, # common phaseshifts for the cosine terms
+                   phaseshift_constant = FALSE, 
+                   sd_phaseshift = sd_gamma, # site-specific phaseshift (equal for both cosine terms)
+                   plot_true_act = TRUE
+                   )
+
+# The data
+sim_data <- as.data.frame(dat$sim_data)
+dim(sim_data)
+
+```
+
+The first step is to rearrange the specific format of the data created by the `sim_activity` function (see also chapter \@ref(est)). We access the encounter data and store them in an object called `y`, which has a number of rows equal to the number of simulated sites and a number of columns equal to 24 (hours) times the length (in days) of the simulated sampling period (e.g. 24 hour * 30 days = 720 encounter occasions). We add a column which contains a unique identifier for each site (e.g. `id = A1`) and assign a name to each column that represents the time occasion (e.g. from 1 to 720), then convert the data in long format using the `id` column as reference.
 
 ```{r data.prep.bayes.cc.1}
 # The data
@@ -428,7 +480,7 @@ knitr::kable(head(y_long))
 
 We obtain a data set in which each row specifies the outcome (i.e. encounter or non-encounter of the target species) at a certain site during a specific hour of a certain day of sampling.
 
-To optimize computational time, we can reduce the number of rows in the dataset by counting the number of hour-long occasions in which the species was observed (i.e. successes) and the number of occasion in which the species was not observed (i.e. failures) for each hourly time interval and camera site (see also \@ref(est5)).
+To optimize computational time, we can reduce the number of rows in the dataset by counting the number of hour-long occasions in which the species was observed (i.e. successes) and the number of occasion in which the species was not observed (i.e. failures) for each hourly time interval and camera site (see also \@ref(est)).
 
 ```{r data.prep.bayes.cc.2, message = FALSE, warnings = FALSE}
 # count successes and failures at each site-occasion
@@ -448,7 +500,7 @@ To optimize computational time, we can reduce the number of rows in the dataset 
 
 ### Model Setup and Fitting
 
-We are now ready to setup the Bayesian cyclic cubic spline model using  code similar to that shown in Chapter \@ref(est10). However, here we wrap our code in the `brm` function from the package `brms` [@brms]. We also need to change our notation slightly to specify the number of successes and the number of trials using `success| trials(n_events)`. <!---From the `brms` R package vignette, "cbind() syntax will not work in `brms` in the expected way because this syntax is reserved for other purposes."---> Note that below, we only consider random intercepts, but we could also include random slopes by adding `s(Time, Site, bs="re")`.
+We are now ready to setup the Bayesian cyclic cubic spline model using  code similar to that shown in chapter \@ref(est). However, here we wrap our code in the `brm` function from the package `brms` [@brms]. We also need to change our notation slightly to specify the number of successes and the number of trials using `success| trials(n_events)`. <!---From the `brms` R package vignette, "cbind() syntax will not work in `brms` in the expected way because this syntax is reserved for other purposes."---> Note that below, we only consider random intercepts, but we could also include random slopes by adding `s(Time, Site, bs="re")`.
 
 The random intercept can be specified in one of two ways, `s(Site, bs="re")` or `(1 | Site)`. Note that `brms` functions do not allow excluding smooth terms, such as `s(Site, bs="re")` when making predictions ([see here](https://discourse.mc-stan.org/t/excluding-a-smooth-term-in-brms-using-posterior-linpred/10960/4)), so the latter approach is necessary if we want to estimate the conditional mean for a typical site. We compare these two approaches, below.
 
@@ -494,9 +546,9 @@ cycl_rand_int_alt <- update(cycl_rand_int_setup_alt,
 ```
 
 
-### Model Asssemment 
+### Model Assessment 
 
-For Bayesian models, we need to investigate parameter posterior distributions to evaluate whether there is evidence they have converged and thus are reliable to be used for inference. There are plenty of ways to conduct MCMC diagnostics (e.g.,\ref{roy2020convergence}). A good first step, is to simply visualize the posterior distributions as 'traceplots' and 'density plots' for each chain (independent model fit) to evaluate whether 1) different chains for each parameter are largely the same (plotted on top of each other), and 2) there is good 'mixing' within chain for each parameter. Mixing refers to the process of how the MCMC explores the parameter space to 'fill out' the full posterior distribution; good mixing can generally be assessed visually where the traceplot looks like a 'hairy caterpillar' and density plots look smooth. For a simple introduction see Denis Valle's [How do I tell if my MCMC has converged?](https://drvalle1.github.io/20_MCMC_convergence.html) and for additional details, see [MCMC diagnostics](https://sbfnk.github.io/mfiidd/mcmc_diagnostics.html).
+For Bayesian models, we need to investigate parameter posterior distributions to evaluate whether there is evidence they have converged and thus are reliable to be used for inference. There are plenty of ways to conduct MCMC diagnostics (e.g.,@roy2020convergence). A good first step, is to simply visualize the posterior distributions as 'traceplots' and 'density plots' for each chain (independent model fit) to evaluate whether 1) different chains for each parameter are largely the same (plotted on top of each other), and 2) there is good 'mixing' within chain for each parameter. Mixing refers to the process of how the MCMC explores the parameter space to 'fill out' the full posterior distribution; good mixing can generally be assessed visually where the traceplot looks like a 'hairy caterpillar' and density plots look smooth. For a simple introduction see Denis Valle's [How do I tell if my MCMC has converged?](https://drvalle1.github.io/20_MCMC_convergence.html) and for additional details, see [MCMC diagnostics](https://sbfnk.github.io/mfiidd/mcmc_diagnostics.html).
 
 ```{r fit.bayes.cc.4, fig.cap="Bayesian MCMC diagnostics and plotting."}
 #Traceplots to check convergence
@@ -617,7 +669,8 @@ library(Diel.Niche)
 library(ggplot2)
 
 # Load data
-occasions_cbind <- read.csv("data_output/occasions_cbind_Ursus_americanus_seasons.csv")
+occasions_cbind <- read.csv("data_output/occasions_cbind_Ursus_americanus_seasons.csv")%>% 
+  mutate(Site = as.factor(Site))
 
 #Subset the data to the Spring data only, thus removing Fall data.
 y_spring <-  occasions_cbind[which(occasions_cbind$Season == "S"),]
