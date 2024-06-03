@@ -1,6 +1,6 @@
 # Appendix {#app}
 
-## The *sim_activity* function {#sim_function}
+## The *sim_activity* function {#simfunction}
 
 Throughout the tutorial we use the `sim_activity` function for simulating activity patterns. This function simulate realized activity patterns based on a 'true' activity pattern distribution density build as specified in equation 1 reported in chapter \@ref(var) and introduced in @Iannarilliea2024. The arguments of the function specify the following:
 
@@ -650,7 +650,7 @@ legend("topright",lwd=c(3,1,1,3),col=c(1,1,1,2),
  
 
 
-## Link to the Diel.Niche package {#Diel.Niche}
+## Link to the Diel.Niche package {#DielNiche}
 
 In the ecology and evolution literature, animal activity is often discussed in terms of diel classifications or phenotypes, such as diurnal, nocturnal, crepuscular, or cathemeral. But, how much activity in what time period does it mean to be diurnal, nocturnal, etc.? To make comparable inference across studies, we should define these diel phenotypes mathematically so that we can make inference based on consistent definitions and thus make appropriate comparisons across species or projects. We can use the [`Diel.Niche` R package](https://github.com/diel-project/Diel-Niche-Modeling/) to do exactly this. First, we use our data to estimate animal diel activity across the 24-hour period and then second, we can classify predicted activity patterns into the corresponding diel phenotype. Here, we demonstrate this approach using a hierarchical cyclic cubic spline model, but the process is the same for any model predicting 24-hr temporal activity.
 
