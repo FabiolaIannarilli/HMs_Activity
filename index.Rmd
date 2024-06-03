@@ -39,11 +39,10 @@ All analyses presented in the following chapters were performed in @R-base. The 
 
 Throughout this tutorial, we use several packages. Users interested in compiling the tutorial from source or in reproducing the analysis on their own machine should install these packages. The code below provides a list of all the libraries needed, checks if they are already installed in the user's local machine, and installs those packages that are not.
 
-<!--- Changed to eval = FALSE to avoid actually running this code ;) --->
 ``` {r preface1, eval=FALSE}
 list.of.packages <- c("dplyr", "grid", "gridExtra", "GLMMadaptive", "ggpubr", "mgcv", 
                       "tidyr", "lubridate", "lmtest", "activity", "overlap", "circular", 
-                      "nimble", "brms", "forcats", "MESS"
+                      "nimble", "brms", "forcats", "MESS", "grateful"
                       )
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)>0) install.packages(new.packages)
