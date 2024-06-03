@@ -133,7 +133,7 @@ Below, we demonstrate the equivalence between using the binomial and Poisson pro
 
 ### Data preparation
 
-We use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021]. We will use the same data records of American black bear (*Ursus americanus*) as done in the chapter \@ref(cat). However, we will ignore the season covariate for simplicity and just focus on modeling the fall data. 
+We use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021]. We will use the same data records of American black bear (*Ursus americanus*) as done in the chapter \@ref(cat). However, we will ignore the season covariate for simplicity and just focus on modeling the fall data. We first load the `occasions_cbind` object that we saved in the chapter \@ref(cat), then subset the data to only include records related to the Fall season.
 
 
 ```{r pdf1, message = TRUE, warnings = TRUE}
@@ -147,53 +147,7 @@ library(mgcv)
 library(ggpubr)
 
 # Load data
-dat <- read.csv("data_input/species_records.csv") %>% 
-  filter(Species == "BlackBear") %>% droplevels() %>% 
-  mutate(DateTimeOriginal = ymd_hms(DateTimeOriginal))
-cov <- read.csv("data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv", as.is = TRUE) %>% 
-  mutate(Date_setup = mdy(Date_setup),
-         Date_retr = mdy(Date_retr),
-         Problem1_from = mdy(Problem1_from),
-         Problem1_to = mdy(Problem1_to)) 
-
-# Merge time of deployment and retrieval + problems
-site <- cov
-site$end <- ymd("2000-01-01")
-for(i in 1:nrow(site)){
-  site$end[i] <-  min(site$Date_retr[i], site$Problem1_from[i], na.rm = TRUE)
-}
-
-# Create dataframe to store captures 
-occasions <- vector("list", length = nrow(site))
-for(i in 1:nrow(site)){
-  occasions[[i]] <- data.frame(Session = site$Session[i],
-                               Site = site$Site[i],
-                               start = seq(from = ymd_hms(paste(site$Date_setup[i], "00:00:00", sep = " ")), 
-                                           to = ymd_hms(paste(site$end[i], "23:59:59", sep = " ")), by = '60 min')) %>% 
-    mutate(end = c(start[2:length(start)], start[length(start)]+minutes(60))) 
-}
-occasions <- do.call(rbind.data.frame, occasions)
-occasions$capt <- 0
-
-# Store captures
-for(i in 1:nrow(dat)){
-  occasions[occasions$Session == as.character(dat$Session[i]) &
-              occasions$Site == as.character(dat$Station[i]) &
-              occasions$start <= dat$DateTimeOriginal[i] &
-              occasions$end > dat$DateTimeOriginal[i], "capt"] <- 1
-}
-
-# Format data 
-occasions$Time <- hour(occasions$start)
-occasions$Season <- as.factor(substr(occasions$Session, 1, 1))
-table(occasions$Season, occasions$capt)
-occasions$Site <- as.factor(occasions$Site)
-
-# format data for cbind(success, failure)
-occasions_cbind <- occasions %>% 
-  group_by(Site, Time, Season) %>% 
-  summarize(success = sum(capt),
-            failure = n() - success)
+occasions_cbind <- read.csv("data_output/occasions_cbind_Ursus_americanus_seasons.csv")
 
 #Subset the data to the Fall data only, thus removing Spring data.
 y_fall <-  occasions_cbind[which(occasions_cbind$Season == "F"),]
@@ -436,9 +390,212 @@ pl_cycle1_P2 <- ggplot(cycl_pred_P2, aes(Time, plogis(fit))) +
 ggarrange(pl_cycle1_P, pl_cycle1_P2)
 ```
 
-We can see that the activity curves have the same shape, but the magnitude on the y-axis is different. Using the offset allows us to better represent animal activity in terms of when they are active and not active. <!---, similar to how some studies compare animal activity as detection rates across sites as the number of detections per site divided by the number of days the site was sampled; this measure is some times refereed to as a relative abundance index (RAI). 
+We can see that the activity curves have the same shape, but the magnitude on the y-axis is different. Using the offset allows us to better represent animal activity in terms of when they are active and not active. 
 
-If you add the above text, then I would add a citation for RAI --->
+## Activity patterns in the Bayesian framework {#bay}
+
+Here, we use simulated data to illustrate how to fit Bayesian versions of the cyclic cubic spline hierarchical models. In particular, we will briefly demonstrate how the `brms` package [@brms] can be used to fit an HGAM with random-intercepts.
+
+### Data Preparation
+
+The first step is to rearrange the specific format of the data created by the `sim_activity` function (see also chapter \@ref(est4)). We access the encounter data and store them in an object called `y`, which has a number of rows equal to the number of simulated sites and a number of columns equal to 24 (hours) times the length (in days) of the simulated sampling period (e.g. 24 hour * 30 days = 720 encounter occasions). We add a column which contains a unique identifier for each site (e.g. `id = A1`) and assign a name to each column that represents the time occasion (e.g. from 1 to 720), then convert the data in long format using the `id` column as reference.
+
+```{r data.prep.bayes.cc.1}
+# The data
+y <- as.data.frame(dat$sim_data)
+dim(y)
+
+# summarize aggregated data
+y <- data.frame(id=paste("A", seq(1,M,1), sep=""), 
+                y=as.data.frame(y)
+                )
+colnames(y) <- c("id", 
+                 paste0("S", seq(1, ncol(y)-1, 1), sep="")
+                 )
+
+# Format data in long format
+y_long <- pivot_longer(data = y, cols = -id, names_to = "time", values_to = "y") %>%
+                mutate(time=as.numeric(substr(time,2,10)),
+                       id = factor(id)
+                       )
+
+# create variable to describe time as hour (between 0 and 23)
+y_long$hour <- sim_to_minute(y_long$time, group = wavelength)
+
+# show first few rows of the dataset created
+knitr::kable(head(y_long))
+```
+
+We obtain a data set in which each row specifies the outcome (i.e. encounter or non-encounter of the target species) at a certain site during a specific hour of a certain day of sampling.
+
+To optimize computational time, we can reduce the number of rows in the dataset by counting the number of hour-long occasions in which the species was observed (i.e. successes) and the number of occasion in which the species was not observed (i.e. failures) for each hourly time interval and camera site (see also \@ref(est5)).
+
+```{r data.prep.bayes.cc.2, message = FALSE, warnings = FALSE}
+# count successes and failures at each site-occasion
+  occasions_cbind <- y_long %>% 
+    group_by(id, hour) %>% 
+    summarise(success = sum(y),
+              n_events = n(),
+              failure = n_events - success
+              ) %>% 
+    dplyr::rename(Site = id,
+                 Time = hour
+                 )
+
+# show first few rows of the dataset created
+  knitr::kable(head(occasions_cbind))
+```
+
+### Model Setup and Fitting
+
+We are now ready to setup the Bayesian cyclic cubic spline model using  code similar to that shown in Chapter \@ref(est10). However, here we wrap our code in the `brm` function from the package `brms` [@brms]. We also need to change our notation slightly to specify the number of successes and the number of trials using `success| trials(n_events)`. <!---From the `brms` R package vignette, "cbind() syntax will not work in `brms` in the expected way because this syntax is reserved for other purposes."---> Note that below, we only consider random intercepts, but we could also include random slopes by adding `s(Time, Site, bs="re")`.
+
+The random intercept can be specified in one of two ways, `s(Site, bs="re")` or `(1 | Site)`. Note that `brms` functions do not allow excluding smooth terms, such as `s(Site, bs="re")` when making predictions ([see here](https://discourse.mc-stan.org/t/excluding-a-smooth-term-in-brms-using-posterior-linpred/10960/4)), so the latter approach is necessary if we want to estimate the conditional mean for a typical site. We compare these two approaches, below.
+
+
+```{r fit.bayes.cc.3, cache=TRUE, cache.path="cache/", eval=TRUE, echo=TRUE}
+# Setup the model but do not fit it (i.e., chains = 0)
+cycl_rand_int_setup <- brms::brm(bf(success| trials(n_events)  ~ s(Time, bs = "cc", k = wavelength) +
+                                          s(Site, bs="re")
+                                   ),
+                                   family = "binomial", 
+                                   data = occasions_cbind, 
+                                   knots = list(Time = c(0,23)),
+                                   cores = 1, 
+                                   seed = 17,
+                                   chains=0
+                                 )
+
+
+cycl_rand_int_setup_alt <- brms::brm(bf(success| trials(n_events)  ~ s(Time, bs = "cc", k = wavelength) +
+                                          (1|Site)
+                                       ),
+                                       family = "binomial", 
+                                       data = occasions_cbind, 
+                                       knots = list(Time = c(0,23)),
+                                       cores = 1, 
+                                       seed = 17,
+                                       chains=0
+                                       )
+
+
+# Now fit the model
+cycl_rand_int <- update(cycl_rand_int_setup, 
+                        recompile = FALSE, 
+                        newdata = occasions_cbind,
+                        chains = 3
+                        )
+  
+cycl_rand_int_alt <- update(cycl_rand_int_setup_alt, 
+                            recompile = FALSE, 
+                            newdata = occasions_cbind,
+                            chains = 3
+                            )
+```
+
+
+### Model Asssemment 
+
+For Bayesian models, we need to investigate parameter posterior distributions to evaluate whether there is evidence they have converged and thus are reliable to be used for inference. There are plenty of ways to conduct MCMC diagnostics (e.g.,\ref{roy2020convergence}). A good first step, is to simply visualize the posterior distributions as 'traceplots' and 'density plots' for each chain (independent model fit) to evaluate whether 1) different chains for each parameter are largely the same (plotted on top of each other), and 2) there is good 'mixing' within chain for each parameter. Mixing refers to the process of how the MCMC explores the parameter space to 'fill out' the full posterior distribution; good mixing can generally be assessed visually where the traceplot looks like a 'hairy caterpillar' and density plots look smooth. For a simple introduction see Denis Valle's [How do I tell if my MCMC has converged?](https://drvalle1.github.io/20_MCMC_convergence.html) and for additional details, see [MCMC diagnostics](https://sbfnk.github.io/mfiidd/mcmc_diagnostics.html).
+
+```{r fit.bayes.cc.4, fig.cap="Bayesian MCMC diagnostics and plotting."}
+#Traceplots to check convergence
+mcmc_plot(cycl_rand_int, type = "trace")
+mcmc_plot(cycl_rand_int_alt, type = "trace")
+
+# Look at the coefficients for the two models and note their equivalence (parameters displayed in different orders)
+mcmc_plot(cycl_rand_int, 
+         type = "areas",
+         prob = 0.95
+         )
+mcmc_plot(cycl_rand_int_alt, 
+         type = "areas",
+         prob = 0.95
+         )
+  
+  
+#Summary of outputs - coefficients are the same
+summary(cycl_rand_int)
+summary(cycl_rand_int_alt)
+
+```
+
+### Model Predictions
+
+We use the first parameterization (with `s(Site, bs="re")`) to explore site-level variability in the activity patterns:
+
+```{r fit.bayes.cc.pred1, fig.cap="Predicted probability of activity across sites."}
+# Predict the mean site-level activity pattern
+newdata <- data.frame(Time=0:23,
+                      Site = occasions_cbind$Site, 
+                      n_events=1
+                      )
+preds <- fitted(cycl_rand_int,scale="response",newdata=newdata)
+preds <- data.frame(newdata,preds)
+head(preds)
+
+# Plot site level mean activity
+ggplot(aes(x=Time, y=Estimate, group=Site, color=Site), data=preds) +
+      geom_line() + 
+      theme_minimal() + 
+      theme(legend.position = "none")
+```
+
+
+We can then approximate the marginal mean activity curve by averaging across the site-level variation.
+
+```{r fit.bayes.cc.pred2, class.source = 'fold-hide', fig.cap="Predicted probability of the marginal mean activity."}
+#Average across sites to get the marginal mean
+marginal.mean = aggregate(preds$Estimate, list(preds$Time), FUN=mean)
+marginal.lower = aggregate(preds$Q2.5, list(preds$Time), FUN=mean)
+marginal.upper = aggregate(preds$Q97.5, list(preds$Time), FUN=mean) 
+
+# Plot the marginal mean and compare it to the simulated true mean
+plot(marginal.mean$Group.1,marginal.mean$x,type="l",lwd=3,col=1,
+       ylim=c(0,0.25),xlab="Time",ylab="Probability of Activity"
+     )
+lines(marginal.lower$Group.1,marginal.lower$x)
+lines(marginal.upper$Group.1,marginal.upper$x)
+lines(dat$Marginal[,2],dat$Marginal[,1],lwd=3,col=2)
+legend("topright",lwd=c(3,1,1,3),col=c(1,1,1,2),
+         legend=c("Marginal Mean", "Lower Marginal Mean","Upper Marginal Mean", "True Marginal Mean")
+       )
+```
+
+Next, we predict the conditional mean activity using the second parameterization (with `(1 | Site)`).  <!---Note, the first model structure with a random effect spline has no random effects according to `brms`. However, the second model structure does..
+
+```{r fit.bayes.cc.note, error=TRUE}
+ranef(cycl_rand_int)
+ranef(cycl_rand_int_alt)$Site[1:5,,]
+```
+ 
+Because `brms` does not allow smooth terms, such as `s(Site, bs="re")`, to be omitted when predicting, we will use the second model to predict the conditional mean activity curve. --->
+
+```{r fit.bayes.cc.predict3, class.source = 'fold-hide', fig.cap="Predicted probability of the conditional mean activity."}
+# Predict the conditional mean activity
+newdata2 = data.frame(Time=0:23,
+                      n_events=1
+                      )
+preds2=fitted(cycl_rand_int_alt,scale="response", 
+              newdata=newdata2,
+              re_formula = NA
+              )
+  
+preds2=data.frame(newdata2,preds2)
+head(preds2)
+
+# Plot the conditional mean and compare it to the simulated true mean
+plot(preds2$Time, preds2$Estimate,type="l",lwd=3,col=1,ylim=c(0,0.25),
+       xlab="Time",ylab="Probability of Activity"
+     )
+lines(preds2$Time,preds2$Q2.5)
+lines(preds2$Time,preds2$Q97.5)
+lines(dat$Conditional[,2],dat$Conditional[,1],lwd=3,col=2)
+legend("topright",lwd=c(3,1,1,3),col=c(1,1,1,2),
+         legend=c("Conditional Mean", "Lower Conditional Mean","Upper Conditional Mean", "True Conditional Mean")
+       )
+```
+ 
 
 
 ## Link to the Diel.Niche package {#Diel.Niche}
@@ -448,7 +605,7 @@ In the ecology and evolution literature, animal activity is often discussed in t
 
 ### Data
 
-We use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA [@Iannarilliea2021]. We use the same data records of American black bear (*Ursus americanus*) as done in other chapters and in section \@ref(poisson). However, we ignore examining a season covariate for simplicity and focus on modeling the spring data. 
+We use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA [@Iannarilliea2021]. We use the same data records of American black bear (*Ursus americanus*) as done in other chapters and in section \@ref(poisson). However, we ignore examining a season covariate for simplicity and focus on modeling the spring data. As before, we first load the `occasions_cbind` object that we saved in the chapter \@ref(cat), then subset the data to only include records related to the season of interest, which is now Spring. 
 
 ``` {r data1, warnings = TRUE, message = TRUE, warnings = TRUE}
 # load packages
@@ -459,6 +616,8 @@ library(lubridate)
 library(Diel.Niche)
 library(ggplot2)
 
+# Load data
+occasions_cbind <- read.csv("data_output/occasions_cbind_Ursus_americanus_seasons.csv")
 
 #Subset the data to the Spring data only, thus removing Fall data.
 y_spring <-  occasions_cbind[which(occasions_cbind$Season == "S"),]
@@ -575,3 +734,14 @@ This difference in classification is because of the low amount of activity durin
 Modeling animal activity patterns continuously throughout the 24-hour period provides important fine scale inference that is not achieved when aggregating data into blocks of time (e.g., daytime vs nighttime). However, it is important to then still be able to translate findings in relevant terminology based on diel phenotypes. The [`Diel.Niche` R package](https://github.com/diel-project/Diel-Niche-Modeling/) provides an efficient way of summarizing findings from hierarchical trigonometric and cyclic cubic spline models.
 
 Here, we provided a simple example to demonstrate the process of using the `Diel.Niche` R package](https://github.com/diel-project/Diel-Niche-Modeling/). However, there are a number of options we could also consider. For example, we could predict the diel phenotype for each site. This will be most useful when we have site to site variation in terms of a random intercept and slope. We could also use covariates in our model and predict the supported diel phenotype across covariate values. Furthermore, we only predicted the corresponding diel phenotype using the estimated conditional mean activity. There is of course uncertainty associated with this mean activity level. To explore how supported the diel phenotype is when considering uncertainty from the conditional mean, we could predict activity curves at different levels of uncertainty or at certain confidence intervals to investigate uncertainty in the associated diel phenotype.
+
+## Info session
+
+To facilitate reproducibility, we report information on packages and package versions use to create this tutorial.
+
+```{r infosession}
+library(grateful)
+cite_packages(out.format = "docx", out.dir = ".")
+
+sessionInfo()
+```
