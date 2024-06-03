@@ -89,7 +89,7 @@ sample_sites <- as.data.frame(sample_sites) %>%
             linewidth = 0.5, alpha = 0.7, linetype = 2) +
   geom_line(data = dat$Conditional, aes(x = time, y = p), linewidth = 1, color = "red", inherit.aes = TRUE) +
   geom_line(data = dat$Marginal, aes(x = time, y = p), linewidth = 1, color = "black", inherit.aes = TRUE) +
-  labs(x = "Time of Day", y = "Probability of Activity", title = "C) Variability in frequency of site use and \n timing of activity peaks", 
+  labs(x = "Time of Day", y = "Probability of Activity", title = "C) Variability in frequency of site use and \n timing of activity", 
        color = "Site_ID")+
   theme_minimal()+
   theme(legend.position = "none",
