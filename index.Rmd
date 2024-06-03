@@ -29,15 +29,32 @@ pdf_document:
 ---
 
 # Preface {#preface}
-<!-- paragraph to fix once we have defined the final order of the chapters -->
 
-This vignette accompanies @Iannarilliea2024 and contains step-by-step examples on how to use trigonometric and cyclic cubic spline hierarchical models (HMs) to analyze activity patterns from time-stamped data (chapters \@ref(est), \@ref(unibim)). In this tutorial, we present case studies based on camera-trap data, but the approaches described can be applied to data collected via other static sensors (e.g., acoustic recorders). The tutorial also includes examples demonstrating how one can test for hypothesized effects of covariates on activity patterns (chapter \@ref(cov)), and additional resources for understanding the difference between conditional and marginal mean activity patterns (chapter \@ref(condvsmarg)) and the application of Kernel Density Estimators to activity data (chapter \@ref(kdes)).
+This tutorial accompanies the manuscript @Iannarilliea2024 and contains step-by-step examples on how to use trigonometric and cyclic cubic spline hierarchical models (HMs) to analyze activity patterns from time-stamped data. We present case studies based on camera-trap data, but these approaches can be applied to data collected via other static sensors (e.g., acoustic recorders).
 
-All analyses presented in the following chapters were performed in @R-base. The camera-trap data used in the real-case examples were collected at 100 locations sampled between 2016 and 2018 in Northern Minnesota, USA [@Iannarilliea2021] and can be accessed at XXXX. Further details on these data can be found in @Iannarilliea2021.
+We start the tutorial by introducing the concept of site-to-site variability in diel activity patterns. Using simulated data, we explore two components of this variability, variability in frequency of site-use and variability in timing of activity (chapter \@ref(var)). We then introduce trigonometric generalized linear mixed models and cyclic cubic spline hierarchical generalized additive models as approaches to estimate animals' diel activity patterns (chapter \@ref(est)). From chapter \@ref(dataprep) to \@ref(temppart), we use real-case studies to illustrate how to organize the data \@ref(dataprep) and apply these hierarchical model approaches. In particular, we present three applications typical of ecological studies focused on activity patterns. We explore: 
+
+* whether a certain species of interest concentrates its activity at one or two specific times of the day (e.g. unimodal and bimodal patterns), or whether its activity is constant throughout the 24-hour cycle (cathemeral pattern; chapter \@ref(unibim));
+* whether changes in diel activity are driven by seasonal or other biotic and abiotic sources of variation (chapter \@ref(cov)). We present examples using both categorical (section \@ref(cat)) and continuous (section \@ref(cont)) variables;
+* whether changes in diel activity are linked to the co-occurrence of another species, with potential evidence for the existence of time-partitioning mechanisms (chapter \@ref(temppart)).
+
+The tutorial also includes a description of the difference between conditional and marginal mean activity patterns (chapter \@ref(condvsmarg)), how we can obtain both means and how this difference is relevant depending on the ecological questions at hand. We also provide a chapter focused on Kernel Density Estimators (KDEs), currently the most used approach for the estimate of activity patterns (chapter \@ref(kdes)). We compare the three R-packages currently available to estimate diel activity using KDEs (section \@ref(kdespkg)), illustrate the consequences of non-aggregating the data in independent events when estimating diel activity (section \@ref(kdedataaggr)), and close the chapter with a comparison of estimates of activity based on KDEs and hierarchical models (section \@ref(compkde)).
+
+In the Appendix \@ref(app), we provide several additional resources, including:
+
+1\. a description of the function `sim_activity`, a custom-built function used in chapters \@ref(var) and \@ref(est) and throughout the tutorial to simulate activity patterns under different conditions (section \@ref(simfunction)); 
+
+2\. a formulation of the trigonometric and cyclic cubic hierarchical models based on the Poisson distribution, an alternative to the formulation based on the binomial distribution used throughout the tutorial (section \@ref(poisson)); 
+
+3\. an exmaple of how to apply these models in a Bayesian framework (section \@ref(bay));
+
+4\. a link to the [`Diel.Niche` R package](https://github.com/diel-project/Diel-Niche-Modeling/), a framework recently introduced to robustly characterize animal activity patterns as diel phenotypes (section \@ref(DielNiche)).
+
+All analyses were performed in @R-base and the tutorial was compiled using `bookdown` [@bookdown1; @bookdown2]. The camera-trap data used in the real-case examples were collected at 100 locations sampled between 2016 and 2018 in Northern Minnesota, USA [@Iannarilliea2021] and can be accessed at *link upon acceptance*. Further details on these data can be found in @Iannarilliea2021.
 
 ## Requirements
 
-Throughout this tutorial, we use several packages. Users interested in compiling the tutorial from source or in reproducing the analysis on their own machine should install these packages. The code below provides a list of all the libraries needed, checks if they are already installed in the user's local machine, and installs those packages that are not.
+Throughout this tutorial, we use several packages. Users interested in compiling the tutorial from source or in reproducing the analysis on their own machine should install them. The code below provides a list of all the libraries needed, checks if they are already installed in the user's local machine, and installs those packages that are not.
 
 ``` {r preface1, eval=FALSE}
 list.of.packages <- c("dplyr", "grid", "gridExtra", "GLMMadaptive", "ggpubr", "mgcv", 
@@ -55,4 +72,3 @@ if(!("Diel.Niche" %in% installed.packages()[,"Package"])){
 } 
 ```
 
-In chapter \@ref(est), we use the function *sim_activity*, a custom function that we built to simulate activity patterns under different conditions. A description of this function is provided in chapter \@ref(app) at the end of this tutorial.
