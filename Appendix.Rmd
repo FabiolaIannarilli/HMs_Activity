@@ -794,7 +794,8 @@ To facilitate reproducibility, we report information on packages and package ver
 
 ```{r infosession}
 library(grateful)
-cite_packages(out.format = "docx", out.dir = ".")
+pkgs <- cite_packages(output = "table", out.dir = ".")
+knitr::kable(pkgs)
 
 sessionInfo()
 ```
