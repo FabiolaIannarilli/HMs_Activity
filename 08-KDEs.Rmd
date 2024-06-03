@@ -730,8 +730,8 @@ pl_cycl <- ggplot(cycl_pred, aes(Time, fit)) +
 We now bring together the results based on the three methods and plot them.
 
 ``` {r compkde4}
-plotcompare<-ggarrange(pl_trig, pl_cycl, pl_KDE, ncol = 3, common.legend = FALSE, legend = "none") +
-  theme(plot.margin = margin(0.1,0.1,0.5,0.1, "cm"))) 
+plotcompare <- ggarrange(pl_trig, pl_cycl, pl_KDE, ncol = 3, common.legend = FALSE, legend = "none") +
+  theme(plot.margin = margin(0.1,0.1,0.5,0.1, "cm")) 
 plotcompare
 ggsave(plotcompare, filename = "ms_figures/Fig3_KDEs_HMs_comparison.jpg", device = "jpeg", units = "cm", width = 24, height = 10, dpi = 600)
 ```
