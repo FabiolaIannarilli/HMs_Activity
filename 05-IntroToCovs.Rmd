@@ -81,7 +81,7 @@ occasions_cbind <- occasions %>%
             failure = n() - success)
 
 # we save this dataset for applications in other part of the tutorial
-
+write.csv(occasions_cbind, file = "data_output/occasions_cbind_Ursus_americanus_seasons.csv")
 
 ```
 
@@ -188,14 +188,14 @@ summary(trig_rand_slope)
 
 ```
 
-However, this model is likely to be too computational demanding for most laptops. In such cases, we can either opt for the simpler model - keeping in mind that we are not allowing the estimates to vary in their timing of peak activity - or we can run this model on a computing cluster.
+However, this model is likely to be too computational demanding for most laptops. In such cases, we can either opt for the simpler model - keeping in mind that we are not allowing the estimates to vary in their timing of activity - or we can run this model on a computing cluster.
 
 ### Cyclic cubic spline HGAMs
 
 Similar to trigonometric GLMMs, cyclic cubic spline HGAMs can also be used to model activity patterns as a function of a categorical covariate. As we explained in chapter \@ref(est), this class of models is highly flexible and offers a plethora of options when it comes to choosing a model structure. Here we focus on two model specifications. The first resembles a trigonometric random intercept-only GLMM and contains `Season` as a fixed term, a cubic cyclic smoother for `Time` which varies by `Season`, and a smoother for `Site` as a random effect. This structure accommodates variability in the frequency of site-use, but not in the timing of activity. 
 
 ```{r cat5}
-# Without a global smoother for Time
+# 'Random intercept-only'
 mod_cycl1 <- bam(cbind(success, failure) ~
                    Season + 
                    s(Time, bs = "cc", k = 12, by = Season, m = 1) +
@@ -231,7 +231,7 @@ cycl_pred1 <- cbind(newdat,
 # Plot
 pl_cycl1 <- ggplot(cycl_pred1, aes(Time, fit)) +
   geom_ribbon(aes(ymin = fit-1.96*se.fit, ymax = fit+1.96*se.fit, color = Season, fill = Season), alpha = 0.3, linewidth = 0.25) +
-  geom_line(aes(color = Season), size = 1) +
+  geom_line(aes(color = Season), linewidth = 1) +
   scale_color_manual(values = c("orange", "darkgreen")) +
   scale_fill_manual(values = c("orange", "darkgreen")) +
   labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "B: Cyclic cubic spline HGAM")+
@@ -284,7 +284,7 @@ Thus, whenever possible, we recommend careful *a priori* choice of modeling stru
 We can extend the previous model structure to accommodate site-to-site variability in timing of activity by adding a smoother for `Time` that depends on `Site`. This structure mimics a random intercept and random slope model and allows the site-specific activity curves to vary not only in their intercept but also in their shape.
 
 ```{r cat7}
-# Random intercept and slope
+# 'Random intercept and slope'
 mod_cycl2 <- bam(cbind(success, failure) ~ 
                    Season + 
                    s(Time, bs = "cc", k = 12) + # global smoother
@@ -321,7 +321,7 @@ cycl_pred1 <- predict.bam(mod_cycl1,
 cycl_pred1 <- cbind(newdat, 
                     fit=cycl_pred1$fit, 
                     se.fit=cycl_pred1$se.fit, 
-                    Model = "Random-intercept only"
+                    Model = "Random intercept-only"
                     )
 
 cycl_pred2 <- predict.bam(mod_cycl2, 
@@ -361,7 +361,7 @@ pl_cycl <- cycl_pred %>% filter(Site %in% selected_sites) %>%
           panel.grid.major.y = element_blank(),
           panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
           panel.grid.minor.x = element_blank(),
-          strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0.5),
+          strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0),
           plot.margin = margin(0.1,0.1,0.5,0.1, "cm")
           ) +
     scale_x_continuous(breaks=seq(0,max(cycl_pred$Time),length.out=7), labels=seq(0,24,4)) +
