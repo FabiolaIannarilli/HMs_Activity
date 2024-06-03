@@ -57,7 +57,7 @@ sim_activity <- function(M = 100, J = 30, wavelength = 48, b0 = -8, b0_constant 
   
   
   # Data simulation
-  p <- boot::inv.logit(matrix(b0, nrow=M, ncol=J, byrow=TRUE) + # intercept
+  p <- plogis(matrix(b0, nrow=M, ncol=J, byrow=TRUE) + # intercept
                          matrix(taus, nrow=M, ncol=J, byrow=FALSE) + # random intercept
                          gamma)  # sinusoidal wave
   
@@ -76,7 +76,7 @@ sim_activity <- function(M = 100, J = 30, wavelength = 48, b0 = -8, b0_constant 
   seq_time_aggreg <- seq(0, wavelength, wavelength/512)
   
   # conditional mean (i.e. at typical site)
-  cond_mean <- data.frame(p = boot::inv.logit(b0 +
+  cond_mean <- data.frame(p = plogis(b0 +
                                                 b1*cos(2*pi*seq_time_aggreg/(24) + theta0 + mean(phaseshift)) +
                                                 b2*cos(2*pi*seq_time_aggreg/(bp) + theta1 + mean(phaseshift))), time = seq_time_aggreg) %>%
     dplyr::mutate(y_dens = p/MESS::auc(time, p))
@@ -84,7 +84,7 @@ sim_activity <- function(M = 100, J = 30, wavelength = 48, b0 = -8, b0_constant 
   # marginal mean (i.e. population averaged)
   marg_phas <- rnorm(100000, 0, sd = sd_phaseshift)
   marg_tau <- rnorm(100000, 0, sd = sdtau)
-  temp <- boot::inv.logit(matrix(b0, nrow=100000, ncol=length(seq_time_aggreg), byrow=TRUE) + # intercept
+  temp <- plogis(matrix(b0, nrow=100000, ncol=length(seq_time_aggreg), byrow=TRUE) + # intercept
                             matrix(marg_tau, nrow=100000, ncol=length(seq_time_aggreg), byrow=FALSE) + # random intercept
                             b1*cos(matrix(2*pi*seq_time_aggreg/(24), nrow = 100000, ncol = length(seq_time_aggreg), byrow = TRUE) + theta0 + marg_phas) +
                             b2*cos(matrix(2*pi*seq_time_aggreg/(bp), nrow = 100000, ncol = length(seq_time_aggreg), byrow = TRUE) + theta1 + marg_phas))  # sinusoidal wave
