@@ -69,7 +69,7 @@ str(dat)
 
 ```
 
-The `sim_activity` function returns a list containing several objects, including the true activity patterns simulated for each of the 100 sites (object: `dat$true_activity_prob`) and the associated realized patterns (i.e. the encounter data; object: `dat$sim_data`). The list also contains the values of the conditional and marginal mean probability of activity (objects: `dat$Conditional` and `dat$Marginal`, respectively) and site-specific phasehsift values (object: `dat$phaseshift`). 
+The `sim_activity` function returns a list containing several objects, including the true activity patterns simulated for each of the 100 sites (object: `dat$true_activity_prob`) and the associated realized patterns (i.e. the encounter data; object: `dat$sim_data`). The list also contains the values of the conditional and marginal mean probability of activity (objects: `dat$Conditional` and `dat$Marginal`, respectively) and site-specific phaseshift values (object: `dat$phaseshift`). 
 
 We access the information for a randomly selected set of these sites and plot their true activity patterns, along with the conditional and marginal mean activity patterns (the red and black curves, respectively, in the following plot).
 
@@ -82,7 +82,7 @@ sample_sites <- as.data.frame(sample_sites) %>%
   pivot_longer(cols = -sites, names_to = "time", values_to = "prob")
 ```
 
-```{r est3b, class.source = "fold-hide", fig.cap="Bimodal probability activity curves showing variability in both the frequency of site-use and variability in timing of activity peaks; displayed are activity curves across sites (dashed line) along with the marginal mean curve (black line) and conditional mean curve (red line)."}
+```{r est3b, class.source = "fold-hide", fig.cap="Bimodal probability activity curves showing variability in both the frequency of site-use and variability in timing of activity peaks; displayed are activity curves across sites (dashed lines) along with the marginal mean curve (black lines) and conditional mean curve (red lines)."}
 #plot true conditional and marginal with 10 simulated sites
 (pl_sites <- ggplot() +
   geom_line(data = sample_sites, aes(x = as.numeric(time), y = prob, group = sites, color = as.factor(sites)), 

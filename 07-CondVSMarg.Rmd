@@ -6,7 +6,7 @@ Conditional and marginal mean activity patterns can be estimated in both the fre
 
 We use simulated data to illustrate how random-intercept only and random intercept and slope models are able to return differences in conditional and marginal mean activity patterns. 
 
-**Data simulation.** Using the approach introduced in sections \@ref(var) and \@ref(est), we simulate  encounter events for a species with a bimodal activity pattern using camera traps set at 100 sites with 30 days of sampling at each site. In addition to simulating the data, the *sim_activity* function also returns the 'true' conditional activity pattern for a typical site (one with random effects $\tau_i = 0$ and $\gamma_i = 0$) at each of 513 equally spaced points $j$ between 0 and 24 hours (i.e., covering the diel activity pattern) using: 
+**Data simulation.** Using the approach introduced in sections \@ref(var) and \@ref(est), we simulate  encounter events for a species with a bimodal activity pattern using camera traps set at 100 sites with 30 days of sampling at each site. In addition to simulating the data, the `sim_activity` function also returns the 'true' conditional activity pattern for a typical site (one with random effects $\tau_i = 0$ and $\gamma_i = 0$) at each of 513 equally spaced points $j$ between 0 and 24 hours (i.e., covering the diel activity pattern) using: 
 
 $$E[Y_{it} |\tau_i=0,\gamma_i=0] =  \frac{exp^{\beta_0 + \beta_1*\text{cos}(\frac{2\pi t}{24} + \theta_0) + \beta_2*\text{cos}(\frac{2\pi t}{12} + \theta_1)}}{1+exp^{\beta_0 + \beta_1*\text{cos}(\frac{2\pi t}{24} + \theta_0) + \beta_2*\text{cos}(\frac{2\pi t}{12} + \theta_1)}}$$
 

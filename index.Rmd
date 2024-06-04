@@ -14,7 +14,7 @@ author:
 site: bookdown::bookdown_site
 output: distill::distill_article
 documentclass: book
-bibliography: [book.bib, packages.bib, articles.bib]
+bibliography: [book.bib, packages.bib, articles.bib, grateful-refs.bib]
 biblio-style: apalike
 link-citations: yes
 github-repo: rstudio/bookdown-demo
@@ -40,13 +40,13 @@ We start the tutorial by introducing the concept of site-to-site variability in 
 
 The tutorial also includes a description of the difference between conditional and marginal mean activity patterns (chapter \@ref(condvsmarg)), how we can obtain both means and how this difference is relevant depending on the ecological questions at hand. We also provide a chapter focused on Kernel Density Estimators (KDEs), currently the most used approach for the estimate of activity patterns (chapter \@ref(kdes)). We compare the three R-packages currently available to estimate diel activity using KDEs (section \@ref(kdespkg)), illustrate the consequences of non-aggregating the data in independent events when estimating diel activity (section \@ref(kdedataaggr)), and close the chapter with a comparison of estimates of activity based on KDEs and hierarchical models (section \@ref(compkde)).
 
-In the Appendix \@ref(app), we provide several additional resources, including:
+In the Appendix, we provide several additional resources, including:
 
 1\. a description of the function `sim_activity`, a custom-built function used in chapters \@ref(var) and \@ref(est) and throughout the tutorial to simulate activity patterns under different conditions (section \@ref(simfunction)); 
 
 2\. a formulation of the trigonometric and cyclic cubic hierarchical models based on the Poisson distribution, an alternative to the formulation based on the binomial distribution used throughout the tutorial (section \@ref(poisson)); 
 
-3\. an exmaple of how to apply these models in a Bayesian framework (section \@ref(bay));
+3\. an example of how to apply these models in a Bayesian framework (section \@ref(bay));
 
 4\. a link to the [`Diel.Niche` R package](https://github.com/diel-project/Diel-Niche-Modeling/), a framework recently introduced to robustly characterize animal activity patterns as diel phenotypes (section \@ref(DielNiche)).
 
@@ -56,10 +56,10 @@ All analyses were performed in @R-base and the tutorial was compiled using `book
 
 Throughout this tutorial, we use several packages. Users interested in compiling the tutorial from source or in reproducing the analysis on their own machine should install them. The code below provides a list of all the libraries needed, checks if they are already installed in the user's local machine, and installs those packages that are not.
 
-``` {r preface1, eval=FALSE}
+``` {r preface1, eval=FALSE, message = FALSE, warnings = FALSE}
 list.of.packages <- c("dplyr", "grid", "gridExtra", "GLMMadaptive", "ggpubr", "mgcv", 
                       "tidyr", "lubridate", "lmtest", "activity", "overlap", "circular", 
-                      "nimble", "brms", "forcats", "MESS", "grateful"
+                      "nimble", "brms", "forcats", "MESS", "suncalc", "grateful"
                       )
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 if(length(new.packages)>0) install.packages(new.packages)

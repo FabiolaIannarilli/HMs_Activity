@@ -131,12 +131,12 @@ p_df <- rbind(p_df, p_df2)
 
 ```
 
-In this first plot, the dashed grey curves represent the curves generated using the different values assigned to $\tau_i$ (darker to lighter colors from lower to higher in absolute values). All other things equal, these different values of $\tau_i$ lead to a vertical shift in the activity curves, which corresponds to a change in the frequency of site-use. The red curve gives the conditional mean for a "typical site" (estiamted by setting $\tau_i = 0$ and $\gamma_i = 0$ in equation 1), and the black curve gives the marginal mean.
+In this first plot, the dashed grey curves represent the curves generated using the different values assigned to $\tau_i$ (darker to lighter colors from lower to higher in absolute values). All other things equal, these different values of $\tau_i$ lead to a vertical shift in the activity curves, which corresponds to a change in the frequency of site-use. The red curve gives the conditional mean for a "typical site" (estimated by setting $\tau_i = 0$ and $\gamma_i = 0$ in equation 1), and the black curve gives the marginal mean.
 
 
 ## Variability in timing of activity
 
-To create examples of *variability in timing of activity*, we set the random phaseshift $\gamma_i$ as equal to 0, $\pm$ 0.5, $\pm$ 1.0, and $\pm$ 1.5, while keeping $\tau_i = 0$ and the remaining parameters with the same values used before. Second, we create and plot the curves. Lastly,  we join the two plots to create the first portion of Figure 1, reported in the main text [@Iannarilliea2024].
+To create examples of *variability in timing of activity*, we set the random phaseshift $\gamma_i$ as equal to 0, $\pm$ 0.5, $\pm$ 1.0, and $\pm$ 1.5, while keeping $\tau_i = 0$ and the remaining parameters with the same values used before. Second, we create and plot the curves. Lastly, we join the two plots to create the first portion of Figure 1, reported in the main text [@Iannarilliea2024].
 
 ```{r sim3}
 # create the curves

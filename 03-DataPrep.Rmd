@@ -62,7 +62,7 @@ for(i in 1:nrow(site)){
 }
 ```
 
-Then, we create a dataframe to store the information about when the target species was and was not encountered at the different locations within each temporal observation window. Here, we use 60 minutes to define the temporal sampling units, but different durations (from seconds to several hours) can be used. Shorter lengths will increase model fitting computation time and could potentially lead to parameter convergence problems if data are too sparse. In the code below, the argument `by = '60 min'` can be changed to accommodate other observation intervals (e.g. `by = '30 min'` leads to 30-min intervals). 
+Then, we create a dataframe to store the information about when the target species was and was not encountered at the different locations within each temporal observation window. Here, we use 60 minutes to define the temporal sampling units, but different duration (from seconds to several hours) can be used. Shorter lengths will increase model fitting computation time and could potentially lead to parameter convergence problems if data are too sparse. In the code below, the argument `by = '60 min'` can be changed to accommodate other observation intervals (e.g. `by = '30 min'` leads to 30-min intervals). 
 
 For each site, we create a list of all the hourly occasions from the start to the end of the deployment of the active camera at the site. We then pre-populate the column `capt` (which will track the encounter/non-encounter information) with zeros. 
 

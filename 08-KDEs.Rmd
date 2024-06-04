@@ -91,7 +91,7 @@ rbind(dat_summary, dat_event_summary)  %>%
 
 Comparing the resulting number of records per location before and after data aggregation highlights that many images were taken within less than 30 minutes from a previous image. In the left panel, each record corresponds to an image, whereas, in the right panel, each record corresponds to an independent encounter event. In our specific case, aggregating data also removes duplicates recorded within the same trigger event. We will use the aggregated version of the dataset in the next sections of this tutorial.
 
-All the three packages require time values provided as radians. Thus, the next step is to trasform the time values from the HH:MM:SS format to radians. This requires some multiplications. Since there are $2 \times \pi$ radians in a circle and $60 minutes \times 24 hours$ in a day, we can estimate minutes in terms of radians by dividing the minutes corresponding to a certain time of the day by the total number of minutes in a day (equal to $1440 = 60 \times 24$) and multiplying the resulting value by $2 \times \pi$. For simplicity, we do not consider seconds here.
+All the three packages require time values provided as radians. Thus, the next step is to transform the time values from the HH:MM:SS format to radians. This requires some multiplications. Since there are $2 \times \pi$ radians in a circle and $60 minutes \times 24 hours$ in a day, we can estimate minutes in terms of radians by dividing the minutes corresponding to a certain time of the day by the total number of minutes in a day (equal to $1440 = 60 \times 24$) and multiplying the resulting value by $2 \times \pi$. For simplicity, we do not consider seconds here.
 
 ```{r kde3}
 # Specify the format of the column Time
@@ -235,7 +235,7 @@ temp2 <- modal.region.circular(dat_event$Time_Rad_circ,
                                bw = bw2
                                ) 
 
-# organize the output in a datafram to match those of the other packages
+# organize the output in a dataframe to match those of the other packages
 res_circ <- data.frame(x=temp2$density$x, 
                        y=temp2$density$y
                        ) %>% 
@@ -297,7 +297,7 @@ We now can visually compare the estimates of activity patterns returned by the t
  )
 ```
 
-The three packages return patterns in activity that match in the timing of peaks and overall shape of the curves. However, there are some differences. The `overlap` package [@RidoutLinkie2009; @R-overlap] converts estimates so that the area under the curve is equal to one. The `activity` package [@Rowcliffeea2014; @activity2022] has the additional option to estimate 95% confidence intervals using bootstrap approaches; the main function implemented in this package, named `activity::fitact`, also has an argument to correct for differences in detection probability (e.g., between day and night) while the function `activity::solartime` enable double-anchoring procedures to adjust the timestamp associated with the different records based on sunrise and sunset times [for details, see @Vazquezea2019]. Finally, the `circular` package [@circular2022; @Oliveira-Santos2013] can identify periods of higher levels of activity using an isopleth approach similar to that applied in the analysis of telemetry data to identify core areas in estimates of home ranges. Notably, the y-axis associated to the estimates produced using `overlap` differs from those returned by the other two packages. These differences are due to an additional step that takes place within the `densityPlot` function and converts estimates so that the area under the curve is equal to one.
+The three packages return patterns in activity that match in the timing of activity and overall shape of the curves. However, there are some differences. The `overlap` package [@RidoutLinkie2009; @R-overlap] converts estimates so that the area under the curve is equal to one. The `activity` package [@Rowcliffeea2014; @activity2022] has the additional option to estimate 95% confidence intervals using bootstrap approaches; the main function implemented in this package, named `activity::fitact`, also has an argument to correct for differences in detection probability (e.g., between day and night) while the function `activity::solartime` enable double-anchoring procedures to adjust the timestamp associated with the different records based on sunrise and sunset times [for details, see @Vazquezea2019]. Finally, the `circular` package [@circular2022; @Oliveira-Santos2013] can identify periods of higher levels of activity using an isopleth approach similar to that applied in the analysis of telemetry data to identify core areas in estimates of home ranges. Notably, the y-axis associated to the estimates produced using `overlap` differs from those returned by the other two packages. These differences are due to an additional step that takes place within the `densityPlot` function and converts estimates so that the area under the curve is equal to one.
 
 ## Aggregating _versus_ non-aggregating data in KDEs {#kdedataaggr}
 
@@ -363,7 +363,7 @@ temp1 <- modal.region.circular(dat$Time_Rad_circ,
                                bw = bw1
                                ) 
 
-# organize the output in a datafram to match those of the other packages
+# organize the output in a dataframe to match those of the other packages
 res_circ_NonAggr <- data.frame(x=temp1$density$x, 
                                y=temp1$density$y
                                ) %>% 
@@ -610,7 +610,7 @@ pl_KDE <- ggplot(KDE, aes(x = x/(2*pi)*24, y = y)) +
         ) +
   scale_x_continuous(breaks=seq(0,24,4), labels=seq(0,24,4))
 ```
-Next, we re-run the analysis using the HM approach. In particular, we fit a trigonometric random intercept-only model and cyclic cubic spline with a smoother for `Time` that depends on `Season`. Both models account for variability in site-use, but not for variability in timing of activity peaks. 
+Next, we re-run the analysis using the HM approach. In particular, we fit a trigonometric random intercept-only model and cyclic cubic spline with a smoother for `Time` that depends on `Season`. Both models account for variability in site-use, but not for variability in timing of activity. 
 
 ```{r compkde3}
 # trig GLMM random intercept-only

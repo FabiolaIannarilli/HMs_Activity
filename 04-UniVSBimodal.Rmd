@@ -8,75 +8,15 @@ Diel activity patterns are often described or classified as either:
 
 Here, we build and compare trigonometric HMs representing these three different diel activity patterns. To reiterate, we use independent camera-trap records of coyotes (*Canis latrans*) collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021], with the data organized as described in the previous chapter \@ref(dataprep). 
 
-<!---JF note to Fabiola below--->
-<span style="color: red;">Can we delete this code and just read in the data from the previous chapter?</span>.
-
-
 ``` {r univsbim1, message = FALSE, warnings = FALSE}
 # Load libraries
-rm(list = ls())
 set.seed(129)
 library(dplyr)
 library(lubridate)
 library(GLMMadaptive)
 library(lmtest)
 library(ggpubr)
-```
-
-``` {r univsbim1b, message = TRUE, warnings = TRUE}
-# Load data: Coyote 
-dat <- read.csv("data_input/species_records.csv") %>% 
-  filter(Species == "Coyote") %>% droplevels %>%  
-  mutate(DateTimeOriginal = ymd_hms(DateTimeOriginal))
-cov <- read.csv("data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv", as.is = TRUE) %>% 
-  select(c(Session, Site, Date_setup, Date_retr, Problem1_from, Problem1_to)) %>% 
-  mutate(Date_setup = mdy(Date_setup),
-         Date_retr = mdy(Date_retr),
-         Problem1_from = mdy(Problem1_from),
-         Problem1_to = mdy(Problem1_to)
-         ) 
-
-# Merge time of deployment and retrieval + problems
-site <- cov
-site$end <- ymd("2000-01-01")
-for(i in 1:nrow(site)){
-  site$end[i] <-  min(site$Date_retr[i], 
-                      site$Problem1_from[i], 
-                      na.rm = TRUE
-                      )
-}
-
-
-# Create dataframe to store captures 
-# (model does not converge if using 30 minutes)
-occasions <- vector("list", length = nrow(site))
-for(i in 1:nrow(site)){
-  occasions[[i]] <- data.frame(Session = site$Session[i],
-                               Site = site$Site[i],
-                               start = seq(from = ymd_hms(paste(site$Date_setup[i], "00:00:00", sep = " ")), 
-                                           to = ymd_hms(paste(site$end[i], "23:59:59", sep = " ")), by = '60 min')) %>% 
-    mutate(end = c(start[2:length(start)], start[length(start)]+minutes(60))) 
-}
-occasions <- do.call(rbind.data.frame, occasions)
-occasions$capt <- 0
-
-# Store captures
-for(i in 1:nrow(dat)){
-  occasions[occasions$Session == as.character(dat$Session[i]) & occasions$Site == as.character(dat$Station[i]) &
-              occasions$start <= dat$DateTimeOriginal[i] & occasions$end > dat$DateTimeOriginal[i], "capt"] <- 1
-}
-
-# Format data 
-occasions$Time <- hour(occasions$start)
-occasions$Site <- as.factor(occasions$Site)
-
-# format data for cbind(success, failure)
-occasions_cbind <- occasions %>% 
-  group_by(Site, Time) %>% 
-  summarize(success = sum(capt),
-            failure = n() - success)
 head(occasions_cbind)
-
 ```
 
 We start by fitting a model that describes a *unimodal* activity pattern. This structure includes only the first of the two cosine terms in equation 1 (which translates in the first and second terms of equation 2), and a random intercept and a random slope as described in chapter \@ref(est).   
