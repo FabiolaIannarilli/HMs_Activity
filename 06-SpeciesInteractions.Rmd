@@ -55,7 +55,7 @@ for(i in 1:nrow(dat)){
 table(dat$Species, dat$oth_sp)
 ```
 
-For each species (e.g., coyote), we used a dummy variable called `oth_sp` to describe whether the other species (e.g., wolf) was photographed at least once (`oth_sp` = 1; 0 otherwise) at the same site during a specific site-session. This resulted in 1747 and 3209 records of coyotes at site-sessions where wolves were and were not recorded, and 2248 and 8148 records of wolves at site-sessions where coyotes were and were not recorded. With this additional piece of information, we can proceed with formatting the data (i.e., counting the number of successes and failures for each grouping), starting with coyotes. We will build a dataframe to store the encounter/nonencounter information for each species.
+For each species (e.g., coyote), we used a dummy variable called `oth_sp` to describe whether the other species (e.g., wolf) was photographed at least once (`oth_sp` = 1; 0 otherwise) at the same site during a specific site-session. This resulted in 1747 and 3209 records of coyotes at site-sessions where wolves were and were not recorded, and 2248 and 8148 records of wolves at site-sessions where coyotes were and were not recorded. With this additional piece of information, we can proceed with formatting the data (i.e. counting the number of successes and failures for each grouping), starting with coyotes. We will build a dataframe to store the encounter/nonencounter information for each species.
 
 ```{r temp4}
 # Prepare data for model-based methods
@@ -176,7 +176,7 @@ summary(mod_trig_Wo)
 
 ```
 
-We now plot the results for both coyotes and wolves in the presence and absence of the other species. We focus on estimating marginal mean activity patterns because our aim is to compare between two groups that differ in their characteristics (i.e. site-sessions with and without the other species). The only change to the code required to obtain the marginal means is to set the argument `marginal` in the `effectPlotData` function equal to `TRUE`.
+We now plot the results for both coyotes and wolves in the presence and absence of the other species. We focus on estimating marginal mean activity patterns because our aim is to compare between two groups that differ in their characteristics (i.e. site-sessions with and without the other species). The only change to the code required to obtain the marginal means is to set the argument `marginal` in the `effectPlotData` function equal to `TRUE` (see chapter \@ref(condvsmarg) for more on conditional and marginal mean activity patterns).
 
 ```{r temp8}
 # coyote
@@ -200,7 +200,7 @@ cond_eff <- rbind(cond_eff_Co, cond_eff_Wo) %>%
 
 ```
 
-```{r temp8b, fig.cap="Predicted probability of activity by coyote and wolf and depening on each others presence or absence; shading corresponds to 95% confidence intervals."}
+```{r temp8b, fig.cap="Predicted probability of activity by coyote and wolf and depending on each others presence or absence; shading corresponds to 95% confidence intervals."}
 (pl_trig <- ggplot(cond_eff, aes(Time, plogis(pred), color=Species, group=Species)) +
   geom_ribbon(aes(ymin=plogis(low), ymax=plogis(upp), fill=Species), alpha=0.5, linewidth = 0.25) +
   geom_line(size=1) +
@@ -227,7 +227,7 @@ ggsave(plot = pl_trig, filename = "ms_figures/Fig5_Coyote_Wolf_patterns.jpg", de
 
 ```
 
-This figure is presented in @Iannarilliea2024 (Figure 5), where we offer additional discussion regarding the estimated activity curves. 
+This figure is presented in @HMsActivity (Figure 5), where we offer additional discussion regarding the estimated activity curves. 
 
 Next, we consider a cyclic cubic spline HGAM (without a site-specific smoother) for each species, which we compare to the trigonometric GLMM below.
 
@@ -291,7 +291,7 @@ cycl_pred <- rbind(cycl_pred_Co, cycl_pred_Wo) %>%
 
 
   
-```{r temp9b, fig.cap="Predicted probability of activity by coyote and wolf and depening on each others presence or absence from a trigonmetric (A) and cyclic cubic spline (B) hierarhical model; shading corresponds to 95% confidence intervals."}  
+```{r temp9b, fig.cap="Predicted probability of activity by coyote and wolf and depending on each others presence or absence from a trigonmetric (A) and cyclic cubic spline (B) hierarhical model; shading corresponds to 95% confidence intervals."}  
 pl_cycl <- ggplot(cycl_pred, aes(Time, fit, color=Species, group=Species)) +
   geom_ribbon(aes(ymin=fit-1.96*se.fit, ymax=fit+1.96*se.fit, fill=Species), alpha=0.5, size = 0.25) +
   geom_line(linewidth = 1) +
@@ -319,7 +319,7 @@ ggarrange(pl_trig2, pl_cycl, nrow = 2, ncol = 1, common.legend = TRUE, legend = 
 
 We see that the trigonometric and the cyclic cubic spline HMs return the same general pattern.
 
-As with the other examples, we can assess the importance of the presence of the competitor species by comparing models with and without terms involving this covariate (i.e., `oth_sp`). We fit the reduced model below. <!---In this example, this results in models without the interactions of the cosine terms with the variable *oth_sp*. However, it is preferable to run this comparison only considering the trigonometric models. When removing the effect of the covariate, we change the model structure to one that contains a global smoother and, as highlighted in @Pedersen2019, AIC might not be reliable when comparing HGAMs with and without a global smoother. In these cases, AIC tend to select the model without the global smoother.--->
+*Model selection.* As with the other examples, we can assess the importance of the presence of the competitor species by comparing models with and without terms involving this covariate (i.e. `oth_sp`). We fit the reduced model below. <!---In this example, this results in models without the interactions of the cosine terms with the variable *oth_sp*. However, it is preferable to run this comparison only considering the trigonometric models. When removing the effect of the covariate, we change the model structure to one that contains a global smoother and, as highlighted in @Pedersen2019, AIC might not be reliable when comparing HGAMs with and without a global smoother. In these cases, AIC tend to select the model without the global smoother.--->
 
 ```{r temp10}
 # Trigonometric GLMM (random intercept-only)
@@ -343,11 +343,9 @@ mod_trig_Wo_null <- mixed_model(fixed = cbind(success, failure) ~ cos(2*pi*Time/
 
 ```
 
-*Model selection.* For each of the two species, we can now compare the models that include and do not include the presence of the other species. For coyotes,
+For each of the two species, we can now compare the models that include and do not include the presence of the other species. For coyotes,
 
 ```{r temp11}
-print("Coyote")
-print("Trigonometric GLMMs:")
 AIC(mod_trig_Co_null, mod_trig_Co)
 AIC(mod_trig_Co_null) - AIC(mod_trig_Co)
 ```
@@ -355,8 +353,6 @@ AIC(mod_trig_Co_null) - AIC(mod_trig_Co)
 Based on AIC, there is a strong support for the model that assumes an effect of the presence of wolves as a driver of coyotes' activity patterns.
 
 ```{r temp12}
-print("Wolf")
-print("Trigonometric GLMMs:")
 AIC(mod_trig_Wo_null, mod_trig_Wo)
 AIC(mod_trig_Wo_null) - AIC(mod_trig_Wo)
 ```

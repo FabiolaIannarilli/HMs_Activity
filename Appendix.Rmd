@@ -2,7 +2,7 @@
 
 ## The *sim_activity* function {#simfunction}
 
-Throughout the tutorial we use the `sim_activity` function for simulating activity patterns. This function simulate realized activity patterns based on a 'true' activity pattern distribution density build as specified in equation 1 reported in chapter \@ref(var) and introduced in @Iannarilliea2024. The arguments of the function specify the following:
+Throughout the tutorial we use the `sim_activity` function for simulating activity patterns. This function simulates realized activity patterns based on a 'true' activity pattern distribution density build as specified in equation 1 reported in chapter \@ref(var) and introduced in @HMsActivity2024. The arguments of the function specify the following:
 
 *  `M`: Numeric. Number of sampling units (e.g. sites).
 *  `J`: Numeric. Number of cycles (e.g. days).
@@ -92,7 +92,7 @@ dat <- sim_activity(M = M,
 
 ```
 
-Activity patterns having  two peaks that are the same height can be simulated setting `b1` = 0, `n_peak` = 2, and `b2` to a value other than zero. These choices will silence the first cosine term (with frequency of 24) and impose single cosine with a frequency of 12. 
+Activity patterns having  two peaks that are the same height can be simulated setting `b1` = 0, `n_peak` = 2, and `b2` to a value other than zero. These choices silence the first cosine term (with frequency of 24) and impose single cosine with a frequency of 12. 
 
 ```{r app3}
 # Set equations' parameters (all others as used before)
@@ -124,7 +124,7 @@ dat <- sim_activity(M = M,
 
 ## Binomial versus Other Distributions {#poisson}
 
-How we aggregate observations of activity will determine how we model our data. @Rees2024 modeled animal diel activity using a generalized additive modeling approach with a negative binomial distribution after determining there was overdispersion using a Poisson distribution. The Poisson probability density function (PDF) is a special case of the Negative Binomial. Throughout, we have used the binomial probability mass function to model diel activity in both trigonometric GLMMs and cyclic cubic splines HGAMs. The Poisson distribution is in fact a special case of the binomial when the number of 'trials' is very large. As such, we can gain similar inference using these different distributions, but we need to think about how sampling effort is accounted for. 
+How we aggregate observations of activity determines how we model our data. @Rees2024 modeled animal diel activity using a generalized additive modeling approach with a negative binomial distribution after determining there was overdispersion using a Poisson distribution. The Poisson probability density function (PDF) is a special case of the Negative Binomial. Throughout, we have used the binomial probability mass function to model diel activity in both trigonometric GLMMs and cyclic cubic splines HGAMs. The Poisson distribution is in fact a special case of the binomial when the number of 'trials' is very large. As such, we can gain similar inference using these different distributions, but we need to think about how sampling effort is accounted for. 
 
 In the binomial application, the zeros indicate that a camera was active on a given day, but there was no detection of the species. When using the Poisson or negative binomial distribution to model the counts of detections, we need to include sampling effort (e.g., @Rees2024). We can do this as an offset within the model, which changes our inference from the expected number of counts to the expected number of counts per unit of effort (i.e. thus modeling a rate). If setup this way, results using these different probability distributions should be quite similar (depending on sample size). There however may be computational benefits modeling counts at very large sample sizes. 
 
@@ -133,7 +133,7 @@ Below, we demonstrate the equivalence between using the binomial and Poisson pro
 
 ### Data preparation
 
-We use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021]. We will use the same data records of American black bear (*Ursus americanus*) as done in the chapter \@ref(cat). However, we will ignore the season covariate for simplicity and just focus on modeling the fall data. We first load the `occasions_cbind` object that we saved in the chapter \@ref(cat), then subset the data to only include records related to the Fall season.
+We use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021]. We use the same data records of American black bear (*Ursus americanus*) as done in the chapter \@ref(cat). However, we ignore the season covariate for simplicity and just focus on modeling the fall data. We first load the `occasions_cbind` object that we saved in the chapter \@ref(cat), then subset the data to only include records related to the Fall season.
 
 
 ```{r pdf1, message = TRUE, warnings = TRUE}
@@ -395,7 +395,7 @@ We can see that the activity curves have the same shape, but the magnitude on th
 
 ## Activity patterns in the Bayesian framework {#bay}
 
-Here, we use simulated data to illustrate how to fit Bayesian versions of the cyclic cubic spline hierarchical models. In particular, we will briefly demonstrate how the `brms` package [@brms] can be used to fit an HGAM with random-intercepts.
+Here, we use simulated data to illustrate how to fit Bayesian versions of the cyclic cubic spline hierarchical models. In particular, we briefly demonstrate how the `brms` package [@brms] can be used to fit an HGAM with random-intercepts.
 
 ### Data Preparation
 
@@ -450,7 +450,7 @@ dim(sim_data)
 
 ```
 
-The first step is to rearrange the specific format of the data created by the `sim_activity` function (see also chapter \@ref(est)). We access the encounter data and store them in an object called `y`, which has a number of rows equal to the number of simulated sites and a number of columns equal to 24 (hours) times the length (in days) of the simulated sampling period (e.g. 24 hour * 30 days = 720 encounter occasions). We add a column which contains a unique identifier for each site (e.g. `id = A1`) and assign a name to each column that represents the time occasion (e.g. from 1 to 720), then convert the data in long format using the `id` column as reference.
+The first step is to rearrange the specific format of the data created by the `sim_activity` function (see also chapter \@ref(est)). <!-- We access the encounter data and store them in an object called `y`, which has a number of rows equal to the number of simulated sites and a number of columns equal to 24 (hours) times the length (in days) of the simulated sampling period (e.g. 24 hour * 30 days = 720 encounter occasions). We add a column which contains a unique identifier for each site (e.g. `id = A1`) and assign a name to each column that represents the time occasion (e.g. from 1 to 720), then convert the data in long format using the `id` column as reference. -->
 
 ```{r data.prep.bayes.cc.1}
 # The data
@@ -473,14 +473,11 @@ y_long <- pivot_longer(data = y, cols = -id, names_to = "time", values_to = "y")
 
 # create variable to describe time as hour (between 0 and 23)
 y_long$hour <- sim_to_minute(y_long$time, group = wavelength)
-
-# show first few rows of the dataset created
-knitr::kable(head(y_long))
 ```
 
-We obtain a data set in which each row specifies the outcome (i.e. encounter or non-encounter of the target species) at a certain site during a specific hour of a certain day of sampling.
+<!-- We obtain a data set in which each row specifies the outcome (i.e. encounter or non-encounter of the target species) at a certain site during a specific hour of a certain day of sampling.
 
-To optimize computational time, we can reduce the number of rows in the dataset by counting the number of hour-long occasions in which the species was observed (i.e. successes) and the number of occasion in which the species was not observed (i.e. failures) for each hourly time interval and camera site (see also \@ref(est)).
+To optimize computational time, we can reduce the number of rows in the dataset by counting the number of hour-long occasions in which the species was observed (i.e. successes) and the number of occasion in which the species was not observed (i.e. failures) for each hourly time interval and camera site (see also \@ref(est)). -->
 
 ```{r data.prep.bayes.cc.2, message = FALSE, warnings = FALSE}
 # count successes and failures at each site-occasion
@@ -500,7 +497,7 @@ To optimize computational time, we can reduce the number of rows in the dataset 
 
 ### Model Setup and Fitting
 
-We are now ready to setup the Bayesian cyclic cubic spline model using  code similar to that shown in chapter \@ref(est). However, here we wrap our code in the `brm` function from the package `brms` [@brms]. We also need to change our notation slightly to specify the number of successes and the number of trials using `success| trials(n_events)`. <!---From the `brms` R package vignette, "cbind() syntax will not work in `brms` in the expected way because this syntax is reserved for other purposes."---> Note that below, we only consider random intercepts, but we could also include random slopes by adding `s(Time, Site, bs="re")`.
+We are now ready to setup the Bayesian cyclic cubic spline model using  code similar to that shown in chapter \@ref(est). However, here we wrap our code in the `brm` function from the package `brms` [@brms]. We also need to change our notation slightly to specify the number of successes and the number of trials using `success| trials(n_events)`. <!---From the `brms` R package vignette, "cbind() syntax does not work in `brms` in the expected way because this syntax is reserved for other purposes."---> Note that below, we only consider random intercepts, but we could also include random slopes by adding `s(Time, Site, bs="re")`.
 
 The random intercept can be specified in one of two ways, `s(Site, bs="re")` or `(1 | Site)`. Note that `brms` functions do not allow excluding smooth terms, such as `s(Site, bs="re")` when making predictions ([see here](https://discourse.mc-stan.org/t/excluding-a-smooth-term-in-brms-using-posterior-linpred/10960/4)), so the latter approach is necessary if we want to estimate the conditional mean for a typical site. We compare these two approaches, below.
 
@@ -548,9 +545,9 @@ cycl_rand_int_alt <- update(cycl_rand_int_setup_alt,
 
 ### Model Assessment 
 
-For Bayesian models, we need to investigate parameter posterior distributions to evaluate whether there is evidence they have converged and thus are reliable to be used for inference. There are plenty of ways to conduct MCMC diagnostics (e.g.,@roy2020convergence). A good first step, is to simply visualize the posterior distributions as 'traceplots' and 'density plots' for each chain (independent model fit) to evaluate whether 1) different chains for each parameter are largely the same (plotted on top of each other), and 2) there is good 'mixing' within chain for each parameter. Mixing refers to the process of how the MCMC explores the parameter space to 'fill out' the full posterior distribution; good mixing can generally be assessed visually where the traceplot looks like a 'hairy caterpillar' and density plots look smooth. For a simple introduction see Denis Valle's [How do I tell if my MCMC has converged?](https://drvalle1.github.io/20_MCMC_convergence.html) and for additional details, see [MCMC diagnostics](https://sbfnk.github.io/mfiidd/mcmc_diagnostics.html).
+For Bayesian models, we need to investigate parameter posterior distributions to evaluate whether there is evidence they have converged and thus are reliable to be used for inference. There are plenty of ways to conduct MCMC diagnostics (e.g., @roy2020convergence). A good first step, is to simply visualize the posterior distributions as 'traceplots' and 'density plots' for each chain (independent model fit) to evaluate whether 1) different chains for each parameter are largely the same (plotted on top of each other), and 2) there is good 'mixing' within chain for each parameter. Mixing refers to the process of how the MCMC explores the parameter space to 'fill out' the full posterior distribution; good mixing can generally be assessed visually where the traceplot looks like a 'hairy caterpillar' and density plots look smooth. For a simple introduction see Denis Valle's [How do I tell if my MCMC has converged?](https://drvalle1.github.io/20_MCMC_convergence.html) and for additional details, see [MCMC diagnostics](https://sbfnk.github.io/mfiidd/mcmc_diagnostics.html).
 
-```{r fit.bayes.cc.4, fig.cap="Bayesian MCMC diagnostics and plotting."}
+```{r fit.bayes.cc.4}
 #Traceplots to check convergence
 mcmc_plot(cycl_rand_int, type = "trace")
 mcmc_plot(cycl_rand_int_alt, type = "trace")
@@ -576,7 +573,7 @@ summary(cycl_rand_int_alt)
 
 We use the first parameterization (with `s(Site, bs="re")`) to explore site-level variability in the activity patterns:
 
-```{r fit.bayes.cc.pred1, fig.cap="Predicted probability of activity across sites."}
+```{r fit.bayes.cc.pred1}
 # Predict the mean site-level activity pattern
 newdata <- data.frame(Time=0:23,
                       Site = occasions_cbind$Site, 
@@ -621,7 +618,7 @@ ranef(cycl_rand_int)
 ranef(cycl_rand_int_alt)$Site[1:5,,]
 ```
  
-Because `brms` does not allow smooth terms, such as `s(Site, bs="re")`, to be omitted when predicting, we will use the second model to predict the conditional mean activity curve. --->
+Because `brms` does not allow smooth terms, such as `s(Site, bs="re")`, to be omitted when predicting, we use the second model to predict the conditional mean activity curve. --->
 
 ```{r fit.bayes.cc.predict3, class.source = 'fold-hide', fig.cap="Predicted probability of the conditional mean activity."}
 # Predict the conditional mean activity
@@ -652,12 +649,12 @@ legend("topright",lwd=c(3,1,1,3),col=c(1,1,1,2),
 
 ## Link to the Diel.Niche package {#DielNiche}
 
-In the ecology and evolution literature, animal activity is often discussed in terms of diel classifications or phenotypes, such as diurnal, nocturnal, crepuscular, or cathemeral. But, how much activity in what time period does it mean to be diurnal, nocturnal, etc.? To make comparable inference across studies, we should define these diel phenotypes mathematically so that we can make inference based on consistent definitions and thus make appropriate comparisons across species or projects. We can use the [`Diel.Niche` R package](https://github.com/diel-project/Diel-Niche-Modeling/) to do exactly this. First, we use our data to estimate animal diel activity across the 24-hour period and then second, we can classify predicted activity patterns into the corresponding diel phenotype. Here, we demonstrate this approach using a hierarchical cyclic cubic spline model, but the process is the same for any model predicting 24-hr temporal activity.
+In the ecology and evolution literature, animal activity is often discussed in terms of diel classifications or phenotypes, such as diurnal, nocturnal, crepuscular, or cathemeral. But, how much activity in what time period does it mean to be diurnal, nocturnal, etc.? To make comparable inference across studies, we should define these diel phenotypes mathematically so that we can make inference based on consistent definitions and thus make appropriate comparisons across species or projects. We can use the [`Diel.Niche` R package](https://github.com/diel-project/Diel-Niche-Modeling/) to do exactly this. First, we use our data to estimate animal diel activity across the 24-hour period and then second, we can classify predicted activity patterns into the corresponding diel phenotype. Here, we demonstrate this approach using a hierarchical cyclic cubic spline model, but the process is the same for any model predicting 24-hour temporal activity.
 
 
 ### Data
 
-We use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA [@Iannarilliea2021]. We use the same data records of American black bear (*Ursus americanus*) as done in other chapters and in section \@ref(poisson). However, we ignore examining a season covariate for simplicity and focus on modeling the spring data. As before, we first load the `occasions_cbind` object that we saved in the chapter \@ref(cat), then subset the data to only include records related to the season of interest, which is now Spring. 
+We use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA [@Iannarilliea2021]. We use the same data records of American black bear (*Ursus americanus*) as done in other chapters and in section \@ref(poisson). However, we ignore examining a season covariate for simplicity and focus on modeling the spring data. As before, we first load the `occasions_cbind` object that we saved in section \@ref(cat), then subset the data to only include records related to the season of interest, which is now Spring. 
 
 ``` {r data1, warnings = TRUE, message = TRUE, warnings = TRUE}
 # load packages
@@ -679,7 +676,7 @@ head(y_spring)
 ```
 
 ### Model Fitting
-Using the spring data for black bears, We can now fit a hierarchical cyclic cubic spline model.
+Using the spring data for black bears, we can now fit a hierarchical cyclic cubic spline model.
 
 ```{r fit..cc.3, eval=TRUE, echo=TRUE}
 cycl_rand_int_ML <- bam(cbind(success, failure) ~ 
@@ -692,7 +689,7 @@ cycl_rand_int_ML <- bam(cbind(success, failure) ~
 ```
 
 ### Model Predictions
-Let's now use our model to predict the conditional mean activity curve across all sites. We will then use those predictions to define the diel phenotype. Below, we will classify each predicted time period into twilight, daytime, and nighttime. To make sure we capture enough predictions to summarize each of these periods, we will predict the probability of activity at a smaller interval than how we modeled the data (e.g., 100 intervals instead of 24). 
+Let's now use our model to predict the conditional mean activity curve across all sites. We then use those predictions to define the diel phenotype. Below, we classify each predicted time period into twilight, daytime, and nighttime. To make sure we capture enough predictions to summarize each of these periods, we predict the probability of activity at a smaller interval than how we modeled the data (e.g., 100 intervals instead of 24). 
 
 ```{r fit.ml.pred1}
 newdat <- with(occasions_cbind, expand.grid(Time = seq(0, 24, length.out=100),total=1, 
@@ -703,11 +700,11 @@ cycl_pred <- predict.bam(cycl_rand_int_ML, newdata = newdat,  exclude = "s(Site)
 cycl_pred <- data.frame(cycl_pred)
 cycl_pred$Time <- newdat$Time
 head(cycl_pred)
+```
 
-# These predictions are absolute probabilities of activity, which incorporates sampling effort. 
-#  We need to turn these into relative activity probabilities; therefore, assuming the species is active,
-#  these are the relative probabilities of activity during each time period. 
-#  
+These predictions are absolute probabilities of activity, which incorporates sampling effort. We need to turn these into relative activity probabilities; therefore, assuming the species is active, these are the relative probabilities of activity during each time period. 
+ 
+```{r fit.ml.pred1b}
 cycl_pred$cycl_pred.st = cycl_pred$cycl_pred/sum(cycl_pred$cycl_pred)
 ```
 
@@ -747,7 +744,7 @@ diel.summary
 
 ### Diel.Niche
 
-Next, we will reorganize the probabilities of activity in the order used by the `Diel.Niche` package: twilight, daytime, nighttime. For details about the `Diel.Niche` package, see the [Github repository](https://github.com/diel-project/Diel-Niche-Modeling/) and the associated [manuscript](https://doi.org/10.1111/1365-2656.14035).
+Next, we reorganize the probabilities of activity in the order used by the `Diel.Niche` package: twilight, daytime, nighttime. For details about the `Diel.Niche` package, see the [Github repository](https://github.com/diel-project/Diel-Niche-Modeling/) and the associated [manuscript](https://doi.org/10.1111/1365-2656.14035).
 
 
 ```{r fit.ml.pred2}  
@@ -786,11 +783,11 @@ This difference in classification is because of the low amount of activity durin
 
 Modeling animal activity patterns continuously throughout the 24-hour period provides important fine scale inference that is not achieved when aggregating data into blocks of time (e.g., daytime vs nighttime). However, it is important to then still be able to translate findings in relevant terminology based on diel phenotypes. The [`Diel.Niche` R package](https://github.com/diel-project/Diel-Niche-Modeling/) provides an efficient way of summarizing findings from hierarchical trigonometric and cyclic cubic spline models.
 
-Here, we provided a simple example to demonstrate the process of using the `Diel.Niche` R package](https://github.com/diel-project/Diel-Niche-Modeling/). However, there are a number of options we could also consider. For example, we could predict the diel phenotype for each site. This will be most useful when we have site to site variation in terms of a random intercept and slope. We could also use covariates in our model and predict the supported diel phenotype across covariate values. Furthermore, we only predicted the corresponding diel phenotype using the estimated conditional mean activity. There is of course uncertainty associated with this mean activity level. To explore how supported the diel phenotype is when considering uncertainty from the conditional mean, we could predict activity curves at different levels of uncertainty or at certain confidence intervals to investigate uncertainty in the associated diel phenotype.
+Here, we provided a simple example to demonstrate the process of using the `Diel.Niche` R package](https://github.com/diel-project/Diel-Niche-Modeling/). However, there are a number of options we could also consider. For example, we could predict the diel phenotype for each site. This is most useful when we have site to site variation in terms of a random intercept and slope. We could also use covariates in our model and predict the supported diel phenotype across covariate values. Furthermore, we only predicted the corresponding diel phenotype using the estimated conditional mean activity. There is of course uncertainty associated with this mean activity level. To explore how supported the diel phenotype is when considering uncertainty from the conditional mean, we could predict activity curves at different levels of uncertainty or at certain confidence intervals to investigate uncertainty in the associated diel phenotype.
 
 ## Info session
 
-To facilitate reproducibility, we report information on packages and package versions use to create this tutorial.
+To facilitate reproducibility, we report information on packages and package versions used to create this tutorial.
 
 ```{r infosession}
 library(grateful)

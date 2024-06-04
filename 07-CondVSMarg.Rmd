@@ -1,16 +1,16 @@
 # Conditional and Marginal Mean Activity Patterns {#condvsmarg}
 
-GLMMs allow users to estimate both site-specific diel activity patterns and population-level activity patterns formed by averaging activity levels across sites in the population (see Box 1 in the main text). Site-specific estimates are frequently referred to as *conditional means* since they are formed by conditioning on a set of site-specific parameters; population-level means are often referred to as *marginal means*. Although one can estimate the conditional mean associated with any of the sampled sites, it is also common to plot the conditional mean for a ‘typical site’ (i.e., a site with average characteristics), formed by setting all of the random coefficients to their mean values [@Fieberg_ea_2009]. 
+GLMMs allow users to estimate both site-specific diel activity patterns and population-level activity patterns formed by averaging activity levels across sites in the population (see Box 1 in @HMsActivity2024). Site-specific estimates are frequently referred to as *conditional means* since they are formed by conditioning on a set of site-specific parameters; population-level means are often referred to as *marginal means*. Although one can estimate the conditional mean associated with any of the sampled sites, it is also common to plot the conditional mean for a ‘typical site’ (i.e. a site with average characteristics), formed by setting all of the random coefficients to their mean values [@Fieberg_ea_2009]. 
 
-Conditional and marginal mean activity patterns can be estimated in both the frequentist and Bayesian frameworks. The frequentist framework is generally accessible by more users than the Bayesian framework thanks to the availability of many ready-to-use R packages that implement GLMMs, so we will first focus on this framework. An example of the same approach in the Bayesian framework is provided in section \@(bay). 
+Conditional and marginal mean activity patterns can be estimated in both the frequentist and Bayesian frameworks. The frequentist framework is generally accessible by more users than the Bayesian framework thanks to the availability of many ready-to-use R packages that implement GLMMs, so we first focus on this framework. An example of the same approach in the Bayesian framework is provided in section \@ref(bay). 
 
-We use simulated data to illustrate how random-intercept only and random intercept and slope models are able to return differences in conditional and marginal mean activity patterns. 
+We use simulated data to illustrate how random intercept-only and random intercept and slope models are able to return differences in conditional and marginal mean activity patterns. 
 
-**Data simulation.** Using the approach introduced in sections \@ref(var) and \@ref(est), we simulate  encounter events for a species with a bimodal activity pattern using camera traps set at 100 sites with 30 days of sampling at each site. In addition to simulating the data, the `sim_activity` function also returns the 'true' conditional activity pattern for a typical site (one with random effects $\tau_i = 0$ and $\gamma_i = 0$) at each of 513 equally spaced points $j$ between 0 and 24 hours (i.e., covering the diel activity pattern) using: 
+**Data simulation.** Using the approach introduced in chapters \@ref(var) and \@ref(est), we simulate  encounter events for a species with a bimodal activity pattern using camera traps set at 100 sites with 30 days of sampling at each site. In addition to simulating the data, the `sim_activity` function also returns the 'true' conditional activity pattern for a typical site (one with random effects $\tau_i = 0$ and $\gamma_i = 0$) at each of 513 equally spaced points $j$ between 0 and 24 hours (i.e. covering the diel activity pattern) using: 
 
 $$E[Y_{it} |\tau_i=0,\gamma_i=0] =  \frac{exp^{\beta_0 + \beta_1*\text{cos}(\frac{2\pi t}{24} + \theta_0) + \beta_2*\text{cos}(\frac{2\pi t}{12} + \theta_1)}}{1+exp^{\beta_0 + \beta_1*\text{cos}(\frac{2\pi t}{24} + \theta_0) + \beta_2*\text{cos}(\frac{2\pi t}{12} + \theta_1)}}$$
 
-where $\beta_0$, $\beta_1$, $\beta_2$, $\theta_0$, and $\theta_1$ corresponded to the parameter values used to simulate the data (see Section \@ref(est)).
+where $\beta_0$, $\beta_1$, $\beta_2$, $\theta_0$, and $\theta_1$ correspond to the parameter values used to simulate the data (see chapter \@ref(est)).
 
 In addition, the `sim_activity` function returns the  'true' marginal mean activity pattern, which is formed by averaging activity patterns across sites. To determine marginal means, we have to integrate over the distribution of the random effects: 
 
@@ -19,8 +19,8 @@ Because this set of integrals has no closed-form solution, we must use approxima
 
 If we plot the estimated conditional and marginal mean activity curves (Figure \@ref(fig:condvsmarg1)), we see that for this set of parameter values, the two means have a similar shape. However, marginal mean is higher than the conditional mean, suggesting a higher level of overall activity when measured at the population level compared to the activity level at a typical site.
 
-(ref:condvsmargcap) Conditional activity pattern for a typical site (one with random effects $\tau_i = 0$ and $\gamma_i = 0$) and marginal mean activity pattern formed by averaging site-specific activity patterns across a population of sites. 
-```{r condvsmarg1, message = FALSE, warnings = FALSE}
+ 
+```{r condvsmarg1, message = FALSE, warnings = FALSE, fig.cap="Conditional activity pattern for a typical site (one with random effects equal to zero) and marginal mean activity pattern formed by averaging site-specific activity patterns across a population of sites."}
 #' Load libraries and function to simulate activity patterns
 library(tidyverse)
 library(GLMMadaptive)
@@ -69,7 +69,7 @@ dat <- sim_activity(M = M,
 ## Estimating Conditional and Marginal Mean Activity Patterns
 
 
-Before fitting models, we need to prepare the data. We will use the code from Section \@ref(est) to aggregate the data by site, resulting in a data set with the following variables:
+Before fitting models, we need to prepare the data. We use the code from chapter \@ref(est) to aggregate the data by site, resulting in a data set with the following variables:
 
 - `Site` = ID for each surveyed site
 - `Time` = hour of day
@@ -116,9 +116,9 @@ We are now ready to estimate conditional and marginal mean activity in the frequ
 
 ## The frequentist framework
 
-When using **trigonometric GLMMs**, we can quantify the conditional mean by setting all the random effects in the GLMM as equal to 0 and the marginal mean by integrating over the distribution of the random effects (@Fieberg_ea_2009). Among the many packages available in R to model GLMMs, GLMMadaptive (@Rizopoulos2022) has the advantage of providing estimates of parameters describing both conditional and marginal mean response curves. 
+When using **trigonometric GLMMs**, we can quantify the conditional mean by setting all the random effects in the GLMM as equal to 0 and the marginal mean by integrating over the distribution of the random effects [@Fieberg_ea_2009]. Among the many packages available in R to model GLMMs, GLMMadaptive [@Rizopoulos2022] has the advantage of providing estimates of parameters describing both conditional and marginal mean response curves. 
 
-We start by fitting the model, similar to how we have done it in previous sections of this tutorial.
+We start by fitting the model, similar to how we have done it in previous chapters of this tutorial.
 
 ```{r condvsmarg3, cache=TRUE, cache.path="cache/"}
 # Modelling activity pattern using trigonometric GLMMs in the parametric modelling framework
@@ -135,9 +135,9 @@ trig_rand_slope <- mixed_model(fixed = cbind(success, failure) ~
 summary(trig_rand_slope)
 ```      
 
-In all the applications so far, we explored the model results using the predicted conditional mean activity patterns. We calculated these patterns using the function `effectPlotData`, which is included in the `GLMMadaptive` package, and setting the argument `marginal` as equal `FALSE`. We do the same here. The conditional mean can be easily estimated using other packages available in R to fit GLMMs by setting the random effect equal to 0 and then predict the activity pattern over the 24-hour cycle. For example, we can use the `predict` function with the argument `re.form = NA` to obtain conditional means when models are fit using the `glmer` function in the `lme4` package [@lme4].
+In most of the applications so far (except chapter \@ref(temppart)), we explored the model results using the predicted conditional mean activity patterns. We calculated these patterns using the function `effectPlotData`, which is included in the `GLMMadaptive` package, and setting the argument `marginal` as equal `FALSE`. We do the same here. The conditional mean can be easily estimated using other packages available in R to fit GLMMs by setting the random effect equal to 0 and then predict the activity pattern over the 24-hour cycle. For example, we can use the `predict` function with the argument `re.form = NA` to obtain conditional means when models are fit using the `glmer` function in the `lme4` package [@lme4].
 
-We can estimate marginal means using numerical integration (as done in chapter \@ref(var)), simulation, or using various approximation methods [see e.g., section 19.2 of @fieberg2024]. The primary reason we will explore `mixed_model` in the `GLMMadaptive` package  is because it will do the hard work for us. To calculate the predicted marginal mean activity pattern, we only need to change the argument `marginal` from `FALSE` to `TRUE` in the `effectPlotData` function. 
+We can estimate marginal means using numerical integration (as done in chapter \@ref(var)), simulation, or using various approximation methods [see e.g., section 19.2 of @fieberg2024]. The primary reason we explore `mixed_model` in the `GLMMadaptive` package  is because it does the hard work for us. To calculate the predicted marginal mean activity pattern, we only need to change the argument `marginal` from `FALSE` to `TRUE` in the `effectPlotData` function. 
 
 ```{r condvsmarg4}
 newdat <- with(occasions_cbind, 
@@ -250,7 +250,8 @@ ggplot(res, aes(x = Time, y= pred, col = Method)) +
         panel.grid.major.y = element_blank(),
         panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', linewidth=0.5),
         panel.grid.minor.x = element_blank(),
-        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0)
+        strip.text = element_text(size = 9, colour = "black", face = "bold", hjust = 0),
+        plot.margin = margin(0.1,0.1,0.5,0.1, "cm")
         ) +
   scale_x_continuous(breaks=seq(0,23,length.out=7), labels=seq(0,24,4)) +
   facet_wrap(~Mean) 

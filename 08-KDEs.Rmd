@@ -1,6 +1,6 @@
-# Kernel Density Estimators (KDEs) {#kdes}
+# Kernel Density Estimators {#kdes}
 
-Kernel Density Estimators are currently the main approach used to estimate activity patterns from camera-trap data. At the time of writing, we are aware of three packages available in R to estimate activity patterns using KDEs: `overlap` [@RidoutLinkie2009; @R-overlap]; `activity`  [@Rowcliffeea2014; @activity2022]; and `circular`  [@circular2022; @Oliveira-Santos2013]. 
+Kernel Density Estimators (KDEs) are currently the main approach used to estimate activity patterns from time-stamped (e.g., camera-trap) data. At the time of writing, we are aware of three packages available in R to estimate activity patterns using KDEs: `overlap` [@RidoutLinkie2009; @R-overlap]; `activity`  [@Rowcliffeea2014; @activity2022]; and `circular`  [@circular2022; @Oliveira-Santos2013]. 
 
 In this chapter, we illustrate how to estimate activity patterns using KDEs with these three packages and highlight the consequences of not aggregating data first when using KDEs. We also compare a KDE-based estimate with results obtained using HM-based approaches for the analysis of seasonal activity patterns of black bears presented in chapter \@ref(cat). 
 
@@ -68,7 +68,7 @@ head(dat_event)
 ```
 We can visually compare the data before and after aggregation.  
 
-```{r prepkde3, fig.cap='Numbers of records at each camera site before and after aggregating the data to reduce short-term autocorrelation', out.width='80%', fig.asp=.75, fig.align='center'}
+```{r prepkde3, fig.cap='Numbers of records at each camera site before and after aggregating the data to reduce short-term autocorrelation', out.width='100%', fig.asp=.75, fig.align='center'}
 # Plot number of records by camera trap station before and after data aggregation
 dat_summary <- dat %>% 
   group_by(Station) %>% 
@@ -117,7 +117,7 @@ Our data are now ready, and we can proceed with estimating the activity patterns
 
 We start with the `overlap` package [@RidoutLinkie2009; @R-overlap]. To facilitate comparison of estimates based on the other two packages, we explicitly specify the values for the argument `n.grid`, which controls the number of points along the 24 hours cycle (in radians) at which density values are estimated. The argument `xscale = 24*60` returns the values of these points in minutes, instead of the default radians.
 
-```{r kdespkg1}
+```{r kdespkg1, message = FALSE, warnings = FALSE}
 # To avoid plotting
 pdf(file = NULL) 
 
@@ -155,7 +155,7 @@ pl_over <- ggplot(res_over, aes(x=x, y=y, group=Data)) +
         panel.grid.minor.x = element_blank(),
         strip.text = element_text(size = 10, colour = "black", face = "bold")
         ) +
-  scale_x_continuous(breaks=seq(0,24*60,60*4), labels=seq(0,24,4), expand = expand_scale(mult = c(0.02,0.02)))+
+  scale_x_continuous(breaks=seq(0,24*60,60*4), labels=seq(0,24,4), expand = expansion(mult = c(0.02,0.02)))+
   scale_y_continuous(expand = expansion(mult = c(0.02, 0.02)))
 
 # print first rows of the output
@@ -167,7 +167,7 @@ head(res_over)
 
 The `fitact` function within the `activity` package [@Rowcliffeea2014; @activity2022] allows users to estimate uncertainty (i.e. confidence intervals) around the activity patterns using bootstrap approaches. Following the recommendations available in the function's help-file and based on the number of events available in the dataset, `r nrow(dat_event)`, we resample from the  data (argument `sample = "data"`). Some tricks are needed to store the estimates returned by the `fitact` function in a R object.
 
-```{r kdespkg2}
+```{r kdespkg2, message = FALSE, warnings = FALSE}
 # Estimate activity patterns and store values in an object 
 res_acti <- as.data.frame(fitact(dat_event$Time_Rad, 
                                  reps = 999, 
@@ -201,7 +201,7 @@ pl_acti <- ggplot(res_acti, aes(x=x, y=y, group=Data)) +
         panel.grid.minor.x = element_blank(),
         strip.text = element_text(size = 10, colour = "black", face = "bold")
         ) +
-  scale_x_continuous(breaks=seq(0,24*60,60*4), labels=seq(0,24,4), expand = expand_scale(mult = c(0.02,0.02)))+
+  scale_x_continuous(breaks=seq(0,24*60,60*4), labels=seq(0,24,4), expand = expansion(mult = c(0.02,0.02)))+
   scale_y_continuous(expand = expansion(mult = c(0.02, 0.02)))
 
 
@@ -213,7 +213,7 @@ head(res_acti)
 
 We now estimate activity using the `circular` package [@circular2022; @Oliveira-Santos2013].
 
-```{r kdespkg3}
+```{r kdespkg3, message = FALSE, warnings = FALSE}
 # prepare the specific format required by circular
 dat_event$Time_Rad_circ <- as.circular(dat_event$Time_Rad, 
                                        units = "radians",
@@ -260,7 +260,8 @@ pl_circ <- ggplot(res_circ, aes(x=x, y=y, group=Data)) +
   labs(x = "", y = "Kernel Density Estimate", title = "C: Circular pkg") +
   coord_cartesian(ylim = c(0,0.4)) +
   theme_minimal() +
-  theme(legend.position = c(0.25, 0.9),
+  theme(legend.position = "inside", 
+        legend.position.inside = c(0.25, 0.9),
         axis.line = element_line(colour = 'black', linetype = 'solid'),
         axis.ticks = element_line(colour = 'black', linetype = 'solid'),
         axis.text = element_text(size=8),
@@ -272,7 +273,7 @@ pl_circ <- ggplot(res_circ, aes(x=x, y=y, group=Data)) +
         panel.grid.minor.x = element_blank(),
         strip.text = element_text(size = 10, colour = "black", face = "bold")
         ) +
-  scale_x_continuous(breaks=seq(0,24*60,60*4), labels=seq(0,24,4), expand = expand_scale(mult = c(0.02,0.02)))+
+  scale_x_continuous(breaks=seq(0,24*60,60*4), labels=seq(0,24,4), expand = expansion(mult = c(0.02,0.02)))+
   scale_y_continuous(expand = expansion(mult = c(0.02, 0.02)))
 
 # print the first few rows of the output
@@ -284,7 +285,7 @@ head(res_circ)
 
 We now can visually compare the estimates of activity patterns returned by the three packages. 
 
-```{r kdespkg4, fig.cap='Activity patterns based on Kernel Density Estimates of American black bear camera-trap data collected in northern-Minnesota between mid-May and mid-July 2017. Estimates were obtained using R-package: A) overlap (Ridout and Linkie 2009); B) activity (Rowcliffe et al. 2014); C) circular (Agostinelli and Lund 2017). We removed records less than 30 minutes apart to minimize short-term correlation in detection due to animals lingering in front of the cameras. Lines represent mean estimates. Shaded areas represent 95% confidence intervals in B, and activity range cores (50% isopleth) in C.', out.width='80%', fig.asp=.75, fig.align='center', message = FALSE}
+```{r kdespkg4, , message = FALSE, warnings = FALSE, fig.cap='Activity patterns based on Kernel Density Estimates of American black bear camera-trap data collected in northern-Minnesota between mid-May and mid-July 2017. Estimates were obtained using R-package: A) overlap (Ridout and Linkie 2009); B) activity (Rowcliffe et al. 2014); C) circular (Agostinelli and Lund 2017). We removed records less than 30 minutes apart to minimize short-term correlation in detection due to animals lingering in front of the cameras. Lines represent mean estimates. Shaded areas represent 95% confidence intervals in B, and activity range cores (50% isopleth) in C.', out.width='100%', fig.asp=.75, fig.align='center'}
 
 # Combine results of the 3 methods
 (pl <- grid.arrange(pl_over, 
@@ -297,13 +298,13 @@ We now can visually compare the estimates of activity patterns returned by the t
  )
 ```
 
-The three packages return patterns in activity that match in the timing of activity and overall shape of the curves. However, there are some differences. The `overlap` package [@RidoutLinkie2009; @R-overlap] converts estimates so that the area under the curve is equal to one. The `activity` package [@Rowcliffeea2014; @activity2022] has the additional option to estimate 95% confidence intervals using bootstrap approaches; the main function implemented in this package, named `activity::fitact`, also has an argument to correct for differences in detection probability (e.g., between day and night) while the function `activity::solartime` enable double-anchoring procedures to adjust the timestamp associated with the different records based on sunrise and sunset times [for details, see @Vazquezea2019]. Finally, the `circular` package [@circular2022; @Oliveira-Santos2013] can identify periods of higher levels of activity using an isopleth approach similar to that applied in the analysis of telemetry data to identify core areas in estimates of home ranges. Notably, the y-axis associated to the estimates produced using `overlap` differs from those returned by the other two packages. These differences are due to an additional step that takes place within the `densityPlot` function and converts estimates so that the area under the curve is equal to one.
+The three packages return patterns in activity that match in the timing of activity peaks and overall shape of the curves. However, there are some differences. The `overlap` package [@RidoutLinkie2009; @R-overlap] converts estimates so that the area under the curve is equal to one. The `activity` package [@Rowcliffeea2014; @activity2022] has the additional option to estimate 95% confidence intervals using bootstrap approaches; the main function implemented in this package, named `activity::fitact`, also has an argument to correct for differences in detection probability (e.g., between day and night) while the function `activity::solartime` enable double-anchoring procedures to adjust the timestamp associated with the different records based on sunrise and sunset times [for details, see @Vazquezea2019]. Finally, the `circular` package [@circular2022; @Oliveira-Santos2013] can identify periods of higher levels of activity using an isopleth approach similar to that applied in the analysis of telemetry data to identify core areas in estimates of home ranges. Notably, the y-axis associated to the estimates produced using `overlap` differs from those returned by the other two packages. These differences are due to an additional step that takes place within the `densityPlot` function and converts estimates so that the area under the curve is equal to one.
 
 ## Aggregating _versus_ non-aggregating data in KDEs {#kdedataaggr}
 
 Building on the previous section \@ref(kdespkg), here, we illustrate the consequences of not aggregating data prior to implementing KDEs. We re-run the same code as in \@ref(kdespkg), but prior to data aggregation. 
 
-```{r kdedataaggr1, message = TRUE, warnings = TRUE}
+```{r kdedataaggr1, message = FALSE, warnings = FALSE, cache=TRUE, cache.path="cache/"}
 # Specify the format of the column Time
 dat$Time <- hms(dat$Time) 
 
@@ -380,7 +381,7 @@ res_area4 <- res_circ_NonAggr %>% filter(x>temp1$zeros[2,1]/(2*pi)*24*60 & x<tem
 ```
 We plot the results based on the aggregated and non-aggregated data and visually compare them.
 
-```{r kdedataaggr2, class.source = "fold-hide", fig.cap='Activity patterns based on Kernel Density Estimates of American black bear camera-trap data collected in northern-Minnesota between mid-May and mid-July 2017. Estimates were obtained using R-package: A) overlap (Ridout and Linkie 2009); B) activity (Rowcliffe et al. 2014); C) circular (Agostinelli and Lund 2017). Non-aggregated data included all photographic records; in the aggregated data, we removed records less than 30 minutes apart to minimize short-term correlation in detection due to animals lingering in front of the cameras. Lines represent mean estimates. Shaded areas represent 95% confidence intervals in B, and activity range cores (50% isopleth) in C.', out.width='100%', fig.asp=.75, fig.align='center'}
+```{r kdedataaggr2, , message = FALSE, warnings = FALSE, class.source = "fold-hide", fig.cap='Activity patterns based on Kernel Density Estimates of American black bear camera-trap data collected in northern-Minnesota between mid-May and mid-July 2017. Estimates were obtained using R-package: A) overlap (Ridout and Linkie 2009); B) activity (Rowcliffe et al. 2014); C) circular (Agostinelli and Lund 2017). Non-aggregated data included all photographic records; in the aggregated data, we removed records less than 30 minutes apart to minimize short-term correlation in detection due to animals lingering in front of the cameras. Lines represent mean estimates. Shaded areas represent 95% confidence intervals in B, and activity range cores (50% isopleth) in C.', out.width='100%', fig.asp=.75, fig.align='center'}
 
 # plot OVERLAP
 # Join results and plot
@@ -405,8 +406,8 @@ pl_over <- ggplot(res_over_both, aes(x=x, y=y, group=Data)) +
         panel.grid.minor.x = element_blank(),
         strip.text = element_text(size = 10, colour = "black", face = "bold")
         ) +
-  scale_x_continuous(breaks=seq(0,24*60,60*4), labels=seq(0,24,4), expand = expand_scale(mult = c(0.02,0.02)))+
-  scale_y_continuous(expand = expand_scale(mult = c(0.02, 0.02)))
+  scale_x_continuous(breaks=seq(0,24*60,60*4), labels=seq(0,24,4), expand = expansion(mult = c(0.02,0.02)))+
+  scale_y_continuous(expand = expansion(mult = c(0.02, 0.02)))
 
 # plot ACTIVITY
 res_acti_both <- rbind(res_acti, res_acti_NonAggr)
@@ -431,8 +432,8 @@ pl_acti <- ggplot(res_acti_both, aes(x=x, y=y, group=Data)) +
         panel.grid.minor.x = element_blank(),
         strip.text = element_text(size = 10, colour = "black", face = "bold")
         ) +
-  scale_x_continuous(breaks=seq(0,24*60,60*4), labels=seq(0,24,4), expand = expand_scale(mult = c(0.02,0.02)))+
-  scale_y_continuous(expand = expand_scale(mult = c(0.02, 0.02)))
+  scale_x_continuous(breaks=seq(0,24*60,60*4), labels=seq(0,24,4), expand = expansion(mult = c(0.02,0.02)))+
+  scale_y_continuous(expand = expansion(mult = c(0.02, 0.02)))
 
 # plot CIRCULAR
 res_circ_both <- rbind(res_circ, res_circ_NonAggr) 
@@ -446,7 +447,8 @@ pl_circ <- ggplot(res_circ_both, aes(x=x, y=y, group=Data)) +
   labs(x = "", y = "Kernel Density Estimate", title = "C: Circular pkg") +
   coord_cartesian(ylim = c(0,0.4)) +
   theme_minimal() +
-  theme(legend.position = c(0.25, 0.9),
+  theme(legend.position = "inside", 
+        legend.position.inside = c(0.25, 0.9),
         axis.line = element_line(colour = 'black', linetype = 'solid'),
         axis.ticks = element_line(colour = 'black', linetype = 'solid'),
         #axis.title.y = element_blank(),
@@ -459,8 +461,8 @@ pl_circ <- ggplot(res_circ_both, aes(x=x, y=y, group=Data)) +
         panel.grid.minor.x = element_blank(),
         strip.text = element_text(size = 10, colour = "black", face = "bold")
         ) +
-  scale_x_continuous(breaks=seq(0,24*60,60*4), labels=seq(0,24,4), expand = expand_scale(mult = c(0.02,0.02)))+
-  scale_y_continuous(expand = expand_scale(mult = c(0.02, 0.02)))
+  scale_x_continuous(breaks=seq(0,24*60,60*4), labels=seq(0,24,4), expand = expansion(mult = c(0.02,0.02)))+
+  scale_y_continuous(expand = expansion(mult = c(0.02, 0.02)))
 
 #' Combine results of the 3 methods
 (pl_both <- grid.arrange(pl_over, 
@@ -561,7 +563,7 @@ occasions_cbind <- occasions %>%
 
 ```
 
-There is a minor mismatch between the number of encounters in the `occassions` data set (742 in the Spring, 232 in the Fall), and the number of independent encounters (809 in the Spring, 236 in the Fall). This discrepancy is due to a few independent encounters that are more than 30 minutes apart (the time threshold used to define independence) but that still fall within the same hourly time interval (e.g. if their datetime values are '2021-04-15 13:06:08' and '2021-04-15 13:46:09').
+There is a minor mismatch between the number of encounters in the `occassions` data set (742 in the Spring, 232 in the Fall), and the number of independent encounters (809 in the Spring, 236 in the Fall). This discrepancy is due to a few independent encounters that are more than 30 minutes apart (the time threshold used to define independence) but that still fall within the same hourly time interval (e.g., if their datetime values are '2021-04-15 13:06:08' and '2021-04-15 13:46:09').
 
 As before, for the KDE analysis, we convert the time stamp to radians. We also split the dataset by `Season` and run KDEs for the two groups using a loop.
 
@@ -736,10 +738,10 @@ plotcompare
 ggsave(plotcompare, filename = "ms_figures/Fig3_KDEs_HMs_comparison.jpg", device = "jpeg", units = "cm", width = 24, height = 10, dpi = 600)
 ```
 
-Both the HM-based approaches and the KDEs were able to quantify differences in activity patterns across the two seasons. All of the methods also return similar shaped activity curves. However, by using the HM-based approaches, we are also able to quantify differential levels of activity between Spring and Fall. Because these approaches also account for the differential sampling effort, we can interpret the results in terms of the probability that the species is active throughout the day and also compare the activity patterns across seasons. For example, based on the results, we can say that the probability of the species being active around 20:00 is higher in the Spring than in the Fall.
+Both the HM-based approaches and the KDEs were able to quantify differences in activity patterns across the two seasons. All of the methods also return similar shaped activity curves. However, by using the HM-based approaches, we are also able to quantify differential levels of activity between Spring and Fall. Because these approaches also account for the differential sampling effort, we can interpret the results in terms of the probability that the species is active throughout the day and also compare the activity patterns across seasons. For example, based on the results, we can say that the probability of the species being active around 20:00 is higher in the Spring (green curves) than in the Fall (yellow curves).
 Likely owing to the assumption of independence, the KDEs were more wiggly than the HM-based estimates, and these differences might be especially prominent when there are only a few sites with records of the species.
 
-We can compare the two HMs to their relative null model to assess the importance of the variable `Season` on bear's activity patterns.
+**Model selection.** We can compare the two HMs to their relative null model to assess the importance of the variable `Season` on bear's activity patterns.
 ```{r compkde5}
 # trig GLMM random intercept-only
 # null model
