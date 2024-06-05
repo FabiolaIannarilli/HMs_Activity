@@ -16,6 +16,8 @@ We load the three R libraries listed above along with other packages necessary f
 rm(list = ls())
 set.seed(129)
 library(dplyr)
+library(tidyr)
+library(forcats)
 library(ggpubr)
 library(gridExtra)
 library(grid)
@@ -451,13 +453,12 @@ pl_circ <- ggplot(res_circ_both, aes(x=x, y=y, group=Data)) +
         legend.position.inside = c(0.25, 0.9),
         axis.line = element_line(colour = 'black', linetype = 'solid'),
         axis.ticks = element_line(colour = 'black', linetype = 'solid'),
-        #axis.title.y = element_blank(),
         axis.text = element_text(size=8),
         axis.title.y = element_text(size=10,face="bold"),
         axis.title.x = element_blank(),
         panel.grid.minor.y = element_blank(),
         panel.grid.major.y = element_blank(),
-        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', size=0.5),#element_line(colour = 'grey', linetype = 'solid', size=0.5),
+        panel.grid.major.x = element_line(colour = 'lightgrey', linetype = 'dashed', size=0.5),
         panel.grid.minor.x = element_blank(),
         strip.text = element_text(size = 10, colour = "black", face = "bold")
         ) +
