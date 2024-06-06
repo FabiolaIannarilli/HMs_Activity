@@ -227,7 +227,7 @@ ggsave(plot = pl_trig, filename = "ms_figures/Fig5_Coyote_Wolf_patterns.jpg", de
 
 ```
 
-This figure is presented in @HMsActivity (Figure 5), where we offer additional discussion regarding the estimated activity curves. 
+This figure is presented in @HMsActivity2024 (Figure 5), where we offer additional discussion regarding the estimated activity curves. 
 
 Next, we consider a cyclic cubic spline HGAM (without a site-specific smoother) for each species, which we compare to the trigonometric GLMM below.
 
