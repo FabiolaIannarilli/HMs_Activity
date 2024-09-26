@@ -6,7 +6,7 @@ We begin the tutorial by illustrating how site-to-site variability can affect an
 
 2\. variability in timing of activity.
 
-Here, we illustrate these two components separately in the context of a bimodal activity pattern (i.e. a pattern in which an animal's activity is concentrated at two times of the 24-hour cycle), then to a unimodal activity pattern (i.e. a pattern in which an animal's activity is concentrated at one specific time within the 24-hour cycle). Real activity patterns are likely to exhibit both sources of variability, so, in chapter \@ref(est), we present an example in which we simulate activity patterns by simultaneously varying both the frequency of site-use and variability in timing of activity.
+Here, we illustrate these two components separately in the context of a bimodal activity pattern (i.e. a pattern in which an animal's activity is concentrated at two times of the 24-hour cycle), then to a unimodal activity pattern (i.e. a pattern in which an animal's activity is concentrated at one specific time within the 24-hour cycle). Real activity patterns are likely to exhibit both sources of variability, so, in Tutorial \@ref(est), we present an example in which we simulate activity patterns by simultaneously varying both the frequency of site-use and variability in timing of activity.
 
 We simulated data under equation 1 explained in the main text (Materials and Results in @HMsActivity2024) and reported here as:
 
@@ -89,7 +89,7 @@ for(i in 1:length(time)){
 }
 ```
 
-We discuss differences between conditional and marginal means in detail in chapter \@ref(condvsmarg) and in Box 1 in the main text [@HMsActivity2024]. Although we can consider conditional means for any site, it is often instructive to consider the conditional mean curve for a "typical site" obtained by setting all the random effects equal to zero; it is this conditional mean we are referring to if we do not mention a specific site. We can plot the conditional and marginal curves using the code below:
+We discuss differences between conditional and marginal means in detail in Tutorial \@ref(condvsmarg) and in Box 1 in the main text [@HMsActivity2024]. Although we can consider conditional means for any site, it is often instructive to consider the conditional mean curve for a "typical site" obtained by setting all the random effects equal to zero; it is this conditional mean we are referring to if we do not mention a specific site. We can plot the conditional and marginal curves using the code below:
 
 ```{r sim2c}
 # Combine dataframes for plotting
@@ -344,4 +344,4 @@ pl_uni <- grid.arrange(pl_vert_uni, pl_hor_uni, ncol = 2)
 
 This second example (Figure \@ref(fig:sim4b)) clearly illustrates how varying $\gamma_i$ (while keeping all the other parameters constant) leads to the horizontal shift of the curves, with peaks in activity equal across time but occurring at different times of the diel cycle.
 
-In the next chapter, we simulate data drawing values of $\tau_i$ and $\gamma_i$ from the normal distributions specified at the beginning of this chapter. We use these simulated data to illustrate how trigonometric and cyclic cubic regression spline HMs can be used to estimate activity patterns. We will further elaborate on differences between conditional and marginal mean activity patterns in chapter \@ref(condvsmarg). 
+In the next Tutorial, we simulate data drawing values of $\tau_i$ and $\gamma_i$ from the normal distributions specified at the beginning of this Tutorial. We use these simulated data to illustrate how trigonometric and cyclic cubic regression spline hierarchical models can be used to estimate activity patterns. We will further elaborate on differences between conditional and marginal mean activity patterns in Tutorial \@ref(condvsmarg). 

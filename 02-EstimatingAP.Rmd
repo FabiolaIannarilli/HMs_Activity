@@ -1,18 +1,18 @@
 # Estimating activity patterns from time-stamped data {#est}
 
-Activity patterns are currently estimated primarily using Kernel Density Estimators (KDEs). However, this approach presents several limitations that we highlight in @HMsActivity2024. In this chapter, we introduce two alternative, model-based approaches to estimate activity patterns from time-stamped data:
+Activity patterns are currently estimated primarily using Kernel Density Estimators (KDEs). However, this approach presents several limitations that we highlight in @HMsActivity2024. In this Tutorial, we introduce two alternative, model-based approaches to estimate activity patterns from time-stamped data:
 
 -   *trigonometric generalized linear mixed models* (trigonometric GLMMs) and
 
 -   *cyclic cubic spline generalized linear mixed models* (cyclic cubic spline HGAMs).
 
-Both types of hierarchical models (HMs) can accommodate the periodic nature of activity data, and they can both also address site-to-site and other forms of variability. Although our examples are all focused on the analysis of camera-trap data, the same framework can be applied to data collected using other static devices (e.g., acoustic recorders) or site-based sampling strategies.
+Both types of hierarchical models can accommodate the periodic nature of activity data, and they can both also address site-to-site and other forms of variability. Although our examples are all focused on the analysis of camera-trap data, the same framework can be applied to data collected using other static devices (e.g., acoustic recorders) or site-based sampling strategies.
 
 ## Simulating activity patterns
 
-To show how trigonometric and cyclic cubic spline HMs can successfully recover the true pattern of activity, we apply these approaches to simulated data. As such, we can compare the estimated patterns to the known, 'true', simulated patterns.
+To show how trigonometric and cyclic cubic spline hierarchical models can successfully recover the true pattern of activity, we apply these approaches to simulated data. As such, we can compare the estimated patterns to the known, 'true', simulated patterns.
 
-To keep the focus on estimating activity patterns, we encapsulate the code to simulate the data in the function `sim_activity`, that we source after loading the necessary libraries. This function simulates data based on equation 1 (chapter \@ref(var) and Materials and Results in @HMsActivity2024). The function is available in the `source_functions` folder available at *link upon acceptance*; a description of its arguments and outputs is provided in section \@ref(simfunction). 
+To keep the focus on estimating activity patterns, we encapsulate the code to simulate the data in the function `sim_activity`, that we source after loading the necessary libraries. This function simulates data based on equation 1 (Tutorial \@ref(var) and Materials and Results in @HMsActivity2024). The function is available in the `source_functions` folder available at *link upon acceptance*; a description of its arguments and outputs is provided in section \@ref(simfunction). 
 
 ```{r est1, message = FALSE, warnings = FALSE}
 # Load libraries and function to simulate activity patterns
@@ -119,7 +119,7 @@ sample_sites <- as.data.frame(sample_sites) %>%
 
 We see there is considerable variability in the frequency of use among the different sites and relatively smaller variation in timing of activity within the 24-hour cycle.
 
-To create Figure 1 in @HMsActivity2024, we bring together this plot and the two produced in the previous chapter.
+To create Figure 1 in @HMsActivity2024, we bring together this plot and the two produced in the previous Tutorial.
 
 ```{r ms_fig1}
 ggarrange(pl, pl_sites, widths = c(66, 34)) %>%   
@@ -182,7 +182,7 @@ In this new version of the dataset, each row specifies how many times a species 
 
 ## Trigonometric GLMMs
 
-Equation 1 in chapter \@ref(var) is non-linear due the presence of the phaseshift parameters. Currently, we are unaware of any out-of-the-box options in the R programming language for fitting trigonometric non-linear mixed models using a frequentist approach. To overcome this challenge, we rewrite equation 1 using compound angle formulas (see also main text @HMsActivity2024): 
+Equation 1 in Tutorial \@ref(var) is non-linear due the presence of the phaseshift parameters. Currently, we are unaware of any out-of-the-box options in the R programming language for fitting trigonometric non-linear mixed models using a frequentist approach. To overcome this challenge, we rewrite equation 1 using compound angle formulas (see also main text @HMsActivity2024): 
 
 $$
 \text{logit}(p_t) = \beta_0 + \alpha_1 \times \text{cos}(\frac{2\pi t}{24}) + \alpha_2 \times \text{sin}(\frac{2\pi t}{24}) + \alpha_3 \times \text{cos}(\frac{2\pi t}{12}) + \alpha_4 \times \text{sin}(\frac{2\pi t}{12}) + \tau_i
@@ -191,7 +191,7 @@ where
 
 $\alpha_1 = \beta_1 \times \text{cos}(\theta_0 + \gamma_i)$, $\alpha_2= -\beta_1 \times \text{sin}(\theta_0 + \gamma_i)$, $\alpha_3= \beta_2 \times \text{cos}(\theta_1 + \gamma_i)$, and $\alpha_4= -\beta_2 \times \text{sin}(\theta_1 + \gamma_i)$.
 
-In this version (labeled as equation 2 in @HMsActivity2024), we can model activity patterns using any R package available for fitting GLMMs; we list some of these options in Tables 1 and 2 in @HMsActivity2024. Here, we choose the `GLMMadaptive` library [@Rizopoulos2022] because it facilitates estimation of both conditional and marginal mean activity patterns (see chapter \@ref(condvsmarg)).
+In this version (labeled as equation 2 in @HMsActivity2024), we can model activity patterns using any R package available for fitting GLMMs; we list some of these options in Tables 1 and 2 in @HMsActivity2024. Here, we choose the `GLMMadaptive` library [@Rizopoulos2022] because it facilitates estimation of both conditional and marginal mean activity patterns (see Tutorial \@ref(condvsmarg)).
 
 The simplest trigonometric GLMM we can run is one that includes only a random intercept. In the context of estimating activity patterns, a random intercept-only model accounts for variability in the frequency of site-use (i.e. vertical shifts among the curves), but not variability in the timing of activity (i.e. horizontal shift).
 
@@ -339,9 +339,9 @@ Again, the estimated activity curve closely matches the true activity that was u
 
 ## Cyclic cubic spline HGAMs
 
-In this section, we illustrate how cyclic cubic spline HGAMs can be used to explore activity patterns. HGAMs, of which cyclic cubic spline HMs are a special case, are complex functions that allow analysts to model non-linear relationships. These models are highly flexible, often computationally intensive for large datasets, and can be used to model a wide array of model structures and related hypotheses. This high flexibility can make these models intimidating at first. A complete review of the different proprieties of these models is beyond the scope of this work (but see @Pedersen2019 and @Wood2017). Here, we present two model structures that, in our opinion, are useful when addressing the most common ecological questions related to activity patterns.
+In this section, we illustrate how cyclic cubic spline HGAMs can be used to explore activity patterns. HGAMs, of which cyclic cubic spline hierarchical models are a special case, are complex functions that allow analysts to model non-linear relationships. These models are highly flexible, often computationally intensive for large datasets, and can be used to model a wide array of model structures and related hypotheses. This high flexibility can make these models intimidating at first. A complete review of the different proprieties of these models is beyond the scope of this work (but see @Pedersen2019 and @Wood2017). Here, we present two model structures that, in our opinion, are useful when addressing the most common ecological questions related to activity patterns.
 
-We fit a cyclic cubic spline HM using the `bam` function in package `mgcv` [@Wood2017]. We start with a model that resembles a trigonometric random intercept-only model. We use the argument `bs="re"` in the smoother `s(Site, bs="re")` to specify `Site` as a random intercept. We also have a cyclic cubic smoother for `Time` that accommodates the periodicity in the data. As before, we run the model, predict the estimated activity pattern using the `predict.bam` function available in the `mgcv` package [@Wood2017], and visually compare it with the simulated conditional mean activity pattern.
+We fit a cyclic cubic spline hierarchical model using the `bam` function in package `mgcv` [@Wood2017]. We start with a model that resembles a trigonometric random intercept-only model. We use the argument `bs="re"` in the smoother `s(Site, bs="re")` to specify `Site` as a random intercept. We also have a cyclic cubic smoother for `Time` that accommodates the periodicity in the data. As before, we run the model, predict the estimated activity pattern using the `predict.bam` function available in the `mgcv` package [@Wood2017], and visually compare it with the simulated conditional mean activity pattern.
 
 ```{r est10}
 # run model
@@ -405,7 +405,7 @@ cond_eff <- rbind(cond_true, cycl_pred)
 
 This model corresponds, in general terms, to the trigonometric random intercept-only model we ran earlier.  Thus, it only accommodates variability in the frequency of site-use and not in the timing of activity. The model again captures the general shape of the simulated conditional mean activity curve. 
 
-We can add complexity and include a smoother that shrinks the site-specific estimates toward a common smooth and one that allows curves to vary among sites. This model structure resembles the random slope component in trigonometric random intercept and random slope models and allows the site-specific estimates to vary also in the timing of activity. In `mgcv`, there is no need to explicitly force the independence between the random intercept and the random slope (as done before for the trigonometric HMs) because there is no covariance term between two random effects.
+We can add complexity and include a smoother that shrinks the site-specific estimates toward a common smooth and one that allows curves to vary among sites. This model structure resembles the random slope component in trigonometric random intercept and random slope models and allows the site-specific estimates to vary also in the timing of activity. In `mgcv`, there is no need to explicitly force the independence between the random intercept and the random slope (as done before for the trigonometric hierarchical models) because there is no covariance term between two random effects.
 
 ```{r est11, cache=TRUE, cache.path="cache/"}
 # Fit model with general smoother for Time
