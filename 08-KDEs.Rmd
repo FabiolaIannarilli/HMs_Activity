@@ -2,14 +2,14 @@
 
 Kernel Density Estimators (KDEs) are currently the main approach used to estimate activity patterns from time-stamped (e.g., camera-trap) data. At the time of writing, we are aware of three packages available in R to estimate activity patterns using KDEs: `overlap` [@RidoutLinkie2009; @R-overlap]; `activity`  [@Rowcliffeea2014; @activity2022]; and `circular`  [@circular2022; @Oliveira-Santos2013]. 
 
-In this chapter, we illustrate how to estimate activity patterns using KDEs with these three packages and highlight the consequences of not aggregating data first when using KDEs. We also compare a KDE-based estimate with results obtained using HM-based approaches for the analysis of seasonal activity patterns of black bears presented in chapter \@ref(cat). 
+In this Tutorial, we illustrate how to estimate activity patterns using KDEs with these three packages and highlight the consequences of not aggregating data first when using KDEs. We also compare a KDE-based estimate with results obtained using hierarchical model-based approaches for the analysis of seasonal activity patterns of black bears presented in Tutorial \@ref(cat). 
 
 
 ## Data preparation for KDEs {#dataprepkdes}
 
-In chapter \@ref(dataprep), we introduced the concept of data aggregation, that is, grouping images of a species taken at a certain location within a short time frame into independent encounter events. This process reduces short-term correlation in the data and it is often recommended as a preparatory step before applying KDEs (but see @Peral2022 for a different point of view). Thus, we begin our KDE-based analysis by aggregating our data from a raw format to independent encounter events.  
+In Tutorial \@ref(dataprep), we introduced the concept of data aggregation, that is, grouping images of a species taken at a certain location within a short time frame into independent encounter events. This process reduces short-term correlation in the data and it is often recommended as a preparatory step before applying KDEs (but see @Peral2022 for a different point of view). Thus, we begin our KDE-based analysis by aggregating our data from a raw format to independent encounter events.  
 
-We load the three R libraries listed above along with other packages necessary for wrangling the data. We also load and preview the data. In this first section of this chapter, we use the subset of the camera-trap observations of American black bears collected in northern Minnesota between mid-May and mid-July 2017 [@Iannarilliea2021].
+We load the three R libraries listed above along with other packages necessary for wrangling the data. We also load and preview the data. In this first section of this Tutorial, we use the subset of the camera-trap observations of American black bears collected in northern Minnesota between mid-May and mid-July 2017 [@Iannarilliea2021].
 
 ```{r prepkde1, message = FALSE, warnings = FALSE}
 # Load libraries
@@ -478,9 +478,9 @@ pl_circ <- ggplot(res_circ_both, aes(x=x, y=y, group=Data)) +
 
 We see that applying KDEs to non-aggregated data leads to estimates of activity curves that are extremely wiggly due to the choice of smoothing parameter which assumes the observations are independent. This could make the interpretation of the results particularly challenging and even lead to biased conclusions when results are driven by one or two individuals staying in front of a camera for an extensive amount of time (but see @Peral2022 for a different perspective on this topic).
 
-## KDEs _versus_ HMs approaches {#compkde}
+## KDEs _versus_ hierarchical models approaches {#compkde}
 
-In section \@ref(cat), we use the seasonal activity patterns of black bears as an example to demonstrate how HMs can be used to explore the effect of a categorical covariate on activity patterns. We repeat the same analysis here using KDEs and compare the results with the two HM approaches. We again use the full set of black bear camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021]. However, we re-run the HM-based analysis using the aggregated version of the dataset, to facilitate comparison with KDE-based results. 
+In section \@ref(cat), we use the seasonal activity patterns of black bears as an example to demonstrate how hierarchical models can be used to explore the effect of a categorical covariate on activity patterns. We repeat the same analysis here using KDEs and compare the results with the two hierarchical model approaches. We again use the full set of black bear camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021]. However, we re-run the hierarchical model-based analysis using the aggregated version of the dataset, to facilitate comparison with KDE-based results. 
 
 
 ```{r compkde1, message = TRUE, warnings = TRUE}
@@ -613,7 +613,7 @@ pl_KDE <- ggplot(KDE, aes(x = x/(2*pi)*24, y = y)) +
         ) +
   scale_x_continuous(breaks=seq(0,24,4), labels=seq(0,24,4))
 ```
-Next, we re-run the analysis using the HM approach. In particular, we fit a trigonometric random intercept-only model and cyclic cubic spline with a smoother for `Time` that depends on `Season`. Both models account for variability in site-use, but not for variability in timing of activity. 
+Next, we re-run the analysis using the hierarchical model approach. In particular, we fit a trigonometric random intercept-only model and cyclic cubic spline with a smoother for `Time` that depends on `Season`. Both models account for variability in site-use, but not for variability in timing of activity. 
 
 ```{r compkde3}
 # trig GLMM random intercept-only
@@ -739,10 +739,10 @@ plotcompare
 ggsave(plotcompare, filename = "ms_figures/Fig3_KDEs_HMs_comparison.jpg", device = "jpeg", units = "cm", width = 24, height = 10, dpi = 600)
 ```
 
-Both the HM-based approaches and the KDEs were able to quantify differences in activity patterns across the two seasons. All of the methods also return similar shaped activity curves. However, by using the HM-based approaches, we are also able to quantify differential levels of activity between Spring and Fall. Because these approaches also account for the differential sampling effort, we can interpret the results in terms of the probability that the species is active throughout the day and also compare the activity patterns across seasons. For example, based on the results, we can say that the probability of the species being active around 20:00 is higher in the Spring (green curves) than in the Fall (yellow curves).
-Likely owing to the assumption of independence, the KDEs were more wiggly than the HM-based estimates, and these differences might be especially prominent when there are only a few sites with records of the species.
+Both the hierarchical model-based approaches and the KDEs were able to quantify differences in activity patterns across the two seasons. All of the methods also return similar shaped activity curves. However, by using the hierarchical model-based approaches, we are also able to quantify differential levels of activity between Spring and Fall. Because these approaches also account for the differential sampling effort, we can interpret the results in terms of the probability that the species is active throughout the day and also compare the activity patterns across seasons. For example, based on the results, we can say that the probability of the species being active around 20:00 is higher in the Spring (green curves) than in the Fall (yellow curves).
+Likely owing to the assumption of independence, the KDEs were more wiggly than the hierarchical model-based estimates, and these differences might be especially prominent when there are only a few sites with records of the species.
 
-**Model selection.** We can compare the two HMs to their relative null model to assess the importance of the variable `Season` on bear's activity patterns.
+**Model selection.** We can compare the two hierarchical models to their relative null model to assess the importance of the variable `Season` on bear's activity patterns.
 ```{r compkde5}
 # trig GLMM random intercept-only
 # null model
@@ -770,4 +770,4 @@ summary(mod_cycl_null)
 AIC(mod_cycl_null) - AIC(mod_cycl)
 ```
 
-Both HMs support an effect of `Season` on the activity patterns of black bear.
+Both hierarchical models support an effect of `Season` on the activity patterns of black bear.

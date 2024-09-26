@@ -2,7 +2,7 @@
 
 ## The *sim_activity* function {#simfunction}
 
-Throughout the tutorial we use the `sim_activity` function for simulating activity patterns. This function simulates realized activity patterns based on a 'true' activity pattern distribution density build as specified in equation 1 reported in chapter \@ref(var) and introduced in @HMsActivity2024. The arguments of the function specify the following:
+Throughout the tutorial we use the `sim_activity` function for simulating activity patterns. This function simulates realized activity patterns based on a 'true' activity pattern distribution density build as specified in equation 1 reported in Tutorial \@ref(var) and introduced in @HMsActivity2024. The arguments of the function specify the following:
 
 *  `M`: Numeric. Number of sampling units (e.g. sites).
 *  `J`: Numeric. Number of cycles (e.g. days).
@@ -133,7 +133,7 @@ Below, we demonstrate the equivalence between using the binomial and Poisson pro
 
 ### Data preparation
 
-We use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021]. We use the same data records of American black bear (*Ursus americanus*) as done in the chapter \@ref(cat). However, we ignore the season covariate for simplicity and just focus on modeling the fall data. We first load the `occasions_cbind` object that we saved in the chapter \@ref(cat), then subset the data to only include records related to the Fall season.
+We use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021]. We use the same data records of American black bear (*Ursus americanus*) as done in the Tutorial \@ref(cat). However, we ignore the season covariate for simplicity and just focus on modeling the fall data. We first load the `occasions_cbind` object that we saved in the Tutorial \@ref(cat), then subset the data to only include records related to the Fall season.
 
 
 ```{r pdf1, message = TRUE, warnings = TRUE}
@@ -399,7 +399,7 @@ Here, we use simulated data to illustrate how to fit Bayesian versions of the cy
 
 ### Data Preparation
 
-We simulate data using the same approach and the same parameters presented in chapter \@ref(est). As such, the simulated data are generated from the same 'true' activity patterns. 
+We simulate data using the same approach and the same parameters presented in Tutorial \@ref(est). As such, the simulated data are generated from the same 'true' activity patterns. 
 
 ``` {r bay1, message = FALSE, warnings = FALSE}
 # Load libraries and function to simulate activity patterns
@@ -450,7 +450,7 @@ dim(sim_data)
 
 ```
 
-The first step is to rearrange the specific format of the data created by the `sim_activity` function (see also chapter \@ref(est)). <!-- We access the encounter data and store them in an object called `y`, which has a number of rows equal to the number of simulated sites and a number of columns equal to 24 (hours) times the length (in days) of the simulated sampling period (e.g. 24 hour * 30 days = 720 encounter occasions). We add a column which contains a unique identifier for each site (e.g. `id = A1`) and assign a name to each column that represents the time occasion (e.g. from 1 to 720), then convert the data in long format using the `id` column as reference. -->
+The first step is to rearrange the specific format of the data created by the `sim_activity` function (see also Tutorial \@ref(est)). <!-- We access the encounter data and store them in an object called `y`, which has a number of rows equal to the number of simulated sites and a number of columns equal to 24 (hours) times the length (in days) of the simulated sampling period (e.g. 24 hour * 30 days = 720 encounter occasions). We add a column which contains a unique identifier for each site (e.g. `id = A1`) and assign a name to each column that represents the time occasion (e.g. from 1 to 720), then convert the data in long format using the `id` column as reference. -->
 
 ```{r data.prep.bayes.cc.1}
 # The data
@@ -497,7 +497,7 @@ To optimize computational time, we can reduce the number of rows in the dataset 
 
 ### Model Setup and Fitting
 
-We are now ready to setup the Bayesian cyclic cubic spline model using  code similar to that shown in chapter \@ref(est). However, here we wrap our code in the `brm` function from the package `brms` [@brms]. We also need to change our notation slightly to specify the number of successes and the number of trials using `success| trials(n_events)`. <!---From the `brms` R package vignette, "cbind() syntax does not work in `brms` in the expected way because this syntax is reserved for other purposes."---> Note that below, we only consider random intercepts, but we could also include random slopes by adding `s(Time, Site, bs="re")`.
+We are now ready to setup the Bayesian cyclic cubic spline model using  code similar to that shown in Tutorial \@ref(est). However, here we wrap our code in the `brm` function from the package `brms` [@brms]. We also need to change our notation slightly to specify the number of successes and the number of trials using `success| trials(n_events)`. <!---From the `brms` R package vignette, "cbind() syntax does not work in `brms` in the expected way because this syntax is reserved for other purposes."---> Note that below, we only consider random intercepts, but we could also include random slopes by adding `s(Time, Site, bs="re")`.
 
 The random intercept can be specified in one of two ways, `s(Site, bs="re")` or `(1 | Site)`. Note that `brms` functions do not allow excluding smooth terms, such as `s(Site, bs="re")` when making predictions ([see here](https://discourse.mc-stan.org/t/excluding-a-smooth-term-in-brms-using-posterior-linpred/10960/4)), so the latter approach is necessary if we want to estimate the conditional mean for a typical site. We compare these two approaches, below.
 
@@ -654,7 +654,7 @@ In the ecology and evolution literature, animal activity is often discussed in t
 
 ### Data
 
-We use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA [@Iannarilliea2021]. We use the same data records of American black bear (*Ursus americanus*) as done in other chapters and in section \@ref(poisson). However, we ignore examining a season covariate for simplicity and focus on modeling the spring data. As before, we first load the `occasions_cbind` object that we saved in section \@ref(cat), then subset the data to only include records related to the season of interest, which is now Spring. 
+We use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA [@Iannarilliea2021]. We use the same data records of American black bear (*Ursus americanus*) as done in other Tutorials and in section \@ref(poisson). However, we ignore examining a season covariate for simplicity and focus on modeling the spring data. As before, we first load the `occasions_cbind` object that we saved in section \@ref(cat), then subset the data to only include records related to the season of interest, which is now Spring. 
 
 ``` {r data1, warnings = TRUE, message = TRUE, warnings = TRUE}
 # load packages

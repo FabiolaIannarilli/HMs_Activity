@@ -1,6 +1,6 @@
 # Temporal partitioning {#temppart}
 
-Another common question related to activity patterns often asked by ecologists is whether a species changes its activity due to the co-occurrence of another species. In this chapter, we illustrate how HMs can be used to also address this set of questions.
+Another common question related to activity patterns often asked by ecologists is whether a species changes its activity due to the co-occurrence of another species. In this Tutorial, we illustrate how hierarchical models can be used to also address this set of questions.
 
 As an example, we analyze temporal partitioning between coyotes and wolves (*Canis lupus*). We format the data as usual.
 
@@ -176,7 +176,7 @@ summary(mod_trig_Wo)
 
 ```
 
-We now plot the results for both coyotes and wolves in the presence and absence of the other species. We focus on estimating marginal mean activity patterns because our aim is to compare between two groups that differ in their characteristics (i.e. site-sessions with and without the other species). The only change to the code required to obtain the marginal means is to set the argument `marginal` in the `effectPlotData` function equal to `TRUE` (see chapter \@ref(condvsmarg) for more on conditional and marginal mean activity patterns).
+We now plot the results for both coyotes and wolves in the presence and absence of the other species. We focus on estimating marginal mean activity patterns because our aim is to compare between two groups that differ in their characteristics (i.e. site-sessions with and without the other species). The only change to the code required to obtain the marginal means is to set the argument `marginal` in the `effectPlotData` function equal to `TRUE` (see Tutorial \@ref(condvsmarg) for more on conditional and marginal mean activity patterns).
 
 ```{r temp8}
 # coyote
@@ -317,7 +317,7 @@ pl_trig2 <- pl_trig + labs(title = "A: Marginal mean (trigonometric GLMM)") + th
 ggarrange(pl_trig2, pl_cycl, nrow = 2, ncol = 1, common.legend = TRUE, legend = "right")
 ```
 
-We see that the trigonometric and the cyclic cubic spline HMs return the same general pattern.
+We see that the trigonometric and the cyclic cubic spline hierarchical models return the same general pattern.
 
 *Model selection.* As with the other examples, we can assess the importance of the presence of the competitor species by comparing models with and without terms involving this covariate (i.e. `oth_sp`). We fit the reduced model below. <!---In this example, this results in models without the interactions of the cosine terms with the variable *oth_sp*. However, it is preferable to run this comparison only considering the trigonometric models. When removing the effect of the covariate, we change the model structure to one that contains a global smoother and, as highlighted in @Pedersen2019, AIC might not be reliable when comparing HGAMs with and without a global smoother. In these cases, AIC tend to select the model without the global smoother.--->
 

@@ -6,7 +6,7 @@ Diel activity patterns are often described or classified as either:
 * **bimodal**: the species is mostly active during two specific times of the 24-hour cycle, often corresponding to sunrise and sunset (i.e. crepuscular species) and inactive (or mostly inactive) during the rest of the time. The activity curve is characterized by having two peaks.
 * **cathemeral (non-modal)**: the species is equally active throughout the 24-hour cycle and the activity curve approximates a flat line.
 
-Here, we build and compare trigonometric HMs representing these three different diel activity patterns. To reiterate, we use independent camera-trap records of coyotes (*Canis latrans*) collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021], with the data organized as described in the previous chapter \@ref(dataprep). 
+Here, we build and compare trigonometric hierarchical models representing these three different diel activity patterns. To reiterate, we use independent camera-trap records of coyotes (*Canis latrans*) collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021], with the data organized as described in the previous Tutorial \@ref(dataprep). 
 
 ``` {r univsbim1, message = FALSE, warnings = FALSE}
 # Load libraries
@@ -19,7 +19,7 @@ library(ggpubr)
 head(occasions_cbind)
 ```
 
-We start by fitting a model that describes a *unimodal* activity pattern. This structure includes only the first of the two cosine terms in equation 1 (which translates in the first and second terms of equation 2), and a random intercept and a random slope as described in chapter \@ref(est).   
+We start by fitting a model that describes a *unimodal* activity pattern. This structure includes only the first of the two cosine terms in equation 1 (which translates in the first and second terms of equation 2), and a random intercept and a random slope as described in Tutorial \@ref(est).   
 
 ``` {r univsbim2}
 # Unimodal 

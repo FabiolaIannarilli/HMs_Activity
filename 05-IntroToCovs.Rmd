@@ -1,12 +1,12 @@
 # Modeling activity patterns with covariates {#cov}
 
-Many researchers exploring activity patterns from camera-trap data sooner or later run into the challenge of estimating how activity patterns vary in response to some conditions, often related to the environment in which the data have been collected. We address this common set of ecological questions in this chapter, focusing first on categorical and then on continuous variables.
+Many researchers exploring activity patterns from camera-trap data sooner or later run into the challenge of estimating how activity patterns vary in response to some conditions, often related to the environment in which the data have been collected. We address this common set of ecological questions in this Tutorial, focusing first on categorical and then on continuous variables.
 
 ## Categorical covariates {#cat}
 
-The task of comparing activity patterns among different levels of a categorical variable can be achieved using KDE approaches. However, the process can be particularly cumbersome, especially when comparing more than two levels. It requires splitting the dataset of the independent records depending on the levels of the variable of interest, run a KDE for each group of records, and then comparing the results using an ad-hoc test. Conversely, the same task can be accomplished by fitting a HM to the whole dataset, as we describe here. In chapter \@ref(compkde), we repeat this same analyses using the KDE approach, and compare results to those obtained using the trigonometric and cyclic cubic spline HMs.
+The task of comparing activity patterns among different levels of a categorical variable can be achieved using KDE approaches. However, the process can be particularly cumbersome, especially when comparing more than two levels. It requires splitting the dataset of the independent records depending on the levels of the variable of interest, run a KDE for each group of records, and then comparing the results using an ad-hoc test. Conversely, the same task can be accomplished by fitting a hierarchical model to the whole dataset, as we describe here. In Tutorial \@ref(compkde), we repeat this same analyses using the KDE approach, and compare results to those obtained using the trigonometric and cyclic cubic spline hierarchical models.
 
-Again, we use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA [@Iannarilliea2021]. This time, we use records of American black bear (*Ursus americanus*) and explore differences in activity patterns of this species between spring and fall. We again format the data using a `cbind(success, failure)` structure as described in chapter \@ref(dataprep), but this time we also create an additional column (*Season*) that contains the information about the season (i.e. Spring or Fall) in which the records were collected and use it as an additional grouping criterion.
+Again, we use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA [@Iannarilliea2021]. This time, we use records of American black bear (*Ursus americanus*) and explore differences in activity patterns of this species between spring and fall. We again format the data using a `cbind(success, failure)` structure as described in Tutorial \@ref(dataprep), but this time we also create an additional column (*Season*) that contains the information about the season (i.e. Spring or Fall) in which the records were collected and use it as an additional grouping criterion.
 
 ```{r cat1, message = FALSE, warnings = FALSE}
 # Load Libraries
@@ -89,7 +89,7 @@ We obtained 773 (out of 348 696) and 244 (out of 222 480) hourly occasions with 
 
 ### Trigonometric GLMMs
 
-Extending the trigonometric HMs to explore the effect of a covariate on activity patterns only requires the inclusion of interactions between the trigonometric terms and the covariate. The interactions allow the coefficients of the trigonometric terms to vary by treatment group, that is, the two levels of the covariate, e.g., *Season*. We start by fitting and visualizing  estimated activity curves for the two seasons based on a random intercept-only model in which the random intercept for *Site* accounts for repeated measures and varying levels of activity at each site:
+Extending the trigonometric hierarchical models to explore the effect of a covariate on activity patterns only requires the inclusion of interactions between the trigonometric terms and the covariate. The interactions allow the coefficients of the trigonometric terms to vary by treatment group, that is, the two levels of the covariate, e.g., *Season*. We start by fitting and visualizing  estimated activity curves for the two seasons based on a random intercept-only model in which the random intercept for *Site* accounts for repeated measures and varying levels of activity at each site:
 
 ```{r cat2}
 # run model
@@ -192,7 +192,7 @@ However, this model is likely to be too computational demanding for most laptops
 
 ### Cyclic cubic spline HGAMs
 
-Similar to trigonometric GLMMs, cyclic cubic spline HGAMs can also be used to model activity patterns as a function of a categorical covariate. As we explained in chapter \@ref(est), this class of models is highly flexible and offers a plethora of options when it comes to choosing a model structure. Here we focus on two model specifications. The first resembles a trigonometric random intercept-only GLMM and contains `Season` as a fixed term, a cubic cyclic smoother for `Time` which varies by `Season`, and a smoother for `Site` as a random effect. This structure accommodates variability in the frequency of site-use, but not in the timing of activity. 
+Similar to trigonometric GLMMs, cyclic cubic spline HGAMs can also be used to model activity patterns as a function of a categorical covariate. As we explained in Tutorial \@ref(est), this class of models is highly flexible and offers a plethora of options when it comes to choosing a model structure. Here we focus on two model specifications. The first resembles a trigonometric random intercept-only GLMM and contains `Season` as a fixed term, a cubic cyclic smoother for `Time` which varies by `Season`, and a smoother for `Site` as a random effect. This structure accommodates variability in the frequency of site-use, but not in the timing of activity. 
 
 ```{r cat5}
 # 'Random intercept-only'
@@ -254,7 +254,7 @@ pl_cycl1 <- ggplot(cycl_pred1, aes(Time, fit)) +
         ) +
   scale_x_continuous(breaks=seq(0,max(cycl_pred1$Time),length.out=7), labels=seq(0,24,4)) 
 
-# bringing HMs plot together
+# bringing hierarchical models plot together
 (ggarrange(pl_trig, pl_cycl1, ncol = 2, common.legend = TRUE, legend = "bottom", widths = c(0.5, 0.5)) +
   theme(plot.margin = margin(0.1,0.1,0.5,0.1, "cm")))
 ```
@@ -376,13 +376,13 @@ ggsave(plot = pl_cycl, filename = "ms_figures/Fig4_Site_specific_estimates.jpg",
 
 ## Continuous covariates {#cont}
 
-We use the same data to illustrate how HMs can be used to quantify effects of continuous covariates. Specifically, we explore how bear diel activity changes in response to anthropogenic modifications of the landscape quantified through the Global Human Modification index (GHM; @Kennedyea2020; @Kennedyea2019), a continuous measure of human modification of terrestrial landscapes that ranges between 0 and 1. A histogram of the values of GHM at the different sites indicates that the level of human-driven landscape modification is relatively low in the study area with most sites having a GHM value lower than 0.10.
+We use the same data to illustrate how hierarchical models can be used to quantify effects of continuous covariates. Specifically, we explore how bear diel activity changes in response to anthropogenic modifications of the landscape quantified through the Global Human Modification index (GHM; @Kennedyea2020; @Kennedyea2019), a continuous measure of human modification of terrestrial landscapes that ranges between 0 and 1. A histogram of the values of GHM at the different sites indicates that the level of human-driven landscape modification is relatively low in the study area with most sites having a GHM value lower than 0.10.
 
 ```{r cont1, fig.cap="Frequency of observed global human modification index (GHM) values across camera sites."}
 hist(cov$ghm)
 ```
 
-We link the GHM values available in the *cov* object to the *occasion* data frame created at the beginning of this tutorial, and then proceed with arranging the data in the format required to run the HM-based models as we have done in other examples. This time though, we also add GHM as an additional grouping level.
+We link the GHM values available in the *cov* object to the *occasion* data frame created at the beginning of this tutorial, and then proceed with arranging the data in the format required to run the hierarchical model as we have done in other examples. This time though, we also add GHM as an additional grouping level.
 
 ```{r cont2}
 # Add ghm info

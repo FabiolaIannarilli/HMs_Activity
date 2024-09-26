@@ -1,7 +1,7 @@
 # Activity patterns in the Bayesian framework 
 <!-- {#bay} -->
 
-As we mentioned in chapter \@ref(est), it is not possible to directly model activity patterns as specified in equation 1 in chapter \@ref(var) (and in @Iannarilliea2024) due to the lack of ready-to-use tools to fit non-linear mixed models in a frequentest framework. Working in the Bayesian framework allows analysts to overcome this limitation.
+As we mentioned in Tutorial \@ref(est), it is not possible to directly model activity patterns as specified in equation 1 in Tutorial \@ref(var) (and in @Iannarilliea2024) due to the lack of ready-to-use tools to fit non-linear mixed models in a frequentest framework. Working in the Bayesian framework allows analysts to overcome this limitation.
 
 Here, we use simulated data to illustrate how to fit Bayesian versions of the trigonometric and cyclic cubic spline hierarchical models. 
 
@@ -10,7 +10,7 @@ Here, we use simulated data to illustrate how to fit Bayesian versions of the tr
 
 ### Data Preparation
 
-We simulate data using the same approach and the same parameters presented in chapter \@ref(est). As such, the simulated data are generated from the same 'true' activity patterns. 
+We simulate data using the same approach and the same parameters presented in Tutorial \@ref(est). As such, the simulated data are generated from the same 'true' activity patterns. 
 
 ``` {r bay1, message = FALSE, warnings = FALSE}
 # Load libraries and function to simulate activity patterns
@@ -277,7 +277,7 @@ In this section, we will briefly demonstrate how the `brms` package [@brms] can 
 
 ### Data Preparation
 
-The first step is to rearrange the specific format of the data created by the `sim_activity` function (see also chapter \@ref(est4)). We access the encounter data and store them in an object called `y`, which has a number of rows equal to the number of simulated sites and a number of columns equal to 24 (hours) times the length (in days) of the simulated sampling period (e.g. 24 hour * 30 days = 720 encounter occasions). We add a column which contains a unique identifier for each site (e.g. `id = A1`) and assign a name to each column that represents the time occasion (e.g. from 1 to 720), then convert the data in long format using the `id` column as reference.
+The first step is to rearrange the specific format of the data created by the `sim_activity` function (see also Tutorial \@ref(est4)). We access the encounter data and store them in an object called `y`, which has a number of rows equal to the number of simulated sites and a number of columns equal to 24 (hours) times the length (in days) of the simulated sampling period (e.g. 24 hour * 30 days = 720 encounter occasions). We add a column which contains a unique identifier for each site (e.g. `id = A1`) and assign a name to each column that represents the time occasion (e.g. from 1 to 720), then convert the data in long format using the `id` column as reference.
 
 ```{r data.prep.bayes.cc.1}
 # The data
@@ -327,7 +327,7 @@ To optimize computational time, we can reduce the number of rows in the dataset 
 
 ### Model Setup and Fitting
 
-We are now ready to setup the Bayesian cyclic cubic spline model using  code similar to that shown in Chapter \@ref(est10). However, here we wrap our code in the `brm` function from the package `brms` [@brms]. We also need to change our notation slightly to specify the number of successes and the number of trials using `success| trials(n_events)`. <!---From the `brms` R package vignette, "cbind() syntax will not work in `brms` in the expected way because this syntax is reserved for other purposes."---> Note that below, we only consider random intercepts, but we could also include random slopes by adding `s(Time, Site, bs="re")`.
+We are now ready to setup the Bayesian cyclic cubic spline model using  code similar to that shown in Tutorial \@ref(est10). However, here we wrap our code in the `brm` function from the package `brms` [@brms]. We also need to change our notation slightly to specify the number of successes and the number of trials using `success| trials(n_events)`. <!---From the `brms` R package vignette, "cbind() syntax will not work in `brms` in the expected way because this syntax is reserved for other purposes."---> Note that below, we only consider random intercepts, but we could also include random slopes by adding `s(Time, Site, bs="re")`.
 
 The random intercept can be specified in one of two ways, `s(Site, bs="re")` or `(1 | Site)`. Note that `brms` functions do not allow excluding smooth terms, such as `s(Site, bs="re")` when making predictions ([see here](https://discourse.mc-stan.org/t/excluding-a-smooth-term-in-brms-using-posterior-linpred/10960/4)), so the latter approach is necessary if we want to estimate the conditional mean for a typical site. We compare these two approaches, below.
 
