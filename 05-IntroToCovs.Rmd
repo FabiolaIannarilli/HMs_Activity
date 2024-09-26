@@ -122,7 +122,7 @@ pred_rand_int <- effectPlotData(trig_rand_int, newdat, marginal = FALSE)
   scale_color_manual(values = c("orange", "darkgreen")) +
   scale_fill_manual(values = c("orange", "darkgreen")) +
   coord_cartesian(ylim = c(0, 0.005)) +
-  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "A: Trigonometric GLMM \n(random intercept-only)")+
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "A: Hierarchical model, Trigonometric GLMM \n(random intercept-only)")+
   theme_minimal()+
   theme(legend.position = "bottom",
         legend.title = element_blank(),
@@ -234,7 +234,7 @@ pl_cycl1 <- ggplot(cycl_pred1, aes(Time, fit)) +
   geom_line(aes(color = Season), linewidth = 1) +
   scale_color_manual(values = c("orange", "darkgreen")) +
   scale_fill_manual(values = c("orange", "darkgreen")) +
-  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "B: Cyclic cubic spline HGAM")+
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "B: Hierarchical model, \nCyclic cubic spline HGAM")+
   coord_cartesian(ylim = c(0, 0.005)) +
   theme_minimal()+
   theme(legend.position = "bottom",

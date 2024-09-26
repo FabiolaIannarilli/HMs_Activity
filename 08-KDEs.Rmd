@@ -590,12 +590,12 @@ KDE <- do.call(rbind.data.frame, KDE_ls)
 ```{r compkde2b,class.source = "fold-hide"}
 # store plot
 pl_KDE <- ggplot(KDE, aes(x = x/(2*pi)*24, y = y)) +
-  geom_ribbon(aes(ymin = y - 1.96*se, ymax = y +1.96*se, color = Season, fill = Season), alpha = 0.3, size = 0.25) +
+  geom_ribbon(aes(ymin = y - 1.96*se, ymax = y +1.96*se, color = Season, fill = Season), alpha = 0.3, linewidth = 0.25) +
   geom_line(aes(color = Season), linewidth = 1) +
   theme_minimal() +
   scale_color_manual(values = c("orange", "darkgreen")) +
   scale_fill_manual(values = c("orange", "darkgreen")) +
-  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (density) \n", title = "C: KDE \n(splitting data by Season)")+
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (density) \n", title = "C: KDEs, \nsplitting data by Season")+
   theme_minimal()+
   theme(legend.position = "none",
         legend.title = element_blank(),
@@ -646,7 +646,7 @@ pl_trig <- ggplot(pred_rand_int, aes(Time, plogis(pred))) +
   geom_line(aes(color = Season), linewidth = 1) +
   scale_color_manual(values = c("orange", "darkgreen")) +
   scale_fill_manual(values = c("orange", "darkgreen")) +
-  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "A: Trigonometric GLMM \n(random-intercept only)")+
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "A: Hierarchical model, \nTrigonometric GLMM")+
   theme_minimal()+
   theme(legend.position = "bottom",
         legend.title = element_blank(),
@@ -709,7 +709,7 @@ pl_cycl <- ggplot(cycl_pred, aes(Time, fit)) +
   geom_line(aes(color = Season), size = 1) +
   scale_color_manual(values = c("orange", "darkgreen")) +
   scale_fill_manual(values = c("orange", "darkgreen")) +
-  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "B: Cyclic cubic spline HGAMs")+
+  labs(x = "Time of Day (Hour)", y = "Predicted Activity Pattern \n (probability)", title = "B: Hierarchical model, \nCyclic cubic spline HGAM")+
   coord_cartesian(ylim = c(0, 0.005)) +
   theme_minimal()+
   theme(legend.position = "bottom",
