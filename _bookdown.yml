@@ -1,4 +1,5 @@
 book_filename: "HMsActivity"
+output_dir: "HMsActivity_book"
 language:
   ui:
     chapter_name: "Tutorial "
