@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Tutorial 9 Kernel Density Estimators | A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models</title>
+  <meta name="description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript HMsActivity 2024." />
+  <meta name="generator" content="bookdown 0.39 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Tutorial 9 Kernel Density Estimators | A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models" />
+  <meta property="og:type" content="book" />
+  
+  <meta property="og:description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript HMsActivity 2024." />
+  <meta name="github-repo" content="rstudio/bookdown-demo" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Tutorial 9 Kernel Density Estimators | A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models" />
+  
+  <meta name="twitter:description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript HMsActivity 2024." />
+  
+
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="condvsmarg.html"/>
+<link rel="next" href="app.html"/>
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<style type="text/css">
+  
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+</style>
+<style type="text/css">
+/* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Preface</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#requirements"><i class="fa fa-check"></i><b>1.1</b> Requirements</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="var.html"><a href="var.html"><i class="fa fa-check"></i><b>2</b> Variability in activity patterns</a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="var.html"><a href="var.html#variability-in-frequency-of-site-use"><i class="fa fa-check"></i><b>2.1</b> Variability in frequency of site-use</a></li>
+<li class="chapter" data-level="2.2" data-path="var.html"><a href="var.html#variability-in-timing-of-activity"><i class="fa fa-check"></i><b>2.2</b> Variability in timing of activity</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="est.html"><a href="est.html"><i class="fa fa-check"></i><b>3</b> Estimating activity patterns from time-stamped data</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="est.html"><a href="est.html#simulating-activity-patterns"><i class="fa fa-check"></i><b>3.1</b> Simulating activity patterns</a></li>
+<li class="chapter" data-level="3.2" data-path="est.html"><a href="est.html#data-preparation"><i class="fa fa-check"></i><b>3.2</b> Data preparation</a></li>
+<li class="chapter" data-level="3.3" data-path="est.html"><a href="est.html#trigonometric-glmms"><i class="fa fa-check"></i><b>3.3</b> Trigonometric GLMMs</a></li>
+<li class="chapter" data-level="3.4" data-path="est.html"><a href="est.html#cyclic-cubic-spline-hgams"><i class="fa fa-check"></i><b>3.4</b> Cyclic cubic spline HGAMs</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="dataprep.html"><a href="dataprep.html"><i class="fa fa-check"></i><b>4</b> Data preparation</a></li>
+<li class="chapter" data-level="5" data-path="unibim.html"><a href="unibim.html"><i class="fa fa-check"></i><b>5</b> Evaluating Hypotheses Regarding the Shape of Activity Curves</a></li>
+<li class="chapter" data-level="6" data-path="cov.html"><a href="cov.html"><i class="fa fa-check"></i><b>6</b> Modeling activity patterns with covariates</a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="cov.html"><a href="cov.html#cat"><i class="fa fa-check"></i><b>6.1</b> Categorical covariates</a>
+<ul>
+<li class="chapter" data-level="6.1.1" data-path="cov.html"><a href="cov.html#trigonometric-glmms-1"><i class="fa fa-check"></i><b>6.1.1</b> Trigonometric GLMMs</a></li>
+<li class="chapter" data-level="6.1.2" data-path="cov.html"><a href="cov.html#cyclic-cubic-spline-hgams-1"><i class="fa fa-check"></i><b>6.1.2</b> Cyclic cubic spline HGAMs</a></li>
+</ul></li>
+<li class="chapter" data-level="6.2" data-path="cov.html"><a href="cov.html#cont"><i class="fa fa-check"></i><b>6.2</b> Continuous covariates</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="temppart.html"><a href="temppart.html"><i class="fa fa-check"></i><b>7</b> Temporal partitioning</a></li>
+<li class="chapter" data-level="8" data-path="condvsmarg.html"><a href="condvsmarg.html"><i class="fa fa-check"></i><b>8</b> Conditional and Marginal Mean Activity Patterns</a>
+<ul>
+<li class="chapter" data-level="8.1" data-path="condvsmarg.html"><a href="condvsmarg.html#estimating-conditional-and-marginal-mean-activity-patterns"><i class="fa fa-check"></i><b>8.1</b> Estimating Conditional and Marginal Mean Activity Patterns</a></li>
+<li class="chapter" data-level="8.2" data-path="condvsmarg.html"><a href="condvsmarg.html#the-frequentist-framework"><i class="fa fa-check"></i><b>8.2</b> The frequentist framework</a></li>
+</ul></li>
+<li class="chapter" data-level="9" data-path="kdes.html"><a href="kdes.html"><i class="fa fa-check"></i><b>9</b> Kernel Density Estimators</a>
+<ul>
+<li class="chapter" data-level="9.1" data-path="kdes.html"><a href="kdes.html#dataprepkdes"><i class="fa fa-check"></i><b>9.1</b> Data preparation for KDEs</a></li>
+<li class="chapter" data-level="9.2" data-path="kdes.html"><a href="kdes.html#kdespkg"><i class="fa fa-check"></i><b>9.2</b> Comparison of KDE estimators</a>
+<ul>
+<li class="chapter" data-level="9.2.1" data-path="kdes.html"><a href="kdes.html#using-the-overlap-package"><i class="fa fa-check"></i><b>9.2.1</b> Using the overlap package</a></li>
+<li class="chapter" data-level="9.2.2" data-path="kdes.html"><a href="kdes.html#using-the-activity-package"><i class="fa fa-check"></i><b>9.2.2</b> Using the activity package</a></li>
+<li class="chapter" data-level="9.2.3" data-path="kdes.html"><a href="kdes.html#using-the-circular-package"><i class="fa fa-check"></i><b>9.2.3</b> Using the circular package</a></li>
+<li class="chapter" data-level="9.2.4" data-path="kdes.html"><a href="kdes.html#comparing-the-results-and-plotting"><i class="fa fa-check"></i><b>9.2.4</b> Comparing the results and plotting</a></li>
+</ul></li>
+<li class="chapter" data-level="9.3" data-path="kdes.html"><a href="kdes.html#kdedataaggr"><i class="fa fa-check"></i><b>9.3</b> Aggregating <em>versus</em> non-aggregating data in KDEs</a></li>
+<li class="chapter" data-level="9.4" data-path="kdes.html"><a href="kdes.html#compkde"><i class="fa fa-check"></i><b>9.4</b> KDEs <em>versus</em> hierarchical models approaches</a></li>
+</ul></li>
+<li class="chapter" data-level="10" data-path="app.html"><a href="app.html"><i class="fa fa-check"></i><b>10</b> Appendix</a>
+<ul>
+<li class="chapter" data-level="10.1" data-path="app.html"><a href="app.html#simfunction"><i class="fa fa-check"></i><b>10.1</b> The <em>sim_activity</em> function</a></li>
+<li class="chapter" data-level="10.2" data-path="app.html"><a href="app.html#poisson"><i class="fa fa-check"></i><b>10.2</b> Binomial versus Other Distributions</a>
+<ul>
+<li class="chapter" data-level="10.2.1" data-path="app.html"><a href="app.html#data-preparation-1"><i class="fa fa-check"></i><b>10.2.1</b> Data preparation</a></li>
+<li class="chapter" data-level="10.2.2" data-path="app.html"><a href="app.html#trigonometric-pdf-comparison"><i class="fa fa-check"></i><b>10.2.2</b> Trigonometric PDF Comparison</a></li>
+<li class="chapter" data-level="10.2.3" data-path="app.html"><a href="app.html#cyclic-cubic-pdf-comparison"><i class="fa fa-check"></i><b>10.2.3</b> Cyclic cubic PDF Comparison</a></li>
+<li class="chapter" data-level="10.2.4" data-path="app.html"><a href="app.html#not-controlling-for-sampling-effort"><i class="fa fa-check"></i><b>10.2.4</b> Not Controlling for Sampling Effort</a></li>
+</ul></li>
+<li class="chapter" data-level="10.3" data-path="app.html"><a href="app.html#bay"><i class="fa fa-check"></i><b>10.3</b> Activity patterns in the Bayesian framework</a>
+<ul>
+<li class="chapter" data-level="10.3.1" data-path="app.html"><a href="app.html#data-preparation-2"><i class="fa fa-check"></i><b>10.3.1</b> Data Preparation</a></li>
+<li class="chapter" data-level="10.3.2" data-path="app.html"><a href="app.html#model-setup-and-fitting"><i class="fa fa-check"></i><b>10.3.2</b> Model Setup and Fitting</a></li>
+<li class="chapter" data-level="10.3.3" data-path="app.html"><a href="app.html#model-assessment"><i class="fa fa-check"></i><b>10.3.3</b> Model Assessment</a></li>
+<li class="chapter" data-level="10.3.4" data-path="app.html"><a href="app.html#model-predictions"><i class="fa fa-check"></i><b>10.3.4</b> Model Predictions</a></li>
+</ul></li>
+<li class="chapter" data-level="10.4" data-path="app.html"><a href="app.html#DielNiche"><i class="fa fa-check"></i><b>10.4</b> Link to the Diel.Niche package</a>
+<ul>
+<li class="chapter" data-level="10.4.1" data-path="app.html"><a href="app.html#data"><i class="fa fa-check"></i><b>10.4.1</b> Data</a></li>
+<li class="chapter" data-level="10.4.2" data-path="app.html"><a href="app.html#model-fitting"><i class="fa fa-check"></i><b>10.4.2</b> Model Fitting</a></li>
+<li class="chapter" data-level="10.4.3" data-path="app.html"><a href="app.html#model-predictions-1"><i class="fa fa-check"></i><b>10.4.3</b> Model Predictions</a></li>
+<li class="chapter" data-level="10.4.4" data-path="app.html"><a href="app.html#twilight-daytime-and-nighttime"><i class="fa fa-check"></i><b>10.4.4</b> Twilight, daytime, and nighttime</a></li>
+<li class="chapter" data-level="10.4.5" data-path="app.html"><a href="app.html#diel.niche"><i class="fa fa-check"></i><b>10.4.5</b> Diel.Niche</a></li>
+<li class="chapter" data-level="10.4.6" data-path="app.html"><a href="app.html#conclusion"><i class="fa fa-check"></i><b>10.4.6</b> Conclusion</a></li>
+</ul></li>
+<li class="chapter" data-level="10.5" data-path="app.html"><a href="app.html#info-session"><i class="fa fa-check"></i><b>10.5</b> Info session</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="kdes" class="section level1 hasAnchor" number="9">
+<h1><span class="header-section-number">Tutorial 9</span> Kernel Density Estimators<a href="kdes.html#kdes" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<p>Kernel Density Estimators (KDEs) are currently the main approach used to estimate activity patterns from time-stamped (e.g., camera-trap) data. At the time of writing, we are aware of three packages available in R to estimate activity patterns using KDEs: <code>overlap</code> <span class="citation">(<a href="references.html#ref-RidoutLinkie2009">Ridout and Linkie 2009</a>; <a href="references.html#ref-R-overlap">Meredith and Ridout 2021</a>)</span>; <code>activity</code> <span class="citation">(<a href="references.html#ref-Rowcliffeea2014">J. M. Rowcliffe et al. 2014</a>; <a href="references.html#ref-activity2022">M. Rowcliffe 2022</a>)</span>; and <code>circular</code> <span class="citation">(<a href="references.html#ref-circular2022">Agostinelli and Lund 2022a</a>; <a href="references.html#ref-Oliveira-Santos2013">Oliveira-Santos, Zucco, and Agostinelli 2013</a>)</span>.</p>
+<p>In this Tutorial, we illustrate how to estimate activity patterns using KDEs with these three packages and highlight the consequences of not aggregating data first when using KDEs. We also compare a KDE-based estimate with results obtained using hierarchical model-based approaches for the analysis of seasonal activity patterns of black bears presented in Tutorial <a href="cov.html#cat">6.1</a>.</p>
+<div id="dataprepkdes" class="section level2 hasAnchor" number="9.1">
+<h2><span class="header-section-number">9.1</span> Data preparation for KDEs<a href="kdes.html#dataprepkdes" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>In Tutorial <a href="dataprep.html#dataprep">4</a>, we introduced the concept of data aggregation, that is, grouping images of a species taken at a certain location within a short time frame into independent encounter events. This process reduces short-term correlation in the data and it is often recommended as a preparatory step before applying KDEs (but see <span class="citation">Peral, Landman, and Kerley (<a href="references.html#ref-Peral2022">2022</a>)</span> for a different point of view). Thus, we begin our KDE-based analysis by aggregating our data from a raw format to independent encounter events.</p>
+<p>We load the three R libraries listed above along with other packages necessary for wrangling the data. We also load and preview the data. In this first section of this Tutorial, we use the subset of the camera-trap observations of American black bears collected in northern Minnesota between mid-May and mid-July 2017 <span class="citation">(<a href="references.html#ref-Iannarilliea2021">Iannarilli et al. 2021</a>)</span>.</p>
+<div class="sourceCode" id="cb170"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb170-1"><a href="kdes.html#cb170-1" tabindex="-1"></a><span class="co"># Load libraries</span></span>
+<span id="cb170-2"><a href="kdes.html#cb170-2" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">ls</span>())</span>
+<span id="cb170-3"><a href="kdes.html#cb170-3" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">129</span>)</span>
+<span id="cb170-4"><a href="kdes.html#cb170-4" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb170-5"><a href="kdes.html#cb170-5" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb170-6"><a href="kdes.html#cb170-6" tabindex="-1"></a><span class="fu">library</span>(forcats)</span>
+<span id="cb170-7"><a href="kdes.html#cb170-7" tabindex="-1"></a><span class="fu">library</span>(ggpubr)</span>
+<span id="cb170-8"><a href="kdes.html#cb170-8" tabindex="-1"></a><span class="fu">library</span>(gridExtra)</span>
+<span id="cb170-9"><a href="kdes.html#cb170-9" tabindex="-1"></a><span class="fu">library</span>(grid)</span>
+<span id="cb170-10"><a href="kdes.html#cb170-10" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span>
+<span id="cb170-11"><a href="kdes.html#cb170-11" tabindex="-1"></a><span class="fu">library</span>(activity)</span></code></pre></div>
+<pre><code>## Warning: package &#39;activity&#39; was built under R version 4.2.3</code></pre>
+<div class="sourceCode" id="cb172"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb172-1"><a href="kdes.html#cb172-1" tabindex="-1"></a><span class="fu">library</span>(overlap)</span></code></pre></div>
+<pre><code>## Warning: package &#39;overlap&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Warning: package &#39;suntools&#39; was built under R version 4.2.3</code></pre>
+<div class="sourceCode" id="cb175"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb175-1"><a href="kdes.html#cb175-1" tabindex="-1"></a><span class="fu">library</span>(circular)</span>
+<span id="cb175-2"><a href="kdes.html#cb175-2" tabindex="-1"></a></span>
+<span id="cb175-3"><a href="kdes.html#cb175-3" tabindex="-1"></a><span class="co"># Load data</span></span>
+<span id="cb175-4"><a href="kdes.html#cb175-4" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">&quot;data_input/species_records.csv&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb175-5"><a href="kdes.html#cb175-5" tabindex="-1"></a>  <span class="fu">filter</span>(Species <span class="sc">==</span> <span class="st">&quot;BlackBear&quot;</span> <span class="sc">&amp;</span> Session <span class="sc">==</span> <span class="st">&quot;Spring2017&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb175-6"><a href="kdes.html#cb175-6" tabindex="-1"></a>  droplevels <span class="sc">%&gt;%</span> </span>
+<span id="cb175-7"><a href="kdes.html#cb175-7" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>X)</span>
+<span id="cb175-8"><a href="kdes.html#cb175-8" tabindex="-1"></a><span class="fu">head</span>(dat)</span></code></pre></div>
+<pre><code>##   Station   Species DateTimeOriginal       Date     Time    Session
+## 1     10A BlackBear 2017-07-08 18:34 2017-07-08 18:34:02 Spring2017
+## 2     10A BlackBear 2017-07-08 18:34 2017-07-08 18:34:02 Spring2017
+## 3     10A BlackBear 2017-07-08 18:34 2017-07-08 18:34:03 Spring2017
+## 4     10A BlackBear 2017-07-10 18:56 2017-07-10 18:56:24 Spring2017
+## 5     10A BlackBear 2017-07-10 18:56 2017-07-10 18:56:25 Spring2017
+## 6     10A BlackBear 2017-07-10 18:56 2017-07-10 18:56:26 Spring2017</code></pre>
+<p>Choosing a temporal threshold for determining whether two records close in time belong to the same encounter event is not trivial. Here, we use a threshold of 30 minutes, which we chose after inspecting lorelograms quantifying the level of dependence as a function of time between observations <span class="citation">(<a href="references.html#ref-Iannarilliea2021">Iannarilli et al. 2021</a>, <a href="references.html#ref-Iannarilliea2019">2019</a>)</span>.</p>
+<p>We set the correct date-time format for the column specifying when each picture was taken (<code>DateTimeOriginal</code>), group the records based on species and camera-trap site (<code>Station</code>), order the data within each group, and calculate the time difference (in minutes) between each record and the previous. When calculating these differences, NAs are assigned to the first record collected for each species at a location. We replace those NAs with zeros, then proceed to assign a unique numeric identifier to each event. We then extract the date-time information for the first record of each group (alternatively, it is possible, for example, to calculate the median time of the records belonging to a certain event) and retain only the columns of interest.</p>
+<div class="sourceCode" id="cb177"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb177-1"><a href="kdes.html#cb177-1" tabindex="-1"></a><span class="co"># Set the threshold that define independence independence between subsequent records</span></span>
+<span id="cb177-2"><a href="kdes.html#cb177-2" tabindex="-1"></a>independence_interval <span class="ot">&lt;-</span> <span class="dv">30</span> <span class="co">#minutes</span></span>
+<span id="cb177-3"><a href="kdes.html#cb177-3" tabindex="-1"></a></span>
+<span id="cb177-4"><a href="kdes.html#cb177-4" tabindex="-1"></a><span class="co"># Aggregate data to reduce short-term temporal dependence</span></span>
+<span id="cb177-5"><a href="kdes.html#cb177-5" tabindex="-1"></a>dat_event <span class="ot">&lt;-</span> dat <span class="sc">%&gt;%</span> </span>
+<span id="cb177-6"><a href="kdes.html#cb177-6" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">DateTimeOriginal =</span> <span class="fu">ymd_hm</span>(DateTimeOriginal)) <span class="sc">%&gt;%</span> </span>
+<span id="cb177-7"><a href="kdes.html#cb177-7" tabindex="-1"></a>  <span class="fu">group_by</span>(Species, Station) <span class="sc">%&gt;%</span>      <span class="co"># group by species and location</span></span>
+<span id="cb177-8"><a href="kdes.html#cb177-8" tabindex="-1"></a>  <span class="fu">arrange</span>(DateTimeOriginal, <span class="at">.by_group =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> <span class="co"># arrange record temporally within each group</span></span>
+<span id="cb177-9"><a href="kdes.html#cb177-9" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">timediff =</span> <span class="fu">as.numeric</span>(<span class="fu">difftime</span>(DateTimeOriginal, <span class="fu">lag</span>(DateTimeOriginal), <span class="at">units=</span><span class="st">&quot;mins&quot;</span>)), <span class="co"># calculate time difference (in minutes) between consecutive events</span></span>
+<span id="cb177-10"><a href="kdes.html#cb177-10" tabindex="-1"></a>         <span class="at">timediff =</span> <span class="fu">replace_na</span>(timediff, <span class="dv">0</span>),</span>
+<span id="cb177-11"><a href="kdes.html#cb177-11" tabindex="-1"></a>         <span class="at">grp =</span> <span class="fu">ifelse</span>(timediff <span class="sc">&gt;=</span> independence_interval, <span class="dv">1</span>, <span class="dv">0</span>), <span class="co"># create events</span></span>
+<span id="cb177-12"><a href="kdes.html#cb177-12" tabindex="-1"></a>         <span class="at">grp_ind =</span> <span class="fu">cumsum</span>(grp) <span class="sc">+</span> <span class="dv">1</span>) <span class="co"># assign a group number to each event</span></span>
+<span id="cb177-13"><a href="kdes.html#cb177-13" tabindex="-1"></a></span>
+<span id="cb177-14"><a href="kdes.html#cb177-14" tabindex="-1"></a><span class="co"># group by camera site and event group</span></span>
+<span id="cb177-15"><a href="kdes.html#cb177-15" tabindex="-1"></a><span class="co"># summarize: consider time of first image as time of the independent event</span></span>
+<span id="cb177-16"><a href="kdes.html#cb177-16" tabindex="-1"></a>dat_event <span class="ot">&lt;-</span> dat_event <span class="sc">%&gt;%</span></span>
+<span id="cb177-17"><a href="kdes.html#cb177-17" tabindex="-1"></a>  <span class="fu">group_by</span>(Species, Station, grp_ind) <span class="sc">%&gt;%</span></span>
+<span id="cb177-18"><a href="kdes.html#cb177-18" tabindex="-1"></a>  <span class="fu">slice</span>(<span class="dv">1</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb177-19"><a href="kdes.html#cb177-19" tabindex="-1"></a>  <span class="fu">select</span>(<span class="st">&quot;Station&quot;</span>, <span class="st">&quot;Species&quot;</span>, <span class="st">&quot;DateTimeOriginal&quot;</span>, <span class="st">&quot;Date&quot;</span>, <span class="st">&quot;Time&quot;</span>, <span class="st">&quot;Session&quot;</span>)</span></code></pre></div>
+<pre><code>## Adding missing grouping variables: `grp_ind`</code></pre>
+<div class="sourceCode" id="cb179"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb179-1"><a href="kdes.html#cb179-1" tabindex="-1"></a><span class="fu">head</span>(dat_event)</span></code></pre></div>
+<pre><code>## # A tibble: 6 × 7
+## # Groups:   Species, Station, grp_ind [6]
+##   grp_ind Station Species   DateTimeOriginal    Date       Time     Session   
+##     &lt;dbl&gt; &lt;chr&gt;   &lt;chr&gt;     &lt;dttm&gt;              &lt;chr&gt;      &lt;chr&gt;    &lt;chr&gt;     
+## 1       1 10A     BlackBear 2017-07-08 18:34:00 2017-07-08 18:34:02 Spring2017
+## 2       2 10A     BlackBear 2017-07-10 18:56:00 2017-07-10 18:56:24 Spring2017
+## 3       1 10B     BlackBear 2017-05-23 16:28:00 2017-05-23 16:28:52 Spring2017
+## 4       2 10B     BlackBear 2017-06-22 14:29:00 2017-06-22 14:29:44 Spring2017
+## 5       3 10B     BlackBear 2017-06-25 20:58:00 2017-06-25 20:58:10 Spring2017
+## 6       4 10B     BlackBear 2017-07-02 07:03:00 2017-07-02 7:03:05  Spring2017</code></pre>
+<div class="sourceCode" id="cb181"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb181-1"><a href="kdes.html#cb181-1" tabindex="-1"></a><span class="co"># alternative code using the median time associated with each encounter event</span></span>
+<span id="cb181-2"><a href="kdes.html#cb181-2" tabindex="-1"></a><span class="co"># summarize: calculate median time for each event</span></span>
+<span id="cb181-3"><a href="kdes.html#cb181-3" tabindex="-1"></a><span class="co"># dat_event2 &lt;- dat_event %&gt;%</span></span>
+<span id="cb181-4"><a href="kdes.html#cb181-4" tabindex="-1"></a><span class="co">#  group_by(Species, Station, grp_ind) %&gt;%</span></span>
+<span id="cb181-5"><a href="kdes.html#cb181-5" tabindex="-1"></a><span class="co">#  summarise(median_time = median(DateTimeOriginal),</span></span>
+<span id="cb181-6"><a href="kdes.html#cb181-6" tabindex="-1"></a><span class="co">#            photo_date = Date[1])</span></span></code></pre></div>
+<p>We can visually compare the data before and after aggregation.</p>
+<div class="sourceCode" id="cb182"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb182-1"><a href="kdes.html#cb182-1" tabindex="-1"></a><span class="co"># Plot number of records by camera trap station before and after data aggregation</span></span>
+<span id="cb182-2"><a href="kdes.html#cb182-2" tabindex="-1"></a>dat_summary <span class="ot">&lt;-</span> dat <span class="sc">%&gt;%</span> </span>
+<span id="cb182-3"><a href="kdes.html#cb182-3" tabindex="-1"></a>  <span class="fu">group_by</span>(Station) <span class="sc">%&gt;%</span> </span>
+<span id="cb182-4"><a href="kdes.html#cb182-4" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">n_records =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb182-5"><a href="kdes.html#cb182-5" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Aggregation =</span> <span class="st">&quot;Before&quot;</span>)</span>
+<span id="cb182-6"><a href="kdes.html#cb182-6" tabindex="-1"></a>dat_event_summary <span class="ot">&lt;-</span> dat_event <span class="sc">%&gt;%</span> </span>
+<span id="cb182-7"><a href="kdes.html#cb182-7" tabindex="-1"></a>  <span class="fu">group_by</span>(Station) <span class="sc">%&gt;%</span> </span>
+<span id="cb182-8"><a href="kdes.html#cb182-8" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">n_records =</span> <span class="fu">n</span>()) <span class="sc">%&gt;%</span> </span>
+<span id="cb182-9"><a href="kdes.html#cb182-9" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Aggregation =</span> <span class="st">&quot;After&quot;</span>)</span>
+<span id="cb182-10"><a href="kdes.html#cb182-10" tabindex="-1"></a></span>
+<span id="cb182-11"><a href="kdes.html#cb182-11" tabindex="-1"></a><span class="fu">rbind</span>(dat_summary, dat_event_summary)  <span class="sc">%&gt;%</span> </span>
+<span id="cb182-12"><a href="kdes.html#cb182-12" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Aggregation =</span> <span class="fu">fct_relevel</span>(Aggregation, <span class="st">&quot;Before&quot;</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb182-13"><a href="kdes.html#cb182-13" tabindex="-1"></a>  <span class="fu">ggplot</span>(., <span class="fu">aes</span>(<span class="at">x =</span> n_records, <span class="at">y =</span> Station, <span class="at">group =</span> Aggregation)) <span class="sc">+</span></span>
+<span id="cb182-14"><a href="kdes.html#cb182-14" tabindex="-1"></a>  <span class="fu">geom_col</span>() <span class="sc">+</span></span>
+<span id="cb182-15"><a href="kdes.html#cb182-15" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">&quot;Camera trap station&quot;</span>, <span class="at">x =</span> <span class="st">&quot; Number of records&quot;</span>) <span class="sc">+</span></span>
+<span id="cb182-16"><a href="kdes.html#cb182-16" tabindex="-1"></a>  <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb182-17"><a href="kdes.html#cb182-17" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>Aggregation, <span class="at">scales =</span> <span class="st">&quot;free_x&quot;</span>)</span></code></pre></div>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:prepkde3"></span>
+<img src="HMsActivity_files/figure-html/prepkde3-1.png" alt="Numbers of records at each camera site before and after aggregating the data to reduce short-term autocorrelation" width="100%" />
+<p class="caption">
+Figure 9.1: Numbers of records at each camera site before and after aggregating the data to reduce short-term autocorrelation
+</p>
+</div>
+<p>Comparing the resulting number of records per location before and after data aggregation highlights that many images were taken within less than 30 minutes from a previous image. In the left panel, each record corresponds to an image, whereas, in the right panel, each record corresponds to an independent encounter event. In our specific case, aggregating data also removes duplicates recorded within the same trigger event. We will use the aggregated version of the dataset in the next sections of this tutorial.</p>
+<p>All the three packages require time values provided as radians. Thus, the next step is to transform the time values from the HH:MM:SS format to radians. This requires some multiplications. Since there are <span class="math inline">\(2 \times \pi\)</span> radians in a circle and <span class="math inline">\(60 minutes \times 24 hours\)</span> in a day, we can estimate minutes in terms of radians by dividing the minutes corresponding to a certain time of the day by the total number of minutes in a day (equal to <span class="math inline">\(1440 = 60 \times 24\)</span>) and multiplying the resulting value by <span class="math inline">\(2 \times \pi\)</span>. For simplicity, we do not consider seconds here.</p>
+<div class="sourceCode" id="cb183"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb183-1"><a href="kdes.html#cb183-1" tabindex="-1"></a><span class="co"># Specify the format of the column Time</span></span>
+<span id="cb183-2"><a href="kdes.html#cb183-2" tabindex="-1"></a>dat_event<span class="sc">$</span>Time <span class="ot">&lt;-</span> <span class="fu">hms</span>(dat_event<span class="sc">$</span>Time) </span>
+<span id="cb183-3"><a href="kdes.html#cb183-3" tabindex="-1"></a></span>
+<span id="cb183-4"><a href="kdes.html#cb183-4" tabindex="-1"></a><span class="co"># Convert time values to radians</span></span>
+<span id="cb183-5"><a href="kdes.html#cb183-5" tabindex="-1"></a>dat_event<span class="sc">$</span>Time_Rad <span class="ot">&lt;-</span> (<span class="fu">hour</span>(dat_event<span class="sc">$</span>Time)<span class="sc">*</span><span class="dv">60</span> <span class="sc">+</span> <span class="fu">minute</span>(dat_event<span class="sc">$</span>Time))<span class="sc">/</span>(<span class="dv">60</span><span class="sc">*</span><span class="dv">24</span>)<span class="sc">*</span><span class="dv">2</span><span class="sc">*</span>pi </span>
+<span id="cb183-6"><a href="kdes.html#cb183-6" tabindex="-1"></a></span>
+<span id="cb183-7"><a href="kdes.html#cb183-7" tabindex="-1"></a><span class="fu">plot</span>((<span class="fu">hour</span>(dat_event<span class="sc">$</span>Time)<span class="sc">*</span><span class="dv">60</span> <span class="sc">+</span> <span class="fu">minute</span>(dat_event<span class="sc">$</span>Time)), </span>
+<span id="cb183-8"><a href="kdes.html#cb183-8" tabindex="-1"></a>     dat_event<span class="sc">$</span>Time_Rad, </span>
+<span id="cb183-9"><a href="kdes.html#cb183-9" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">&quot;Original Timestamp (in minute in a day)&quot;</span>, </span>
+<span id="cb183-10"><a href="kdes.html#cb183-10" tabindex="-1"></a>     <span class="at">ylab =</span> <span class="st">&quot;Time in radians&quot;</span></span>
+<span id="cb183-11"><a href="kdes.html#cb183-11" tabindex="-1"></a>     )</span></code></pre></div>
+<p><img src="HMsActivity_files/figure-html/kde3-1.png" width="672" /></p>
+<p>The plot above shows the match in time of the records expressed as minutes (x axis) and radians (y axis).</p>
+</div>
+<div id="kdespkg" class="section level2 hasAnchor" number="9.2">
+<h2><span class="header-section-number">9.2</span> Comparison of KDE estimators<a href="kdes.html#kdespkg" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Our data are now ready, and we can proceed with estimating the activity patterns using each of the three packages available in R for applying the KDE approach. We will first run the code for each package and then visually compare the results.</p>
+<div id="using-the-overlap-package" class="section level3 hasAnchor" number="9.2.1">
+<h3><span class="header-section-number">9.2.1</span> Using the overlap package<a href="kdes.html#using-the-overlap-package" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>We start with the <code>overlap</code> package <span class="citation">(<a href="references.html#ref-RidoutLinkie2009">Ridout and Linkie 2009</a>; <a href="references.html#ref-R-overlap">Meredith and Ridout 2021</a>)</span>. To facilitate comparison of estimates based on the other two packages, we explicitly specify the values for the argument <code>n.grid</code>, which controls the number of points along the 24 hours cycle (in radians) at which density values are estimated. The argument <code>xscale = 24*60</code> returns the values of these points in minutes, instead of the default radians.</p>
+<div class="sourceCode" id="cb184"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb184-1"><a href="kdes.html#cb184-1" tabindex="-1"></a><span class="co"># To avoid plotting</span></span>
+<span id="cb184-2"><a href="kdes.html#cb184-2" tabindex="-1"></a><span class="fu">pdf</span>(<span class="at">file =</span> <span class="cn">NULL</span>) </span>
+<span id="cb184-3"><a href="kdes.html#cb184-3" tabindex="-1"></a></span>
+<span id="cb184-4"><a href="kdes.html#cb184-4" tabindex="-1"></a><span class="co"># Estimate activity patterns and store values in an object </span></span>
+<span id="cb184-5"><a href="kdes.html#cb184-5" tabindex="-1"></a>res_over <span class="ot">&lt;-</span> <span class="fu">densityPlot</span>(dat_event<span class="sc">$</span>Time_Rad, </span>
+<span id="cb184-6"><a href="kdes.html#cb184-6" tabindex="-1"></a>                        <span class="at">rug =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb184-7"><a href="kdes.html#cb184-7" tabindex="-1"></a>                        <span class="at">adjust =</span> <span class="dv">1</span>, </span>
+<span id="cb184-8"><a href="kdes.html#cb184-8" tabindex="-1"></a>                        <span class="at">xscale =</span> <span class="dv">24</span><span class="sc">*</span><span class="dv">60</span>, </span>
+<span id="cb184-9"><a href="kdes.html#cb184-9" tabindex="-1"></a>                        <span class="at">n.grid =</span> <span class="dv">513</span>, </span>
+<span id="cb184-10"><a href="kdes.html#cb184-10" tabindex="-1"></a>                        <span class="at">extend =</span> <span class="cn">NULL</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb184-11"><a href="kdes.html#cb184-11" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">se =</span> <span class="cn">NA</span>,</span>
+<span id="cb184-12"><a href="kdes.html#cb184-12" tabindex="-1"></a>         <span class="at">Package =</span> <span class="st">&quot;Overlap&quot;</span>,</span>
+<span id="cb184-13"><a href="kdes.html#cb184-13" tabindex="-1"></a>         <span class="at">Data =</span> <span class="st">&quot;Aggregated&quot;</span>) </span>
+<span id="cb184-14"><a href="kdes.html#cb184-14" tabindex="-1"></a><span class="fu">dev.off</span>()</span></code></pre></div>
+<pre><code>## png 
+##   2</code></pre>
+<div class="sourceCode" id="cb186"><pre class="sourceCode r fold-hide"><code class="sourceCode r"><span id="cb186-1"><a href="kdes.html#cb186-1" tabindex="-1"></a><span class="co"># store plot in object</span></span>
+<span id="cb186-2"><a href="kdes.html#cb186-2" tabindex="-1"></a>pl_over <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(res_over, <span class="fu">aes</span>(<span class="at">x=</span>x, <span class="at">y=</span>y, <span class="at">group=</span>Data)) <span class="sc">+</span></span>
+<span id="cb186-3"><a href="kdes.html#cb186-3" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">linetype=</span>Data, <span class="at">color=</span>Data), <span class="at">linewidth=</span><span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb186-4"><a href="kdes.html#cb186-4" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;#CC79A7&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb186-5"><a href="kdes.html#cb186-5" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Density&quot;</span>, <span class="at">title =</span> <span class="st">&quot;A: Overlap pkg&quot;</span>) <span class="sc">+</span></span>
+<span id="cb186-6"><a href="kdes.html#cb186-6" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb186-7"><a href="kdes.html#cb186-7" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;none&quot;</span>,</span>
+<span id="cb186-8"><a href="kdes.html#cb186-8" tabindex="-1"></a>        <span class="at">legend.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">&quot;white&quot;</span>, <span class="at">colour =</span> <span class="st">&quot;black&quot;</span>),</span>
+<span id="cb186-9"><a href="kdes.html#cb186-9" tabindex="-1"></a>        <span class="at">legend.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">8</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb186-10"><a href="kdes.html#cb186-10" tabindex="-1"></a>        <span class="at">axis.line =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb186-11"><a href="kdes.html#cb186-11" tabindex="-1"></a>        <span class="at">axis.ticks =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb186-12"><a href="kdes.html#cb186-12" tabindex="-1"></a>        <span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">8</span>),</span>
+<span id="cb186-13"><a href="kdes.html#cb186-13" tabindex="-1"></a>        <span class="at">axis.title.y =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">10</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb186-14"><a href="kdes.html#cb186-14" tabindex="-1"></a>        <span class="at">axis.title.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb186-15"><a href="kdes.html#cb186-15" tabindex="-1"></a>        <span class="at">panel.grid.minor.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb186-16"><a href="kdes.html#cb186-16" tabindex="-1"></a>        <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb186-17"><a href="kdes.html#cb186-17" tabindex="-1"></a>        <span class="at">panel.grid.major.x =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;lightgrey&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;dashed&#39;</span>, <span class="at">linewidth=</span><span class="fl">0.5</span>),</span>
+<span id="cb186-18"><a href="kdes.html#cb186-18" tabindex="-1"></a>        <span class="at">panel.grid.minor.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb186-19"><a href="kdes.html#cb186-19" tabindex="-1"></a>        <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>, <span class="at">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="at">face =</span> <span class="st">&quot;bold&quot;</span>)</span>
+<span id="cb186-20"><a href="kdes.html#cb186-20" tabindex="-1"></a>        ) <span class="sc">+</span></span>
+<span id="cb186-21"><a href="kdes.html#cb186-21" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">24</span><span class="sc">*</span><span class="dv">60</span>,<span class="dv">60</span><span class="sc">*</span><span class="dv">4</span>), <span class="at">labels=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">24</span>,<span class="dv">4</span>), <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="fl">0.02</span>,<span class="fl">0.02</span>)))<span class="sc">+</span></span>
+<span id="cb186-22"><a href="kdes.html#cb186-22" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="fl">0.02</span>, <span class="fl">0.02</span>)))</span>
+<span id="cb186-23"><a href="kdes.html#cb186-23" tabindex="-1"></a></span>
+<span id="cb186-24"><a href="kdes.html#cb186-24" tabindex="-1"></a><span class="co"># print first rows of the output</span></span>
+<span id="cb186-25"><a href="kdes.html#cb186-25" tabindex="-1"></a><span class="fu">head</span>(res_over)</span></code></pre></div>
+<pre><code>##         x            y se Package       Data
+## 1  0.0000 0.0002348518 NA Overlap Aggregated
+## 2  2.8125 0.0002256965 NA Overlap Aggregated
+## 3  5.6250 0.0002170437 NA Overlap Aggregated
+## 4  8.4375 0.0002088781 NA Overlap Aggregated
+## 5 11.2500 0.0002011836 NA Overlap Aggregated
+## 6 14.0625 0.0001939432 NA Overlap Aggregated</code></pre>
+</div>
+<div id="using-the-activity-package" class="section level3 hasAnchor" number="9.2.2">
+<h3><span class="header-section-number">9.2.2</span> Using the activity package<a href="kdes.html#using-the-activity-package" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>The <code>fitact</code> function within the <code>activity</code> package <span class="citation">(<a href="references.html#ref-Rowcliffeea2014">J. M. Rowcliffe et al. 2014</a>; <a href="references.html#ref-activity2022">M. Rowcliffe 2022</a>)</span> allows users to estimate uncertainty (i.e. confidence intervals) around the activity patterns using bootstrap approaches. Following the recommendations available in the function’s help-file and based on the number of events available in the dataset, 313, we resample from the data (argument <code>sample = "data"</code>). Some tricks are needed to store the estimates returned by the <code>fitact</code> function in a R object.</p>
+<div class="sourceCode" id="cb188"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb188-1"><a href="kdes.html#cb188-1" tabindex="-1"></a><span class="co"># Estimate activity patterns and store values in an object </span></span>
+<span id="cb188-2"><a href="kdes.html#cb188-2" tabindex="-1"></a>res_acti <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">fitact</span>(dat_event<span class="sc">$</span>Time_Rad, </span>
+<span id="cb188-3"><a href="kdes.html#cb188-3" tabindex="-1"></a>                                 <span class="at">reps =</span> <span class="dv">999</span>, </span>
+<span id="cb188-4"><a href="kdes.html#cb188-4" tabindex="-1"></a>                                 <span class="at">sample =</span> <span class="st">&quot;data&quot;</span>, </span>
+<span id="cb188-5"><a href="kdes.html#cb188-5" tabindex="-1"></a>                                 <span class="at">show =</span> <span class="cn">FALSE</span>)<span class="sc">@</span>pdf[,<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>]</span>
+<span id="cb188-6"><a href="kdes.html#cb188-6" tabindex="-1"></a>                          ) <span class="sc">%&gt;%</span> </span>
+<span id="cb188-7"><a href="kdes.html#cb188-7" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">x =</span> x<span class="sc">/</span>(<span class="dv">2</span><span class="sc">*</span>pi)<span class="sc">*</span><span class="dv">24</span><span class="sc">*</span><span class="dv">60</span>, <span class="co"># to bring results back to the minutes scale,</span></span>
+<span id="cb188-8"><a href="kdes.html#cb188-8" tabindex="-1"></a>         <span class="at">Package =</span> <span class="st">&quot;Activity&quot;</span>,</span>
+<span id="cb188-9"><a href="kdes.html#cb188-9" tabindex="-1"></a>         <span class="at">Data =</span> <span class="st">&quot;Aggregated&quot;</span>) </span></code></pre></div>
+<div class="sourceCode" id="cb189"><pre class="sourceCode r fold-hide"><code class="sourceCode r"><span id="cb189-1"><a href="kdes.html#cb189-1" tabindex="-1"></a><span class="co"># store plot in an object</span></span>
+<span id="cb189-2"><a href="kdes.html#cb189-2" tabindex="-1"></a>pl_acti <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(res_acti, <span class="fu">aes</span>(<span class="at">x=</span>x, <span class="at">y=</span>y, <span class="at">group=</span>Data)) <span class="sc">+</span></span>
+<span id="cb189-3"><a href="kdes.html#cb189-3" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin=</span>y<span class="fl">-1.96</span><span class="sc">*</span>se, <span class="at">ymax=</span>y<span class="fl">+1.96</span><span class="sc">*</span>se, <span class="at">color=</span>Data, <span class="at">fill=</span>Data), <span class="at">alpha=</span><span class="fl">0.3</span>) <span class="sc">+</span></span>
+<span id="cb189-4"><a href="kdes.html#cb189-4" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">linetype=</span>Data, <span class="at">color=</span>Data), <span class="at">linewidth=</span><span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb189-5"><a href="kdes.html#cb189-5" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;#CC79A7&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb189-6"><a href="kdes.html#cb189-6" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;#CC79A7&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb189-7"><a href="kdes.html#cb189-7" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Activity density&quot;</span>, <span class="at">title =</span> <span class="st">&quot;B: Activity pkg&quot;</span>) <span class="sc">+</span></span>
+<span id="cb189-8"><a href="kdes.html#cb189-8" tabindex="-1"></a>  <span class="fu">coord_cartesian</span>(<span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.4</span>)) <span class="sc">+</span></span>
+<span id="cb189-9"><a href="kdes.html#cb189-9" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb189-10"><a href="kdes.html#cb189-10" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;none&quot;</span>,</span>
+<span id="cb189-11"><a href="kdes.html#cb189-11" tabindex="-1"></a>        <span class="at">axis.line =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb189-12"><a href="kdes.html#cb189-12" tabindex="-1"></a>        <span class="at">axis.ticks =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb189-13"><a href="kdes.html#cb189-13" tabindex="-1"></a>        <span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">8</span>),</span>
+<span id="cb189-14"><a href="kdes.html#cb189-14" tabindex="-1"></a>        <span class="at">axis.title.y =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">10</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb189-15"><a href="kdes.html#cb189-15" tabindex="-1"></a>        <span class="at">axis.title.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb189-16"><a href="kdes.html#cb189-16" tabindex="-1"></a>        <span class="at">panel.grid.minor.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb189-17"><a href="kdes.html#cb189-17" tabindex="-1"></a>        <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb189-18"><a href="kdes.html#cb189-18" tabindex="-1"></a>        <span class="at">panel.grid.major.x =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;lightgrey&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;dashed&#39;</span>, <span class="at">linewidth=</span><span class="fl">0.5</span>),</span>
+<span id="cb189-19"><a href="kdes.html#cb189-19" tabindex="-1"></a>        <span class="at">panel.grid.minor.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb189-20"><a href="kdes.html#cb189-20" tabindex="-1"></a>        <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>, <span class="at">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="at">face =</span> <span class="st">&quot;bold&quot;</span>)</span>
+<span id="cb189-21"><a href="kdes.html#cb189-21" tabindex="-1"></a>        ) <span class="sc">+</span></span>
+<span id="cb189-22"><a href="kdes.html#cb189-22" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">24</span><span class="sc">*</span><span class="dv">60</span>,<span class="dv">60</span><span class="sc">*</span><span class="dv">4</span>), <span class="at">labels=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">24</span>,<span class="dv">4</span>), <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="fl">0.02</span>,<span class="fl">0.02</span>)))<span class="sc">+</span></span>
+<span id="cb189-23"><a href="kdes.html#cb189-23" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="fl">0.02</span>, <span class="fl">0.02</span>)))</span>
+<span id="cb189-24"><a href="kdes.html#cb189-24" tabindex="-1"></a></span>
+<span id="cb189-25"><a href="kdes.html#cb189-25" tabindex="-1"></a></span>
+<span id="cb189-26"><a href="kdes.html#cb189-26" tabindex="-1"></a><span class="co"># print first rows of the output</span></span>
+<span id="cb189-27"><a href="kdes.html#cb189-27" tabindex="-1"></a><span class="fu">head</span>(res_acti)</span></code></pre></div>
+<pre><code>##         x          y         se  Package       Data
+## 1  0.0000 0.05382417 0.01253495 Activity Aggregated
+## 2  2.8125 0.05172594 0.01229652 Activity Aggregated
+## 3  5.6250 0.04974286 0.01206740 Activity Aggregated
+## 4  8.4375 0.04787144 0.01184767 Activity Aggregated
+## 5 11.2500 0.04610799 0.01163750 Activity Aggregated
+## 6 14.0625 0.04444861 0.01143712 Activity Aggregated</code></pre>
+</div>
+<div id="using-the-circular-package" class="section level3 hasAnchor" number="9.2.3">
+<h3><span class="header-section-number">9.2.3</span> Using the circular package<a href="kdes.html#using-the-circular-package" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>We now estimate activity using the <code>circular</code> package <span class="citation">(<a href="references.html#ref-circular2022">Agostinelli and Lund 2022a</a>; <a href="references.html#ref-Oliveira-Santos2013">Oliveira-Santos, Zucco, and Agostinelli 2013</a>)</span>.</p>
+<div class="sourceCode" id="cb191"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb191-1"><a href="kdes.html#cb191-1" tabindex="-1"></a><span class="co"># prepare the specific format required by circular</span></span>
+<span id="cb191-2"><a href="kdes.html#cb191-2" tabindex="-1"></a>dat_event<span class="sc">$</span>Time_Rad_circ <span class="ot">&lt;-</span> <span class="fu">as.circular</span>(dat_event<span class="sc">$</span>Time_Rad, </span>
+<span id="cb191-3"><a href="kdes.html#cb191-3" tabindex="-1"></a>                                       <span class="at">units =</span> <span class="st">&quot;radians&quot;</span>,</span>
+<span id="cb191-4"><a href="kdes.html#cb191-4" tabindex="-1"></a>                                       <span class="at">template =</span> <span class="st">&quot;none&quot;</span>, </span>
+<span id="cb191-5"><a href="kdes.html#cb191-5" tabindex="-1"></a>                                       <span class="at">zero=</span><span class="dv">0</span>, </span>
+<span id="cb191-6"><a href="kdes.html#cb191-6" tabindex="-1"></a>                                       <span class="at">type=</span><span class="st">&quot;angles&quot;</span>, </span>
+<span id="cb191-7"><a href="kdes.html#cb191-7" tabindex="-1"></a>                                       <span class="at">modulo =</span> <span class="st">&quot;2pi&quot;</span>,</span>
+<span id="cb191-8"><a href="kdes.html#cb191-8" tabindex="-1"></a>                                       <span class="at">rotation=</span><span class="st">&quot;counter&quot;</span></span>
+<span id="cb191-9"><a href="kdes.html#cb191-9" tabindex="-1"></a>                                       )</span>
+<span id="cb191-10"><a href="kdes.html#cb191-10" tabindex="-1"></a></span>
+<span id="cb191-11"><a href="kdes.html#cb191-11" tabindex="-1"></a><span class="co"># determine bandwidth</span></span>
+<span id="cb191-12"><a href="kdes.html#cb191-12" tabindex="-1"></a>bw2 <span class="ot">&lt;-</span> <span class="fu">bw.cv.ml.circular</span>(dat_event<span class="sc">$</span>Time_Rad_circ, <span class="at">kernel =</span> <span class="st">&quot;vonmises&quot;</span>) </span>
+<span id="cb191-13"><a href="kdes.html#cb191-13" tabindex="-1"></a></span>
+<span id="cb191-14"><a href="kdes.html#cb191-14" tabindex="-1"></a><span class="co"># estimate activity patterns</span></span>
+<span id="cb191-15"><a href="kdes.html#cb191-15" tabindex="-1"></a>temp2 <span class="ot">&lt;-</span> <span class="fu">modal.region.circular</span>(dat_event<span class="sc">$</span>Time_Rad_circ, </span>
+<span id="cb191-16"><a href="kdes.html#cb191-16" tabindex="-1"></a>                               <span class="at">kernel =</span> <span class="st">&quot;vonmises&quot;</span>, </span>
+<span id="cb191-17"><a href="kdes.html#cb191-17" tabindex="-1"></a>                               <span class="at">q =</span> <span class="fl">0.5</span>, </span>
+<span id="cb191-18"><a href="kdes.html#cb191-18" tabindex="-1"></a>                               <span class="at">adjust =</span> <span class="dv">1</span>, </span>
+<span id="cb191-19"><a href="kdes.html#cb191-19" tabindex="-1"></a>                               <span class="at">bw =</span> bw2</span>
+<span id="cb191-20"><a href="kdes.html#cb191-20" tabindex="-1"></a>                               ) </span>
+<span id="cb191-21"><a href="kdes.html#cb191-21" tabindex="-1"></a></span>
+<span id="cb191-22"><a href="kdes.html#cb191-22" tabindex="-1"></a><span class="co"># organize the output in a dataframe to match those of the other packages</span></span>
+<span id="cb191-23"><a href="kdes.html#cb191-23" tabindex="-1"></a>res_circ <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x=</span>temp2<span class="sc">$</span>density<span class="sc">$</span>x, </span>
+<span id="cb191-24"><a href="kdes.html#cb191-24" tabindex="-1"></a>                       <span class="at">y=</span>temp2<span class="sc">$</span>density<span class="sc">$</span>y</span>
+<span id="cb191-25"><a href="kdes.html#cb191-25" tabindex="-1"></a>                       ) <span class="sc">%&gt;%</span> </span>
+<span id="cb191-26"><a href="kdes.html#cb191-26" tabindex="-1"></a>            <span class="fu">mutate</span>(<span class="at">x =</span> x<span class="sc">/</span>(<span class="dv">2</span><span class="sc">*</span>pi)<span class="sc">*</span><span class="dv">24</span><span class="sc">*</span><span class="dv">60</span>, <span class="co"># to bring results back to the minute scale,</span></span>
+<span id="cb191-27"><a href="kdes.html#cb191-27" tabindex="-1"></a>                   <span class="at">se =</span> <span class="cn">NA</span>, </span>
+<span id="cb191-28"><a href="kdes.html#cb191-28" tabindex="-1"></a>                   <span class="at">Package =</span> <span class="st">&quot;Circular&quot;</span>,</span>
+<span id="cb191-29"><a href="kdes.html#cb191-29" tabindex="-1"></a>                   <span class="at">Data =</span> <span class="st">&quot;Aggregated&quot;</span></span>
+<span id="cb191-30"><a href="kdes.html#cb191-30" tabindex="-1"></a>                   )</span>
+<span id="cb191-31"><a href="kdes.html#cb191-31" tabindex="-1"></a></span>
+<span id="cb191-32"><a href="kdes.html#cb191-32" tabindex="-1"></a><span class="co"># extra step specific to this package: to extract the information related to the core areas of activity</span></span>
+<span id="cb191-33"><a href="kdes.html#cb191-33" tabindex="-1"></a>res_area1 <span class="ot">&lt;-</span> res_circ <span class="sc">%&gt;%</span> <span class="fu">filter</span>(x<span class="sc">&gt;</span>temp2<span class="sc">$</span>zeros[<span class="dv">1</span>,<span class="dv">1</span>]<span class="sc">/</span>(<span class="dv">2</span><span class="sc">*</span>pi)<span class="sc">*</span><span class="dv">24</span><span class="sc">*</span><span class="dv">60</span> <span class="sc">&amp;</span> x<span class="sc">&lt;</span>temp2<span class="sc">$</span>zeros[<span class="dv">1</span>,<span class="dv">2</span>]<span class="sc">/</span>(<span class="dv">2</span><span class="sc">*</span>pi)<span class="sc">*</span><span class="dv">24</span><span class="sc">*</span><span class="dv">60</span>)</span>
+<span id="cb191-34"><a href="kdes.html#cb191-34" tabindex="-1"></a>res_area2 <span class="ot">&lt;-</span> res_circ <span class="sc">%&gt;%</span> <span class="fu">filter</span>(x<span class="sc">&gt;</span>temp2<span class="sc">$</span>zeros[<span class="dv">2</span>,<span class="dv">1</span>]<span class="sc">/</span>(<span class="dv">2</span><span class="sc">*</span>pi)<span class="sc">*</span><span class="dv">24</span><span class="sc">*</span><span class="dv">60</span> <span class="sc">&amp;</span> x<span class="sc">&lt;</span>temp2<span class="sc">$</span>zeros[<span class="dv">2</span>,<span class="dv">2</span>]<span class="sc">/</span>(<span class="dv">2</span><span class="sc">*</span>pi)<span class="sc">*</span><span class="dv">24</span><span class="sc">*</span><span class="dv">60</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb192"><pre class="sourceCode r fold-hide"><code class="sourceCode r"><span id="cb192-1"><a href="kdes.html#cb192-1" tabindex="-1"></a><span class="co"># store plot in an object</span></span>
+<span id="cb192-2"><a href="kdes.html#cb192-2" tabindex="-1"></a>pl_circ <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(res_circ, <span class="fu">aes</span>(<span class="at">x=</span>x, <span class="at">y=</span>y, <span class="at">group=</span>Data)) <span class="sc">+</span></span>
+<span id="cb192-3"><a href="kdes.html#cb192-3" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">linetype=</span>Data, <span class="at">color=</span>Data), <span class="at">linewidth=</span><span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb192-4"><a href="kdes.html#cb192-4" tabindex="-1"></a>  <span class="fu">geom_area</span>(<span class="at">data=</span>res_area1, <span class="fu">aes</span>(<span class="at">x=</span>x, <span class="at">y=</span>y), <span class="at">col=</span><span class="st">&quot;#CC79A7&quot;</span>, <span class="at">fill=</span><span class="st">&quot;#CC79A7&quot;</span>, <span class="at">alpha=</span><span class="fl">0.3</span>) <span class="sc">+</span></span>
+<span id="cb192-5"><a href="kdes.html#cb192-5" tabindex="-1"></a>  <span class="fu">geom_area</span>(<span class="at">data=</span>res_area2, <span class="fu">aes</span>(<span class="at">x=</span>x, <span class="at">y=</span>y), <span class="at">col=</span><span class="st">&quot;#CC79A7&quot;</span>, <span class="at">fill=</span><span class="st">&quot;#CC79A7&quot;</span>, <span class="at">alpha=</span><span class="fl">0.3</span>) <span class="sc">+</span></span>
+<span id="cb192-6"><a href="kdes.html#cb192-6" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;#CC79A7&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb192-7"><a href="kdes.html#cb192-7" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Kernel Density Estimate&quot;</span>, <span class="at">title =</span> <span class="st">&quot;C: Circular pkg&quot;</span>) <span class="sc">+</span></span>
+<span id="cb192-8"><a href="kdes.html#cb192-8" tabindex="-1"></a>  <span class="fu">coord_cartesian</span>(<span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.4</span>)) <span class="sc">+</span></span>
+<span id="cb192-9"><a href="kdes.html#cb192-9" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb192-10"><a href="kdes.html#cb192-10" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;inside&quot;</span>, </span>
+<span id="cb192-11"><a href="kdes.html#cb192-11" tabindex="-1"></a>        <span class="at">legend.position.inside =</span> <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.9</span>),</span>
+<span id="cb192-12"><a href="kdes.html#cb192-12" tabindex="-1"></a>        <span class="at">axis.line =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb192-13"><a href="kdes.html#cb192-13" tabindex="-1"></a>        <span class="at">axis.ticks =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb192-14"><a href="kdes.html#cb192-14" tabindex="-1"></a>        <span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">8</span>),</span>
+<span id="cb192-15"><a href="kdes.html#cb192-15" tabindex="-1"></a>        <span class="at">axis.title.y =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">10</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb192-16"><a href="kdes.html#cb192-16" tabindex="-1"></a>        <span class="at">axis.title.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb192-17"><a href="kdes.html#cb192-17" tabindex="-1"></a>        <span class="at">panel.grid.minor.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb192-18"><a href="kdes.html#cb192-18" tabindex="-1"></a>        <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb192-19"><a href="kdes.html#cb192-19" tabindex="-1"></a>        <span class="at">panel.grid.major.x =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;lightgrey&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;dashed&#39;</span>, <span class="at">linewidth=</span><span class="fl">0.5</span>),</span>
+<span id="cb192-20"><a href="kdes.html#cb192-20" tabindex="-1"></a>        <span class="at">panel.grid.minor.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb192-21"><a href="kdes.html#cb192-21" tabindex="-1"></a>        <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>, <span class="at">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="at">face =</span> <span class="st">&quot;bold&quot;</span>)</span>
+<span id="cb192-22"><a href="kdes.html#cb192-22" tabindex="-1"></a>        ) <span class="sc">+</span></span>
+<span id="cb192-23"><a href="kdes.html#cb192-23" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">24</span><span class="sc">*</span><span class="dv">60</span>,<span class="dv">60</span><span class="sc">*</span><span class="dv">4</span>), <span class="at">labels=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">24</span>,<span class="dv">4</span>), <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="fl">0.02</span>,<span class="fl">0.02</span>)))<span class="sc">+</span></span>
+<span id="cb192-24"><a href="kdes.html#cb192-24" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="fl">0.02</span>, <span class="fl">0.02</span>)))</span>
+<span id="cb192-25"><a href="kdes.html#cb192-25" tabindex="-1"></a></span>
+<span id="cb192-26"><a href="kdes.html#cb192-26" tabindex="-1"></a><span class="co"># print the first few rows of the output</span></span>
+<span id="cb192-27"><a href="kdes.html#cb192-27" tabindex="-1"></a><span class="fu">head</span>(res_circ)</span></code></pre></div>
+<pre><code>##           x          y se  Package       Data
+## 1  0.000000 0.05359030 NA Circular Aggregated
+## 2  2.291831 0.05187664 NA Circular Aggregated
+## 3  4.583662 0.05024021 NA Circular Aggregated
+## 4  6.875494 0.04867913 NA Circular Aggregated
+## 5  9.167325 0.04719142 NA Circular Aggregated
+## 6 11.459156 0.04577500 NA Circular Aggregated</code></pre>
+</div>
+<div id="comparing-the-results-and-plotting" class="section level3 hasAnchor" number="9.2.4">
+<h3><span class="header-section-number">9.2.4</span> Comparing the results and plotting<a href="kdes.html#comparing-the-results-and-plotting" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>We now can visually compare the estimates of activity patterns returned by the three packages.</p>
+<div class="sourceCode" id="cb194"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb194-1"><a href="kdes.html#cb194-1" tabindex="-1"></a><span class="co"># Combine results of the 3 methods</span></span>
+<span id="cb194-2"><a href="kdes.html#cb194-2" tabindex="-1"></a>(pl <span class="ot">&lt;-</span> <span class="fu">grid.arrange</span>(pl_over, </span>
+<span id="cb194-3"><a href="kdes.html#cb194-3" tabindex="-1"></a>                    pl_acti, </span>
+<span id="cb194-4"><a href="kdes.html#cb194-4" tabindex="-1"></a>                    pl_circ, </span>
+<span id="cb194-5"><a href="kdes.html#cb194-5" tabindex="-1"></a>                    <span class="at">nrow =</span> <span class="dv">1</span>, </span>
+<span id="cb194-6"><a href="kdes.html#cb194-6" tabindex="-1"></a>                    <span class="at">bottom=</span><span class="fu">textGrob</span>(<span class="st">&quot;Time of day (Hour)&quot;</span>, <span class="at">gp=</span><span class="fu">gpar</span>(<span class="at">fontsize=</span><span class="dv">10</span>, <span class="at">fontface=</span><span class="st">&quot;bold&quot;</span>)),</span>
+<span id="cb194-7"><a href="kdes.html#cb194-7" tabindex="-1"></a>                    <span class="at">top =</span> <span class="fu">textGrob</span>(<span class="st">&quot;KDE-based estimates of activity patterns using:&quot;</span>,<span class="at">gp=</span><span class="fu">gpar</span>(<span class="at">fontsize=</span><span class="dv">20</span>,<span class="at">font=</span><span class="dv">3</span>))</span>
+<span id="cb194-8"><a href="kdes.html#cb194-8" tabindex="-1"></a>                    )</span>
+<span id="cb194-9"><a href="kdes.html#cb194-9" tabindex="-1"></a> )</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<img src="HMsActivity_files/figure-html/kdespkg4,%20-1.png" alt="Activity patterns based on Kernel Density Estimates of American black bear camera-trap data collected in northern-Minnesota between mid-May and mid-July 2017. Estimates were obtained using R-package: A) overlap (Ridout and Linkie 2009); B) activity (Rowcliffe et al. 2014); C) circular (Agostinelli and Lund 2017). We removed records less than 30 minutes apart to minimize short-term correlation in detection due to animals lingering in front of the cameras. Lines represent mean estimates. Shaded areas represent 95% confidence intervals in B, and activity range cores (50% isopleth) in C." width="100%" />
+<p class="caption">
+(#fig:kdespkg4, )Activity patterns based on Kernel Density Estimates of American black bear camera-trap data collected in northern-Minnesota between mid-May and mid-July 2017. Estimates were obtained using R-package: A) overlap (Ridout and Linkie 2009); B) activity (Rowcliffe et al. 2014); C) circular (Agostinelli and Lund 2017). We removed records less than 30 minutes apart to minimize short-term correlation in detection due to animals lingering in front of the cameras. Lines represent mean estimates. Shaded areas represent 95% confidence intervals in B, and activity range cores (50% isopleth) in C.
+</p>
+</div>
+<pre><code>## TableGrob (3 x 3) &quot;arrange&quot;: 5 grobs
+##   z     cells    name                 grob
+## 1 1 (2-2,1-1) arrange       gtable[layout]
+## 2 2 (2-2,2-2) arrange       gtable[layout]
+## 3 3 (2-2,3-3) arrange       gtable[layout]
+## 4 4 (1-1,1-3) arrange text[GRID.text.6077]
+## 5 5 (3-3,1-3) arrange text[GRID.text.6078]</code></pre>
+<p>The three packages return patterns in activity that match in the timing of activity peaks and overall shape of the curves. However, there are some differences. The <code>overlap</code> package <span class="citation">(<a href="references.html#ref-RidoutLinkie2009">Ridout and Linkie 2009</a>; <a href="references.html#ref-R-overlap">Meredith and Ridout 2021</a>)</span> converts estimates so that the area under the curve is equal to one. The <code>activity</code> package <span class="citation">(<a href="references.html#ref-Rowcliffeea2014">J. M. Rowcliffe et al. 2014</a>; <a href="references.html#ref-activity2022">M. Rowcliffe 2022</a>)</span> has the additional option to estimate 95% confidence intervals using bootstrap approaches; the main function implemented in this package, named <code>activity::fitact</code>, also has an argument to correct for differences in detection probability (e.g., between day and night) while the function <code>activity::solartime</code> enable double-anchoring procedures to adjust the timestamp associated with the different records based on sunrise and sunset times <span class="citation">(for details, see <a href="references.html#ref-Vazquezea2019">Vazquez et al. 2019</a>)</span>. Finally, the <code>circular</code> package <span class="citation">(<a href="references.html#ref-circular2022">Agostinelli and Lund 2022a</a>; <a href="references.html#ref-Oliveira-Santos2013">Oliveira-Santos, Zucco, and Agostinelli 2013</a>)</span> can identify periods of higher levels of activity using an isopleth approach similar to that applied in the analysis of telemetry data to identify core areas in estimates of home ranges. Notably, the y-axis associated to the estimates produced using <code>overlap</code> differs from those returned by the other two packages. These differences are due to an additional step that takes place within the <code>densityPlot</code> function and converts estimates so that the area under the curve is equal to one.</p>
+</div>
+</div>
+<div id="kdedataaggr" class="section level2 hasAnchor" number="9.3">
+<h2><span class="header-section-number">9.3</span> Aggregating <em>versus</em> non-aggregating data in KDEs<a href="kdes.html#kdedataaggr" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Building on the previous section <a href="kdes.html#kdespkg">9.2</a>, here, we illustrate the consequences of not aggregating data prior to implementing KDEs. We re-run the same code as in <a href="kdes.html#kdespkg">9.2</a>, but prior to data aggregation.</p>
+<div class="sourceCode" id="cb196"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb196-1"><a href="kdes.html#cb196-1" tabindex="-1"></a><span class="co"># Specify the format of the column Time</span></span>
+<span id="cb196-2"><a href="kdes.html#cb196-2" tabindex="-1"></a>dat<span class="sc">$</span>Time <span class="ot">&lt;-</span> <span class="fu">hms</span>(dat<span class="sc">$</span>Time) </span>
+<span id="cb196-3"><a href="kdes.html#cb196-3" tabindex="-1"></a></span>
+<span id="cb196-4"><a href="kdes.html#cb196-4" tabindex="-1"></a><span class="co"># Convert time values to radians</span></span>
+<span id="cb196-5"><a href="kdes.html#cb196-5" tabindex="-1"></a>dat<span class="sc">$</span>Time_Rad <span class="ot">&lt;-</span> (<span class="fu">hour</span>(dat<span class="sc">$</span>Time)<span class="sc">*</span><span class="dv">60</span> <span class="sc">+</span> <span class="fu">minute</span>(dat<span class="sc">$</span>Time))<span class="sc">/</span>(<span class="dv">60</span><span class="sc">*</span><span class="dv">24</span>)<span class="sc">*</span><span class="dv">2</span><span class="sc">*</span>pi </span>
+<span id="cb196-6"><a href="kdes.html#cb196-6" tabindex="-1"></a></span>
+<span id="cb196-7"><a href="kdes.html#cb196-7" tabindex="-1"></a><span class="co"># OVERLAP</span></span>
+<span id="cb196-8"><a href="kdes.html#cb196-8" tabindex="-1"></a><span class="co"># To avoid plotting</span></span>
+<span id="cb196-9"><a href="kdes.html#cb196-9" tabindex="-1"></a><span class="fu">pdf</span>(<span class="at">file =</span> <span class="cn">NULL</span>) </span>
+<span id="cb196-10"><a href="kdes.html#cb196-10" tabindex="-1"></a></span>
+<span id="cb196-11"><a href="kdes.html#cb196-11" tabindex="-1"></a><span class="co"># Estimate activity patterns and store values in an object </span></span>
+<span id="cb196-12"><a href="kdes.html#cb196-12" tabindex="-1"></a>res_over_NonAggr <span class="ot">&lt;-</span> <span class="fu">densityPlot</span>(dat<span class="sc">$</span>Time_Rad, </span>
+<span id="cb196-13"><a href="kdes.html#cb196-13" tabindex="-1"></a>                                <span class="at">rug =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb196-14"><a href="kdes.html#cb196-14" tabindex="-1"></a>                                <span class="at">adjust =</span> <span class="dv">1</span>, </span>
+<span id="cb196-15"><a href="kdes.html#cb196-15" tabindex="-1"></a>                                <span class="at">xscale =</span> <span class="dv">24</span><span class="sc">*</span><span class="dv">60</span>, </span>
+<span id="cb196-16"><a href="kdes.html#cb196-16" tabindex="-1"></a>                                <span class="at">n.grid =</span> <span class="dv">513</span>, </span>
+<span id="cb196-17"><a href="kdes.html#cb196-17" tabindex="-1"></a>                                <span class="at">extend =</span> <span class="cn">NULL</span></span>
+<span id="cb196-18"><a href="kdes.html#cb196-18" tabindex="-1"></a>                                ) <span class="sc">%&gt;%</span> </span>
+<span id="cb196-19"><a href="kdes.html#cb196-19" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">se =</span> <span class="cn">NA</span>,</span>
+<span id="cb196-20"><a href="kdes.html#cb196-20" tabindex="-1"></a>         <span class="at">Package =</span> <span class="st">&quot;Overlap&quot;</span>, </span>
+<span id="cb196-21"><a href="kdes.html#cb196-21" tabindex="-1"></a>         <span class="at">Data =</span> <span class="st">&quot;Non-Aggregated&quot;</span></span>
+<span id="cb196-22"><a href="kdes.html#cb196-22" tabindex="-1"></a>         ) </span>
+<span id="cb196-23"><a href="kdes.html#cb196-23" tabindex="-1"></a><span class="fu">dev.off</span>()</span></code></pre></div>
+<pre><code>## png 
+##   2</code></pre>
+<div class="sourceCode" id="cb198"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb198-1"><a href="kdes.html#cb198-1" tabindex="-1"></a><span class="co"># ACTIVITY</span></span>
+<span id="cb198-2"><a href="kdes.html#cb198-2" tabindex="-1"></a><span class="co"># Estimate activity patterns and store values in an object </span></span>
+<span id="cb198-3"><a href="kdes.html#cb198-3" tabindex="-1"></a>res_acti_NonAggr <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">fitact</span>(dat<span class="sc">$</span>Time_Rad, </span>
+<span id="cb198-4"><a href="kdes.html#cb198-4" tabindex="-1"></a>                                         <span class="at">reps =</span> <span class="dv">999</span>, </span>
+<span id="cb198-5"><a href="kdes.html#cb198-5" tabindex="-1"></a>                                         <span class="at">sample =</span> <span class="st">&quot;data&quot;</span>, </span>
+<span id="cb198-6"><a href="kdes.html#cb198-6" tabindex="-1"></a>                                         <span class="at">show =</span> <span class="cn">FALSE</span></span>
+<span id="cb198-7"><a href="kdes.html#cb198-7" tabindex="-1"></a>                                         )<span class="sc">@</span>pdf[,<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>]</span>
+<span id="cb198-8"><a href="kdes.html#cb198-8" tabindex="-1"></a>                                  ) <span class="sc">%&gt;%</span> </span>
+<span id="cb198-9"><a href="kdes.html#cb198-9" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="at">x =</span> x<span class="sc">/</span>(<span class="dv">2</span><span class="sc">*</span>pi)<span class="sc">*</span><span class="dv">24</span><span class="sc">*</span><span class="dv">60</span>, <span class="co"># to bring results back to the minute scale,</span></span>
+<span id="cb198-10"><a href="kdes.html#cb198-10" tabindex="-1"></a>         <span class="at">Package =</span> <span class="st">&quot;Activity&quot;</span>, </span>
+<span id="cb198-11"><a href="kdes.html#cb198-11" tabindex="-1"></a>         <span class="at">Data =</span> <span class="st">&quot;Non-Aggregated&quot;</span></span>
+<span id="cb198-12"><a href="kdes.html#cb198-12" tabindex="-1"></a>         ) </span>
+<span id="cb198-13"><a href="kdes.html#cb198-13" tabindex="-1"></a></span>
+<span id="cb198-14"><a href="kdes.html#cb198-14" tabindex="-1"></a><span class="co"># CIRCULAR</span></span>
+<span id="cb198-15"><a href="kdes.html#cb198-15" tabindex="-1"></a><span class="co"># prepare the specific format required by circular</span></span>
+<span id="cb198-16"><a href="kdes.html#cb198-16" tabindex="-1"></a>dat<span class="sc">$</span>Time_Rad_circ <span class="ot">&lt;-</span> <span class="fu">as.circular</span>(dat<span class="sc">$</span>Time_Rad, </span>
+<span id="cb198-17"><a href="kdes.html#cb198-17" tabindex="-1"></a>                                 <span class="at">units =</span> <span class="st">&quot;radians&quot;</span>,</span>
+<span id="cb198-18"><a href="kdes.html#cb198-18" tabindex="-1"></a>                                 <span class="at">template =</span> <span class="st">&quot;none&quot;</span>, </span>
+<span id="cb198-19"><a href="kdes.html#cb198-19" tabindex="-1"></a>                                 <span class="at">zero=</span><span class="dv">0</span>, </span>
+<span id="cb198-20"><a href="kdes.html#cb198-20" tabindex="-1"></a>                                 <span class="at">type=</span><span class="st">&quot;angles&quot;</span>, </span>
+<span id="cb198-21"><a href="kdes.html#cb198-21" tabindex="-1"></a>                                 <span class="at">modulo =</span> <span class="st">&quot;2pi&quot;</span>,</span>
+<span id="cb198-22"><a href="kdes.html#cb198-22" tabindex="-1"></a>                                 <span class="at">rotation=</span><span class="st">&quot;counter&quot;</span></span>
+<span id="cb198-23"><a href="kdes.html#cb198-23" tabindex="-1"></a>                                 )</span>
+<span id="cb198-24"><a href="kdes.html#cb198-24" tabindex="-1"></a></span>
+<span id="cb198-25"><a href="kdes.html#cb198-25" tabindex="-1"></a><span class="co"># determine bandwidth</span></span>
+<span id="cb198-26"><a href="kdes.html#cb198-26" tabindex="-1"></a>bw1 <span class="ot">&lt;-</span> <span class="fu">bw.cv.ml.circular</span>(dat<span class="sc">$</span>Time_Rad_circ, <span class="at">kernel =</span> <span class="st">&quot;vonmises&quot;</span>) </span></code></pre></div>
+<pre><code>## Warning in bw.cv.ml.circular(dat$Time_Rad_circ, kernel = &quot;vonmises&quot;): minimum occurred at one end of the range</code></pre>
+<div class="sourceCode" id="cb200"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb200-1"><a href="kdes.html#cb200-1" tabindex="-1"></a><span class="co"># estimate activity patterns</span></span>
+<span id="cb200-2"><a href="kdes.html#cb200-2" tabindex="-1"></a>temp1 <span class="ot">&lt;-</span> <span class="fu">modal.region.circular</span>(dat<span class="sc">$</span>Time_Rad_circ, </span>
+<span id="cb200-3"><a href="kdes.html#cb200-3" tabindex="-1"></a>                               <span class="at">kernel =</span> <span class="st">&quot;vonmises&quot;</span>, </span>
+<span id="cb200-4"><a href="kdes.html#cb200-4" tabindex="-1"></a>                               <span class="at">q =</span> <span class="fl">0.5</span>, </span>
+<span id="cb200-5"><a href="kdes.html#cb200-5" tabindex="-1"></a>                               <span class="at">adjust =</span> <span class="dv">1</span>, </span>
+<span id="cb200-6"><a href="kdes.html#cb200-6" tabindex="-1"></a>                               <span class="at">bw =</span> bw1</span>
+<span id="cb200-7"><a href="kdes.html#cb200-7" tabindex="-1"></a>                               ) </span>
+<span id="cb200-8"><a href="kdes.html#cb200-8" tabindex="-1"></a></span>
+<span id="cb200-9"><a href="kdes.html#cb200-9" tabindex="-1"></a><span class="co"># organize the output in a dataframe to match those of the other packages</span></span>
+<span id="cb200-10"><a href="kdes.html#cb200-10" tabindex="-1"></a>res_circ_NonAggr <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x=</span>temp1<span class="sc">$</span>density<span class="sc">$</span>x, </span>
+<span id="cb200-11"><a href="kdes.html#cb200-11" tabindex="-1"></a>                               <span class="at">y=</span>temp1<span class="sc">$</span>density<span class="sc">$</span>y</span>
+<span id="cb200-12"><a href="kdes.html#cb200-12" tabindex="-1"></a>                               ) <span class="sc">%&gt;%</span> </span>
+<span id="cb200-13"><a href="kdes.html#cb200-13" tabindex="-1"></a>                      <span class="fu">mutate</span>(<span class="at">x =</span> x<span class="sc">/</span>(<span class="dv">2</span><span class="sc">*</span>pi)<span class="sc">*</span><span class="dv">24</span><span class="sc">*</span><span class="dv">60</span>, <span class="co"># to bring results back to the minute scale,</span></span>
+<span id="cb200-14"><a href="kdes.html#cb200-14" tabindex="-1"></a>                             <span class="at">se =</span> <span class="cn">NA</span>, </span>
+<span id="cb200-15"><a href="kdes.html#cb200-15" tabindex="-1"></a>                             <span class="at">Package =</span> <span class="st">&quot;Circular&quot;</span>, </span>
+<span id="cb200-16"><a href="kdes.html#cb200-16" tabindex="-1"></a>                             <span class="at">Data =</span> <span class="st">&quot;Non-Aggregated&quot;</span></span>
+<span id="cb200-17"><a href="kdes.html#cb200-17" tabindex="-1"></a>                             )</span>
+<span id="cb200-18"><a href="kdes.html#cb200-18" tabindex="-1"></a></span>
+<span id="cb200-19"><a href="kdes.html#cb200-19" tabindex="-1"></a>res_area3 <span class="ot">&lt;-</span> res_circ_NonAggr <span class="sc">%&gt;%</span> <span class="fu">filter</span>(x<span class="sc">&gt;</span>temp1<span class="sc">$</span>zeros[<span class="dv">1</span>,<span class="dv">1</span>]<span class="sc">/</span>(<span class="dv">2</span><span class="sc">*</span>pi)<span class="sc">*</span><span class="dv">24</span><span class="sc">*</span><span class="dv">60</span> <span class="sc">&amp;</span> x<span class="sc">&lt;</span>temp1<span class="sc">$</span>zeros[<span class="dv">1</span>,<span class="dv">2</span>]<span class="sc">/</span>(<span class="dv">2</span><span class="sc">*</span>pi)<span class="sc">*</span><span class="dv">24</span><span class="sc">*</span><span class="dv">60</span>)</span>
+<span id="cb200-20"><a href="kdes.html#cb200-20" tabindex="-1"></a>res_area4 <span class="ot">&lt;-</span> res_circ_NonAggr <span class="sc">%&gt;%</span> <span class="fu">filter</span>(x<span class="sc">&gt;</span>temp1<span class="sc">$</span>zeros[<span class="dv">2</span>,<span class="dv">1</span>]<span class="sc">/</span>(<span class="dv">2</span><span class="sc">*</span>pi)<span class="sc">*</span><span class="dv">24</span><span class="sc">*</span><span class="dv">60</span> <span class="sc">&amp;</span> x<span class="sc">&lt;</span>temp1<span class="sc">$</span>zeros[<span class="dv">2</span>,<span class="dv">2</span>]<span class="sc">/</span>(<span class="dv">2</span><span class="sc">*</span>pi)<span class="sc">*</span><span class="dv">24</span><span class="sc">*</span><span class="dv">60</span>)</span></code></pre></div>
+<p>We plot the results based on the aggregated and non-aggregated data and visually compare them.</p>
+<div class="sourceCode" id="cb201"><pre class="sourceCode r fold-hide"><code class="sourceCode r"><span id="cb201-1"><a href="kdes.html#cb201-1" tabindex="-1"></a><span class="co"># plot OVERLAP</span></span>
+<span id="cb201-2"><a href="kdes.html#cb201-2" tabindex="-1"></a><span class="co"># Join results and plot</span></span>
+<span id="cb201-3"><a href="kdes.html#cb201-3" tabindex="-1"></a>res_over_both <span class="ot">&lt;-</span> <span class="fu">rbind</span>(res_over, res_over_NonAggr) </span>
+<span id="cb201-4"><a href="kdes.html#cb201-4" tabindex="-1"></a>pl_over <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(res_over_both, <span class="fu">aes</span>(<span class="at">x=</span>x, <span class="at">y=</span>y, <span class="at">group=</span>Data)) <span class="sc">+</span></span>
+<span id="cb201-5"><a href="kdes.html#cb201-5" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">linetype=</span>Data, <span class="at">color=</span>Data), <span class="at">size=</span><span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb201-6"><a href="kdes.html#cb201-6" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;#CC79A7&quot;</span>, <span class="st">&quot;#0072B2&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb201-7"><a href="kdes.html#cb201-7" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Density&quot;</span>, <span class="at">title =</span> <span class="st">&quot;A: Overlap pkg&quot;</span>) <span class="sc">+</span></span>
+<span id="cb201-8"><a href="kdes.html#cb201-8" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb201-9"><a href="kdes.html#cb201-9" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;none&quot;</span>,</span>
+<span id="cb201-10"><a href="kdes.html#cb201-10" tabindex="-1"></a>        <span class="at">legend.background =</span> <span class="fu">element_rect</span>(<span class="at">fill =</span> <span class="st">&quot;white&quot;</span>, <span class="at">colour =</span> <span class="st">&quot;black&quot;</span>),</span>
+<span id="cb201-11"><a href="kdes.html#cb201-11" tabindex="-1"></a>        <span class="at">legend.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">8</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb201-12"><a href="kdes.html#cb201-12" tabindex="-1"></a>        <span class="at">axis.line =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb201-13"><a href="kdes.html#cb201-13" tabindex="-1"></a>        <span class="at">axis.ticks =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb201-14"><a href="kdes.html#cb201-14" tabindex="-1"></a>        <span class="co">#axis.title.y = element_blank(),</span></span>
+<span id="cb201-15"><a href="kdes.html#cb201-15" tabindex="-1"></a>        <span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">8</span>),</span>
+<span id="cb201-16"><a href="kdes.html#cb201-16" tabindex="-1"></a>        <span class="at">axis.title.y =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">10</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb201-17"><a href="kdes.html#cb201-17" tabindex="-1"></a>        <span class="at">axis.title.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb201-18"><a href="kdes.html#cb201-18" tabindex="-1"></a>        <span class="at">panel.grid.minor.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb201-19"><a href="kdes.html#cb201-19" tabindex="-1"></a>        <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb201-20"><a href="kdes.html#cb201-20" tabindex="-1"></a>        <span class="at">panel.grid.major.x =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;lightgrey&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;dashed&#39;</span>, <span class="at">size=</span><span class="fl">0.5</span>),<span class="co">#element_line(colour = &#39;grey&#39;, linetype = &#39;solid&#39;, size=0.5),</span></span>
+<span id="cb201-21"><a href="kdes.html#cb201-21" tabindex="-1"></a>        <span class="at">panel.grid.minor.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb201-22"><a href="kdes.html#cb201-22" tabindex="-1"></a>        <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>, <span class="at">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="at">face =</span> <span class="st">&quot;bold&quot;</span>)</span>
+<span id="cb201-23"><a href="kdes.html#cb201-23" tabindex="-1"></a>        ) <span class="sc">+</span></span>
+<span id="cb201-24"><a href="kdes.html#cb201-24" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">24</span><span class="sc">*</span><span class="dv">60</span>,<span class="dv">60</span><span class="sc">*</span><span class="dv">4</span>), <span class="at">labels=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">24</span>,<span class="dv">4</span>), <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="fl">0.02</span>,<span class="fl">0.02</span>)))<span class="sc">+</span></span>
+<span id="cb201-25"><a href="kdes.html#cb201-25" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="fl">0.02</span>, <span class="fl">0.02</span>)))</span>
+<span id="cb201-26"><a href="kdes.html#cb201-26" tabindex="-1"></a></span>
+<span id="cb201-27"><a href="kdes.html#cb201-27" tabindex="-1"></a><span class="co"># plot ACTIVITY</span></span>
+<span id="cb201-28"><a href="kdes.html#cb201-28" tabindex="-1"></a>res_acti_both <span class="ot">&lt;-</span> <span class="fu">rbind</span>(res_acti, res_acti_NonAggr)</span>
+<span id="cb201-29"><a href="kdes.html#cb201-29" tabindex="-1"></a>pl_acti <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(res_acti_both, <span class="fu">aes</span>(<span class="at">x=</span>x, <span class="at">y=</span>y, <span class="at">group=</span>Data)) <span class="sc">+</span></span>
+<span id="cb201-30"><a href="kdes.html#cb201-30" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin=</span>y<span class="fl">-1.96</span><span class="sc">*</span>se, <span class="at">ymax=</span>y<span class="fl">+1.96</span><span class="sc">*</span>se, <span class="at">color=</span>Data, <span class="at">fill=</span>Data), <span class="at">alpha=</span><span class="fl">0.3</span>) <span class="sc">+</span></span>
+<span id="cb201-31"><a href="kdes.html#cb201-31" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">linetype=</span>Data, <span class="at">color=</span>Data), <span class="at">size=</span><span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb201-32"><a href="kdes.html#cb201-32" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;#CC79A7&quot;</span>, <span class="st">&quot;#0072B2&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb201-33"><a href="kdes.html#cb201-33" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;#CC79A7&quot;</span>, <span class="st">&quot;#0072B2&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb201-34"><a href="kdes.html#cb201-34" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Activity density&quot;</span>, <span class="at">title =</span> <span class="st">&quot;B: Activity pkg&quot;</span>) <span class="sc">+</span></span>
+<span id="cb201-35"><a href="kdes.html#cb201-35" tabindex="-1"></a>  <span class="fu">coord_cartesian</span>(<span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.4</span>)) <span class="sc">+</span></span>
+<span id="cb201-36"><a href="kdes.html#cb201-36" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb201-37"><a href="kdes.html#cb201-37" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;none&quot;</span>,</span>
+<span id="cb201-38"><a href="kdes.html#cb201-38" tabindex="-1"></a>        <span class="at">axis.line =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb201-39"><a href="kdes.html#cb201-39" tabindex="-1"></a>        <span class="at">axis.ticks =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb201-40"><a href="kdes.html#cb201-40" tabindex="-1"></a>        <span class="co">#axis.title.y = element_blank(),</span></span>
+<span id="cb201-41"><a href="kdes.html#cb201-41" tabindex="-1"></a>        <span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">8</span>),</span>
+<span id="cb201-42"><a href="kdes.html#cb201-42" tabindex="-1"></a>        <span class="at">axis.title.y =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">10</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb201-43"><a href="kdes.html#cb201-43" tabindex="-1"></a>        <span class="at">axis.title.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb201-44"><a href="kdes.html#cb201-44" tabindex="-1"></a>        <span class="at">panel.grid.minor.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb201-45"><a href="kdes.html#cb201-45" tabindex="-1"></a>        <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb201-46"><a href="kdes.html#cb201-46" tabindex="-1"></a>        <span class="at">panel.grid.major.x =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;lightgrey&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;dashed&#39;</span>, <span class="at">size=</span><span class="fl">0.5</span>),<span class="co">#element_line(colour = &#39;grey&#39;, linetype = &#39;solid&#39;, size=0.5),</span></span>
+<span id="cb201-47"><a href="kdes.html#cb201-47" tabindex="-1"></a>        <span class="at">panel.grid.minor.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb201-48"><a href="kdes.html#cb201-48" tabindex="-1"></a>        <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>, <span class="at">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="at">face =</span> <span class="st">&quot;bold&quot;</span>)</span>
+<span id="cb201-49"><a href="kdes.html#cb201-49" tabindex="-1"></a>        ) <span class="sc">+</span></span>
+<span id="cb201-50"><a href="kdes.html#cb201-50" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">24</span><span class="sc">*</span><span class="dv">60</span>,<span class="dv">60</span><span class="sc">*</span><span class="dv">4</span>), <span class="at">labels=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">24</span>,<span class="dv">4</span>), <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="fl">0.02</span>,<span class="fl">0.02</span>)))<span class="sc">+</span></span>
+<span id="cb201-51"><a href="kdes.html#cb201-51" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="fl">0.02</span>, <span class="fl">0.02</span>)))</span>
+<span id="cb201-52"><a href="kdes.html#cb201-52" tabindex="-1"></a></span>
+<span id="cb201-53"><a href="kdes.html#cb201-53" tabindex="-1"></a><span class="co"># plot CIRCULAR</span></span>
+<span id="cb201-54"><a href="kdes.html#cb201-54" tabindex="-1"></a>res_circ_both <span class="ot">&lt;-</span> <span class="fu">rbind</span>(res_circ, res_circ_NonAggr) </span>
+<span id="cb201-55"><a href="kdes.html#cb201-55" tabindex="-1"></a>pl_circ <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(res_circ_both, <span class="fu">aes</span>(<span class="at">x=</span>x, <span class="at">y=</span>y, <span class="at">group=</span>Data)) <span class="sc">+</span></span>
+<span id="cb201-56"><a href="kdes.html#cb201-56" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">linetype=</span>Data, <span class="at">color=</span>Data), <span class="at">size=</span><span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb201-57"><a href="kdes.html#cb201-57" tabindex="-1"></a>  <span class="fu">geom_area</span>(<span class="at">data=</span>res_area1, <span class="fu">aes</span>(<span class="at">x=</span>x, <span class="at">y=</span>y), <span class="at">col=</span><span class="st">&quot;#CC79A7&quot;</span>, <span class="at">fill=</span><span class="st">&quot;#CC79A7&quot;</span>, <span class="at">alpha=</span><span class="fl">0.3</span>) <span class="sc">+</span></span>
+<span id="cb201-58"><a href="kdes.html#cb201-58" tabindex="-1"></a>  <span class="fu">geom_area</span>(<span class="at">data=</span>res_area2, <span class="fu">aes</span>(<span class="at">x=</span>x, <span class="at">y=</span>y), <span class="at">col=</span><span class="st">&quot;#CC79A7&quot;</span>, <span class="at">fill=</span><span class="st">&quot;#CC79A7&quot;</span>, <span class="at">alpha=</span><span class="fl">0.3</span>) <span class="sc">+</span></span>
+<span id="cb201-59"><a href="kdes.html#cb201-59" tabindex="-1"></a>  <span class="fu">geom_area</span>(<span class="at">data=</span>res_area3, <span class="fu">aes</span>(<span class="at">x=</span>x, <span class="at">y=</span>y), <span class="at">col=</span><span class="st">&quot;#0072B2&quot;</span>, <span class="at">fill=</span><span class="st">&quot;#0072B2&quot;</span>, <span class="at">alpha=</span><span class="fl">0.3</span>) <span class="sc">+</span></span>
+<span id="cb201-60"><a href="kdes.html#cb201-60" tabindex="-1"></a>  <span class="fu">geom_area</span>(<span class="at">data=</span>res_area4, <span class="fu">aes</span>(<span class="at">x=</span>x, <span class="at">y=</span>y), <span class="at">col=</span><span class="st">&quot;#0072B2&quot;</span>, <span class="at">fill=</span><span class="st">&quot;#0072B2&quot;</span>, <span class="at">alpha=</span><span class="fl">0.3</span>) <span class="sc">+</span></span>
+<span id="cb201-61"><a href="kdes.html#cb201-61" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;#CC79A7&quot;</span>, <span class="st">&quot;#0072B2&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb201-62"><a href="kdes.html#cb201-62" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Kernel Density Estimate&quot;</span>, <span class="at">title =</span> <span class="st">&quot;C: Circular pkg&quot;</span>) <span class="sc">+</span></span>
+<span id="cb201-63"><a href="kdes.html#cb201-63" tabindex="-1"></a>  <span class="fu">coord_cartesian</span>(<span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.4</span>)) <span class="sc">+</span></span>
+<span id="cb201-64"><a href="kdes.html#cb201-64" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb201-65"><a href="kdes.html#cb201-65" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;inside&quot;</span>, </span>
+<span id="cb201-66"><a href="kdes.html#cb201-66" tabindex="-1"></a>        <span class="at">legend.position.inside =</span> <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.9</span>),</span>
+<span id="cb201-67"><a href="kdes.html#cb201-67" tabindex="-1"></a>        <span class="at">axis.line =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb201-68"><a href="kdes.html#cb201-68" tabindex="-1"></a>        <span class="at">axis.ticks =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb201-69"><a href="kdes.html#cb201-69" tabindex="-1"></a>        <span class="at">axis.text =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">8</span>),</span>
+<span id="cb201-70"><a href="kdes.html#cb201-70" tabindex="-1"></a>        <span class="at">axis.title.y =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">10</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb201-71"><a href="kdes.html#cb201-71" tabindex="-1"></a>        <span class="at">axis.title.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb201-72"><a href="kdes.html#cb201-72" tabindex="-1"></a>        <span class="at">panel.grid.minor.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb201-73"><a href="kdes.html#cb201-73" tabindex="-1"></a>        <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb201-74"><a href="kdes.html#cb201-74" tabindex="-1"></a>        <span class="at">panel.grid.major.x =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;lightgrey&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;dashed&#39;</span>, <span class="at">size=</span><span class="fl">0.5</span>),</span>
+<span id="cb201-75"><a href="kdes.html#cb201-75" tabindex="-1"></a>        <span class="at">panel.grid.minor.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb201-76"><a href="kdes.html#cb201-76" tabindex="-1"></a>        <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">10</span>, <span class="at">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="at">face =</span> <span class="st">&quot;bold&quot;</span>)</span>
+<span id="cb201-77"><a href="kdes.html#cb201-77" tabindex="-1"></a>        ) <span class="sc">+</span></span>
+<span id="cb201-78"><a href="kdes.html#cb201-78" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">24</span><span class="sc">*</span><span class="dv">60</span>,<span class="dv">60</span><span class="sc">*</span><span class="dv">4</span>), <span class="at">labels=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">24</span>,<span class="dv">4</span>), <span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="fl">0.02</span>,<span class="fl">0.02</span>)))<span class="sc">+</span></span>
+<span id="cb201-79"><a href="kdes.html#cb201-79" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">expand =</span> <span class="fu">expansion</span>(<span class="at">mult =</span> <span class="fu">c</span>(<span class="fl">0.02</span>, <span class="fl">0.02</span>)))</span>
+<span id="cb201-80"><a href="kdes.html#cb201-80" tabindex="-1"></a></span>
+<span id="cb201-81"><a href="kdes.html#cb201-81" tabindex="-1"></a><span class="co">#&#39; Combine results of the 3 methods</span></span>
+<span id="cb201-82"><a href="kdes.html#cb201-82" tabindex="-1"></a>(pl_both <span class="ot">&lt;-</span> <span class="fu">grid.arrange</span>(pl_over, </span>
+<span id="cb201-83"><a href="kdes.html#cb201-83" tabindex="-1"></a>                         pl_acti, </span>
+<span id="cb201-84"><a href="kdes.html#cb201-84" tabindex="-1"></a>                         pl_circ, </span>
+<span id="cb201-85"><a href="kdes.html#cb201-85" tabindex="-1"></a>                         <span class="at">nrow =</span> <span class="dv">1</span>, </span>
+<span id="cb201-86"><a href="kdes.html#cb201-86" tabindex="-1"></a>                         <span class="at">bottom=</span><span class="fu">textGrob</span>(<span class="st">&quot;Time of day (Hour)&quot;</span>, <span class="at">gp=</span><span class="fu">gpar</span>(<span class="at">fontsize=</span><span class="dv">10</span>, <span class="at">fontface=</span><span class="st">&quot;bold&quot;</span>)),</span>
+<span id="cb201-87"><a href="kdes.html#cb201-87" tabindex="-1"></a>                         <span class="at">top =</span> <span class="fu">textGrob</span>(<span class="st">&quot;KDE-based estimates of activity patterns using:&quot;</span>,<span class="at">gp=</span><span class="fu">gpar</span>(<span class="at">fontsize=</span><span class="dv">20</span>,<span class="at">font=</span><span class="dv">3</span>))</span>
+<span id="cb201-88"><a href="kdes.html#cb201-88" tabindex="-1"></a>                         )</span>
+<span id="cb201-89"><a href="kdes.html#cb201-89" tabindex="-1"></a>  )</span></code></pre></div>
+<div class="figure" style="text-align: center">
+<img src="HMsActivity_files/figure-html/kdedataaggr2,%20-1.png" alt="Activity patterns based on Kernel Density Estimates of American black bear camera-trap data collected in northern-Minnesota between mid-May and mid-July 2017. Estimates were obtained using R-package: A) overlap (Ridout and Linkie 2009); B) activity (Rowcliffe et al. 2014); C) circular (Agostinelli and Lund 2017). Non-aggregated data included all photographic records; in the aggregated data, we removed records less than 30 minutes apart to minimize short-term correlation in detection due to animals lingering in front of the cameras. Lines represent mean estimates. Shaded areas represent 95% confidence intervals in B, and activity range cores (50% isopleth) in C." width="100%" />
+<p class="caption">
+(#fig:kdedataaggr2, )Activity patterns based on Kernel Density Estimates of American black bear camera-trap data collected in northern-Minnesota between mid-May and mid-July 2017. Estimates were obtained using R-package: A) overlap (Ridout and Linkie 2009); B) activity (Rowcliffe et al. 2014); C) circular (Agostinelli and Lund 2017). Non-aggregated data included all photographic records; in the aggregated data, we removed records less than 30 minutes apart to minimize short-term correlation in detection due to animals lingering in front of the cameras. Lines represent mean estimates. Shaded areas represent 95% confidence intervals in B, and activity range cores (50% isopleth) in C.
+</p>
+</div>
+<pre><code>## TableGrob (3 x 3) &quot;arrange&quot;: 5 grobs
+##   z     cells    name                 grob
+## 1 1 (2-2,1-1) arrange       gtable[layout]
+## 2 2 (2-2,2-2) arrange       gtable[layout]
+## 3 3 (2-2,3-3) arrange       gtable[layout]
+## 4 4 (1-1,1-3) arrange text[GRID.text.6222]
+## 5 5 (3-3,1-3) arrange text[GRID.text.6223]</code></pre>
+<p>We see that applying KDEs to non-aggregated data leads to estimates of activity curves that are extremely wiggly due to the choice of smoothing parameter which assumes the observations are independent. This could make the interpretation of the results particularly challenging and even lead to biased conclusions when results are driven by one or two individuals staying in front of a camera for an extensive amount of time (but see <span class="citation">Peral, Landman, and Kerley (<a href="references.html#ref-Peral2022">2022</a>)</span> for a different perspective on this topic).</p>
+</div>
+<div id="compkde" class="section level2 hasAnchor" number="9.4">
+<h2><span class="header-section-number">9.4</span> KDEs <em>versus</em> hierarchical models approaches<a href="kdes.html#compkde" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>In section <a href="cov.html#cat">6.1</a>, we use the seasonal activity patterns of black bears as an example to demonstrate how hierarchical models can be used to explore the effect of a categorical covariate on activity patterns. We repeat the same analysis here using KDEs and compare the results with the two hierarchical model approaches. We again use the full set of black bear camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, <span class="citation">(<a href="references.html#ref-Iannarilliea2021">Iannarilli et al. 2021</a>)</span>. However, we re-run the hierarchical model-based analysis using the aggregated version of the dataset, to facilitate comparison with KDE-based results.</p>
+<div class="sourceCode" id="cb203"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb203-1"><a href="kdes.html#cb203-1" tabindex="-1"></a><span class="co"># Load additional Libraries</span></span>
+<span id="cb203-2"><a href="kdes.html#cb203-2" tabindex="-1"></a><span class="fu">library</span>(GLMMadaptive)</span>
+<span id="cb203-3"><a href="kdes.html#cb203-3" tabindex="-1"></a><span class="fu">library</span>(mgcv)</span>
+<span id="cb203-4"><a href="kdes.html#cb203-4" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb203-5"><a href="kdes.html#cb203-5" tabindex="-1"></a></span>
+<span id="cb203-6"><a href="kdes.html#cb203-6" tabindex="-1"></a><span class="co"># Load data</span></span>
+<span id="cb203-7"><a href="kdes.html#cb203-7" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">&quot;data_input/species_records.csv&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb203-8"><a href="kdes.html#cb203-8" tabindex="-1"></a>  <span class="fu">filter</span>(Species <span class="sc">==</span> <span class="st">&quot;BlackBear&quot;</span>) <span class="sc">%&gt;%</span> <span class="fu">droplevels</span>() <span class="sc">%&gt;%</span> </span>
+<span id="cb203-9"><a href="kdes.html#cb203-9" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">DateTimeOriginal =</span> <span class="fu">ymd_hm</span>(DateTimeOriginal))</span>
+<span id="cb203-10"><a href="kdes.html#cb203-10" tabindex="-1"></a>cov <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">&quot;data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv&quot;</span>, <span class="at">as.is =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb203-11"><a href="kdes.html#cb203-11" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">c</span>(Session, Site, Date_setup, Date_retr, Problem1_from, Problem1_to)) <span class="sc">%&gt;%</span> </span>
+<span id="cb203-12"><a href="kdes.html#cb203-12" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Date_setup =</span> <span class="fu">mdy</span>(Date_setup),</span>
+<span id="cb203-13"><a href="kdes.html#cb203-13" tabindex="-1"></a>         <span class="at">Date_retr =</span> <span class="fu">mdy</span>(Date_retr),</span>
+<span id="cb203-14"><a href="kdes.html#cb203-14" tabindex="-1"></a>         <span class="at">Problem1_from =</span> <span class="fu">mdy</span>(Problem1_from),</span>
+<span id="cb203-15"><a href="kdes.html#cb203-15" tabindex="-1"></a>         <span class="at">Problem1_to =</span> <span class="fu">mdy</span>(Problem1_to)</span>
+<span id="cb203-16"><a href="kdes.html#cb203-16" tabindex="-1"></a>         ) </span>
+<span id="cb203-17"><a href="kdes.html#cb203-17" tabindex="-1"></a></span>
+<span id="cb203-18"><a href="kdes.html#cb203-18" tabindex="-1"></a><span class="co"># Extract Season information from Session column</span></span>
+<span id="cb203-19"><a href="kdes.html#cb203-19" tabindex="-1"></a>dat<span class="sc">$</span>Season <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(<span class="fu">substr</span>(dat<span class="sc">$</span>Session, <span class="dv">1</span>, <span class="dv">1</span>))</span>
+<span id="cb203-20"><a href="kdes.html#cb203-20" tabindex="-1"></a></span>
+<span id="cb203-21"><a href="kdes.html#cb203-21" tabindex="-1"></a><span class="co"># Aggregate data to reduce short-term temporal dependence</span></span>
+<span id="cb203-22"><a href="kdes.html#cb203-22" tabindex="-1"></a>independence_interval <span class="ot">&lt;-</span> <span class="dv">30</span> <span class="co"># minutes</span></span>
+<span id="cb203-23"><a href="kdes.html#cb203-23" tabindex="-1"></a>dat <span class="ot">&lt;-</span> dat <span class="sc">%&gt;%</span> </span>
+<span id="cb203-24"><a href="kdes.html#cb203-24" tabindex="-1"></a>  <span class="fu">group_by</span>(Species, Station, Season) <span class="sc">%&gt;%</span>      <span class="co"># group by species, location, and season (to retain information in the dataset)</span></span>
+<span id="cb203-25"><a href="kdes.html#cb203-25" tabindex="-1"></a>  <span class="fu">arrange</span>(DateTimeOriginal, <span class="at">.by_group =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> <span class="co"># arrange record temporally within each group</span></span>
+<span id="cb203-26"><a href="kdes.html#cb203-26" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">timediff =</span> <span class="fu">as.numeric</span>(<span class="fu">difftime</span>(DateTimeOriginal, <span class="fu">lag</span>(DateTimeOriginal), <span class="at">units=</span><span class="st">&quot;mins&quot;</span>)), <span class="co"># calculate time difference (in minutes) between consecutive events</span></span>
+<span id="cb203-27"><a href="kdes.html#cb203-27" tabindex="-1"></a>         <span class="at">timediff =</span> <span class="fu">replace_na</span>(timediff, <span class="dv">0</span>),</span>
+<span id="cb203-28"><a href="kdes.html#cb203-28" tabindex="-1"></a>         <span class="at">grp =</span> <span class="fu">ifelse</span>(timediff <span class="sc">&gt;=</span> independence_interval, <span class="dv">1</span>, <span class="dv">0</span>), <span class="co"># create events</span></span>
+<span id="cb203-29"><a href="kdes.html#cb203-29" tabindex="-1"></a>         <span class="at">grp_ind =</span> <span class="fu">cumsum</span>(grp) <span class="sc">+</span> <span class="dv">1</span>) <span class="co"># assign a group number to each event</span></span>
+<span id="cb203-30"><a href="kdes.html#cb203-30" tabindex="-1"></a></span>
+<span id="cb203-31"><a href="kdes.html#cb203-31" tabindex="-1"></a><span class="co"># group by camera site and event group</span></span>
+<span id="cb203-32"><a href="kdes.html#cb203-32" tabindex="-1"></a><span class="co"># summarize: consider time of first image as time of the independent event</span></span>
+<span id="cb203-33"><a href="kdes.html#cb203-33" tabindex="-1"></a>dat <span class="ot">&lt;-</span> dat <span class="sc">%&gt;%</span></span>
+<span id="cb203-34"><a href="kdes.html#cb203-34" tabindex="-1"></a>  <span class="fu">group_by</span>(Species, Station, Season, grp_ind) <span class="sc">%&gt;%</span></span>
+<span id="cb203-35"><a href="kdes.html#cb203-35" tabindex="-1"></a>  <span class="fu">slice</span>(<span class="dv">1</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb203-36"><a href="kdes.html#cb203-36" tabindex="-1"></a>  <span class="fu">select</span>(<span class="st">&quot;Station&quot;</span>, <span class="st">&quot;Species&quot;</span>, <span class="st">&quot;DateTimeOriginal&quot;</span>, <span class="st">&quot;Date&quot;</span>, <span class="st">&quot;Time&quot;</span>, <span class="st">&quot;Session&quot;</span>)</span></code></pre></div>
+<pre><code>## Adding missing grouping variables: `Season`, `grp_ind`</code></pre>
+<div class="sourceCode" id="cb205"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb205-1"><a href="kdes.html#cb205-1" tabindex="-1"></a><span class="fu">table</span>(dat<span class="sc">$</span>Season)</span></code></pre></div>
+<pre><code>## 
+##   F   S 
+## 236 809</code></pre>
+<div class="sourceCode" id="cb207"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb207-1"><a href="kdes.html#cb207-1" tabindex="-1"></a><span class="co"># Merge time of deployment and retrieval + problems</span></span>
+<span id="cb207-2"><a href="kdes.html#cb207-2" tabindex="-1"></a>site <span class="ot">&lt;-</span> cov</span>
+<span id="cb207-3"><a href="kdes.html#cb207-3" tabindex="-1"></a>site<span class="sc">$</span>end <span class="ot">&lt;-</span> <span class="fu">ymd</span>(<span class="st">&quot;2000-01-01&quot;</span>)</span>
+<span id="cb207-4"><a href="kdes.html#cb207-4" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(site)){</span>
+<span id="cb207-5"><a href="kdes.html#cb207-5" tabindex="-1"></a>  site<span class="sc">$</span>end[i] <span class="ot">&lt;-</span>  <span class="fu">min</span>(site<span class="sc">$</span>Date_retr[i], site<span class="sc">$</span>Problem1_from[i], <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb207-6"><a href="kdes.html#cb207-6" tabindex="-1"></a>}</span>
+<span id="cb207-7"><a href="kdes.html#cb207-7" tabindex="-1"></a></span>
+<span id="cb207-8"><a href="kdes.html#cb207-8" tabindex="-1"></a><span class="co"># Create dataframe to store captures </span></span>
+<span id="cb207-9"><a href="kdes.html#cb207-9" tabindex="-1"></a>occasions <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">&quot;list&quot;</span>, <span class="at">length =</span> <span class="fu">nrow</span>(site))</span>
+<span id="cb207-10"><a href="kdes.html#cb207-10" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(site)){</span>
+<span id="cb207-11"><a href="kdes.html#cb207-11" tabindex="-1"></a>  occasions[[i]] <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">Session =</span> site<span class="sc">$</span>Session[i],</span>
+<span id="cb207-12"><a href="kdes.html#cb207-12" tabindex="-1"></a>                               <span class="at">Site =</span> site<span class="sc">$</span>Site[i],</span>
+<span id="cb207-13"><a href="kdes.html#cb207-13" tabindex="-1"></a>                               <span class="at">start =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="fu">ymd_hms</span>(<span class="fu">paste</span>(site<span class="sc">$</span>Date_setup[i], <span class="st">&quot;00:00:00&quot;</span>, <span class="at">sep =</span> <span class="st">&quot; &quot;</span>)), </span>
+<span id="cb207-14"><a href="kdes.html#cb207-14" tabindex="-1"></a>                                           <span class="at">to =</span> <span class="fu">ymd_hms</span>(<span class="fu">paste</span>(site<span class="sc">$</span>end[i], <span class="st">&quot;23:59:59&quot;</span>, <span class="at">sep =</span> <span class="st">&quot; &quot;</span>)), <span class="at">by =</span> <span class="st">&#39;60 min&#39;</span>)</span>
+<span id="cb207-15"><a href="kdes.html#cb207-15" tabindex="-1"></a>                               ) <span class="sc">%&gt;%</span> </span>
+<span id="cb207-16"><a href="kdes.html#cb207-16" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">end =</span> <span class="fu">c</span>(start[<span class="dv">2</span><span class="sc">:</span><span class="fu">length</span>(start)], start[<span class="fu">length</span>(start)]<span class="sc">+</span><span class="fu">minutes</span>(<span class="dv">60</span>))) </span>
+<span id="cb207-17"><a href="kdes.html#cb207-17" tabindex="-1"></a>}</span>
+<span id="cb207-18"><a href="kdes.html#cb207-18" tabindex="-1"></a>occasions <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind.data.frame, occasions)</span>
+<span id="cb207-19"><a href="kdes.html#cb207-19" tabindex="-1"></a>occasions<span class="sc">$</span>capt <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb207-20"><a href="kdes.html#cb207-20" tabindex="-1"></a></span>
+<span id="cb207-21"><a href="kdes.html#cb207-21" tabindex="-1"></a><span class="co"># Store captures</span></span>
+<span id="cb207-22"><a href="kdes.html#cb207-22" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(dat)){</span>
+<span id="cb207-23"><a href="kdes.html#cb207-23" tabindex="-1"></a>  occasions[occasions<span class="sc">$</span>Session <span class="sc">==</span> <span class="fu">as.character</span>(dat<span class="sc">$</span>Session[i]) <span class="sc">&amp;</span> occasions<span class="sc">$</span>Site <span class="sc">==</span> <span class="fu">as.character</span>(dat<span class="sc">$</span>Station[i]) <span class="sc">&amp;</span></span>
+<span id="cb207-24"><a href="kdes.html#cb207-24" tabindex="-1"></a>              occasions<span class="sc">$</span>start <span class="sc">&lt;=</span> dat<span class="sc">$</span>DateTimeOriginal[i] <span class="sc">&amp;</span> occasions<span class="sc">$</span>end <span class="sc">&gt;</span> dat<span class="sc">$</span>DateTimeOriginal[i], <span class="st">&quot;capt&quot;</span>] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb207-25"><a href="kdes.html#cb207-25" tabindex="-1"></a>}</span>
+<span id="cb207-26"><a href="kdes.html#cb207-26" tabindex="-1"></a></span>
+<span id="cb207-27"><a href="kdes.html#cb207-27" tabindex="-1"></a><span class="co"># Format data </span></span>
+<span id="cb207-28"><a href="kdes.html#cb207-28" tabindex="-1"></a>occasions<span class="sc">$</span>Time <span class="ot">&lt;-</span> <span class="fu">hour</span>(occasions<span class="sc">$</span>start)</span>
+<span id="cb207-29"><a href="kdes.html#cb207-29" tabindex="-1"></a>occasions<span class="sc">$</span>Season <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(<span class="fu">substr</span>(occasions<span class="sc">$</span>Session, <span class="dv">1</span>, <span class="dv">1</span>))</span>
+<span id="cb207-30"><a href="kdes.html#cb207-30" tabindex="-1"></a><span class="fu">table</span>(occasions<span class="sc">$</span>Season, occasions<span class="sc">$</span>capt)</span></code></pre></div>
+<pre><code>##    
+##          0      1
+##   F 222248    232
+##   S 347954    742</code></pre>
+<div class="sourceCode" id="cb209"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb209-1"><a href="kdes.html#cb209-1" tabindex="-1"></a>occasions<span class="sc">$</span>Site <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(occasions<span class="sc">$</span>Site)</span>
+<span id="cb209-2"><a href="kdes.html#cb209-2" tabindex="-1"></a></span>
+<span id="cb209-3"><a href="kdes.html#cb209-3" tabindex="-1"></a><span class="co"># format data for cbind(success, failure)</span></span>
+<span id="cb209-4"><a href="kdes.html#cb209-4" tabindex="-1"></a>occasions_cbind <span class="ot">&lt;-</span> occasions <span class="sc">%&gt;%</span> </span>
+<span id="cb209-5"><a href="kdes.html#cb209-5" tabindex="-1"></a>  <span class="fu">group_by</span>(Site, Time, Season) <span class="sc">%&gt;%</span> </span>
+<span id="cb209-6"><a href="kdes.html#cb209-6" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">success =</span> <span class="fu">sum</span>(capt),</span>
+<span id="cb209-7"><a href="kdes.html#cb209-7" tabindex="-1"></a>            <span class="at">failure =</span> <span class="fu">n</span>() <span class="sc">-</span> success</span>
+<span id="cb209-8"><a href="kdes.html#cb209-8" tabindex="-1"></a>            )</span></code></pre></div>
+<pre><code>## `summarise()` has grouped output by &#39;Site&#39;, &#39;Time&#39;. You can override using the `.groups` argument.</code></pre>
+<p>There is a minor mismatch between the number of encounters in the <code>occassions</code> data set (742 in the Spring, 232 in the Fall), and the number of independent encounters (809 in the Spring, 236 in the Fall). This discrepancy is due to a few independent encounters that are more than 30 minutes apart (the time threshold used to define independence) but that still fall within the same hourly time interval (e.g., if their datetime values are ‘2021-04-15 13:06:08’ and ‘2021-04-15 13:46:09’).</p>
+<p>As before, for the KDE analysis, we convert the time stamp to radians. We also split the dataset by <code>Season</code> and run KDEs for the two groups using a loop.</p>
+<div class="sourceCode" id="cb211"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb211-1"><a href="kdes.html#cb211-1" tabindex="-1"></a><span class="co"># Estimate activity using KDE</span></span>
+<span id="cb211-2"><a href="kdes.html#cb211-2" tabindex="-1"></a>dat<span class="sc">$</span>Time <span class="ot">&lt;-</span> <span class="fu">hms</span>(dat<span class="sc">$</span>Time)</span>
+<span id="cb211-3"><a href="kdes.html#cb211-3" tabindex="-1"></a>dat<span class="sc">$</span>Time_Rad <span class="ot">&lt;-</span> (<span class="fu">hour</span>(dat<span class="sc">$</span>Time)<span class="sc">*</span><span class="dv">60</span> <span class="sc">+</span> <span class="fu">minute</span>(dat<span class="sc">$</span>Time))<span class="sc">/</span>(<span class="dv">60</span><span class="sc">*</span><span class="dv">24</span>)<span class="sc">*</span><span class="dv">2</span><span class="sc">*</span>pi </span>
+<span id="cb211-4"><a href="kdes.html#cb211-4" tabindex="-1"></a></span>
+<span id="cb211-5"><a href="kdes.html#cb211-5" tabindex="-1"></a><span class="co"># Split by Season</span></span>
+<span id="cb211-6"><a href="kdes.html#cb211-6" tabindex="-1"></a>dat<span class="sc">$</span>Season <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(<span class="fu">substr</span>(dat<span class="sc">$</span>Session, <span class="dv">1</span>, <span class="dv">1</span>))</span>
+<span id="cb211-7"><a href="kdes.html#cb211-7" tabindex="-1"></a></span>
+<span id="cb211-8"><a href="kdes.html#cb211-8" tabindex="-1"></a>dat_ls <span class="ot">&lt;-</span> dat <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(Species, Season) <span class="sc">%&gt;%</span> <span class="fu">group_split</span>()</span>
+<span id="cb211-9"><a href="kdes.html#cb211-9" tabindex="-1"></a></span>
+<span id="cb211-10"><a href="kdes.html#cb211-10" tabindex="-1"></a>KDE_ls <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">&quot;list&quot;</span>, <span class="at">length =</span> <span class="fu">length</span>(dat_ls))</span>
+<span id="cb211-11"><a href="kdes.html#cb211-11" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(dat_ls)){</span>
+<span id="cb211-12"><a href="kdes.html#cb211-12" tabindex="-1"></a>  KDE_ls[[i]] <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">fitact</span>(dat_ls[[i]]<span class="sc">$</span>Time_Rad, <span class="at">reps =</span> <span class="dv">999</span>, <span class="at">sample =</span> <span class="st">&quot;model&quot;</span>, <span class="at">show =</span> <span class="cn">FALSE</span>)<span class="sc">@</span>pdf[,<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>]) </span>
+<span id="cb211-13"><a href="kdes.html#cb211-13" tabindex="-1"></a>  KDE_ls[[i]]<span class="sc">$</span>Species <span class="ot">&lt;-</span> <span class="fu">unique</span>(dat_ls[[i]]<span class="sc">$</span>Species)</span>
+<span id="cb211-14"><a href="kdes.html#cb211-14" tabindex="-1"></a>  KDE_ls[[i]]<span class="sc">$</span>Season <span class="ot">&lt;-</span> <span class="fu">unique</span>(dat_ls[[i]]<span class="sc">$</span>Season)</span>
+<span id="cb211-15"><a href="kdes.html#cb211-15" tabindex="-1"></a>}</span>
+<span id="cb211-16"><a href="kdes.html#cb211-16" tabindex="-1"></a>KDE <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind.data.frame, KDE_ls)</span></code></pre></div>
+<div class="sourceCode" id="cb212"><pre class="sourceCode r fold-hide"><code class="sourceCode r"><span id="cb212-1"><a href="kdes.html#cb212-1" tabindex="-1"></a><span class="co"># store plot</span></span>
+<span id="cb212-2"><a href="kdes.html#cb212-2" tabindex="-1"></a>pl_KDE <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(KDE, <span class="fu">aes</span>(<span class="at">x =</span> x<span class="sc">/</span>(<span class="dv">2</span><span class="sc">*</span>pi)<span class="sc">*</span><span class="dv">24</span>, <span class="at">y =</span> y)) <span class="sc">+</span></span>
+<span id="cb212-3"><a href="kdes.html#cb212-3" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> y <span class="sc">-</span> <span class="fl">1.96</span><span class="sc">*</span>se, <span class="at">ymax =</span> y <span class="sc">+</span><span class="fl">1.96</span><span class="sc">*</span>se, <span class="at">color =</span> Season, <span class="at">fill =</span> Season), <span class="at">alpha =</span> <span class="fl">0.3</span>, <span class="at">linewidth =</span> <span class="fl">0.25</span>) <span class="sc">+</span></span>
+<span id="cb212-4"><a href="kdes.html#cb212-4" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">color =</span> Season), <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb212-5"><a href="kdes.html#cb212-5" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb212-6"><a href="kdes.html#cb212-6" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;orange&quot;</span>, <span class="st">&quot;darkgreen&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb212-7"><a href="kdes.html#cb212-7" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;orange&quot;</span>, <span class="st">&quot;darkgreen&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb212-8"><a href="kdes.html#cb212-8" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;Time of Day (Hour)&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Predicted Activity Pattern </span><span class="sc">\n</span><span class="st"> (density) </span><span class="sc">\n</span><span class="st">&quot;</span>, <span class="at">title =</span> <span class="st">&quot;C: KDEs, </span><span class="sc">\n</span><span class="st">splitting data by Season&quot;</span>)<span class="sc">+</span></span>
+<span id="cb212-9"><a href="kdes.html#cb212-9" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()<span class="sc">+</span></span>
+<span id="cb212-10"><a href="kdes.html#cb212-10" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;none&quot;</span>,</span>
+<span id="cb212-11"><a href="kdes.html#cb212-11" tabindex="-1"></a>        <span class="at">legend.title =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb212-12"><a href="kdes.html#cb212-12" tabindex="-1"></a>        <span class="at">legend.text =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">10</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb212-13"><a href="kdes.html#cb212-13" tabindex="-1"></a>        <span class="at">legend.margin=</span><span class="fu">margin</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>),</span>
+<span id="cb212-14"><a href="kdes.html#cb212-14" tabindex="-1"></a>        <span class="at">legend.box.margin=</span><span class="fu">margin</span>(<span class="sc">-</span><span class="dv">5</span>,<span class="sc">-</span><span class="dv">10</span>,<span class="sc">-</span><span class="dv">10</span>,<span class="sc">-</span><span class="dv">10</span>),</span>
+<span id="cb212-15"><a href="kdes.html#cb212-15" tabindex="-1"></a>        <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">10</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb212-16"><a href="kdes.html#cb212-16" tabindex="-1"></a>        <span class="at">axis.line =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb212-17"><a href="kdes.html#cb212-17" tabindex="-1"></a>        <span class="at">axis.ticks =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb212-18"><a href="kdes.html#cb212-18" tabindex="-1"></a>        <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">9</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb212-19"><a href="kdes.html#cb212-19" tabindex="-1"></a>        <span class="at">panel.grid.minor.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb212-20"><a href="kdes.html#cb212-20" tabindex="-1"></a>        <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb212-21"><a href="kdes.html#cb212-21" tabindex="-1"></a>        <span class="at">panel.grid.major.x =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;lightgrey&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;dashed&#39;</span>, <span class="at">linewidth =</span> <span class="fl">0.5</span>),</span>
+<span id="cb212-22"><a href="kdes.html#cb212-22" tabindex="-1"></a>        <span class="at">panel.grid.minor.x =</span> <span class="fu">element_blank</span>()</span>
+<span id="cb212-23"><a href="kdes.html#cb212-23" tabindex="-1"></a>        ) <span class="sc">+</span></span>
+<span id="cb212-24"><a href="kdes.html#cb212-24" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">24</span>,<span class="dv">4</span>), <span class="at">labels=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">24</span>,<span class="dv">4</span>))</span></code></pre></div>
+<p>Next, we re-run the analysis using the hierarchical model approach. In particular, we fit a trigonometric random intercept-only model and cyclic cubic spline with a smoother for <code>Time</code> that depends on <code>Season</code>. Both models account for variability in site-use, but not for variability in timing of activity.</p>
+<div class="sourceCode" id="cb213"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb213-1"><a href="kdes.html#cb213-1" tabindex="-1"></a><span class="co"># trig GLMM random intercept-only</span></span>
+<span id="cb213-2"><a href="kdes.html#cb213-2" tabindex="-1"></a><span class="co"># run model</span></span>
+<span id="cb213-3"><a href="kdes.html#cb213-3" tabindex="-1"></a>trig_rand_int <span class="ot">&lt;-</span> <span class="fu">mixed_model</span>(<span class="at">fixed =</span> <span class="fu">cbind</span>(success, failure) <span class="sc">~</span> </span>
+<span id="cb213-4"><a href="kdes.html#cb213-4" tabindex="-1"></a>                                              <span class="fu">cos</span>(<span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">*</span> Time<span class="sc">/</span><span class="dv">24</span>) <span class="sc">*</span> Season <span class="sc">+</span></span>
+<span id="cb213-5"><a href="kdes.html#cb213-5" tabindex="-1"></a>                                              <span class="fu">sin</span>(<span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">*</span> Time<span class="sc">/</span><span class="dv">24</span>) <span class="sc">*</span> Season <span class="sc">+</span></span>
+<span id="cb213-6"><a href="kdes.html#cb213-6" tabindex="-1"></a>                                              <span class="fu">sin</span>(<span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">*</span> Time<span class="sc">/</span><span class="dv">12</span>) <span class="sc">*</span> Season <span class="sc">+</span></span>
+<span id="cb213-7"><a href="kdes.html#cb213-7" tabindex="-1"></a>                                              <span class="fu">cos</span>(<span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">*</span> Time<span class="sc">/</span><span class="dv">12</span>) <span class="sc">*</span> Season,</span>
+<span id="cb213-8"><a href="kdes.html#cb213-8" tabindex="-1"></a>                             <span class="at">random =</span> <span class="sc">~</span>  <span class="dv">1</span>  <span class="sc">|</span>   Site,</span>
+<span id="cb213-9"><a href="kdes.html#cb213-9" tabindex="-1"></a>                             <span class="at">data =</span> occasions_cbind, </span>
+<span id="cb213-10"><a href="kdes.html#cb213-10" tabindex="-1"></a>                             <span class="at">family =</span> <span class="fu">binomial</span>(), </span>
+<span id="cb213-11"><a href="kdes.html#cb213-11" tabindex="-1"></a>                             <span class="at">iter_EM =</span> <span class="dv">0</span></span>
+<span id="cb213-12"><a href="kdes.html#cb213-12" tabindex="-1"></a>                             )</span>
+<span id="cb213-13"><a href="kdes.html#cb213-13" tabindex="-1"></a><span class="fu">summary</span>(trig_rand_int)</span></code></pre></div>
+<pre><code>## 
+## Call:
+## mixed_model(fixed = cbind(success, failure) ~ cos(2 * pi * Time/24) * 
+##     Season + sin(2 * pi * Time/24) * Season + sin(2 * pi * Time/12) * 
+##     Season + cos(2 * pi * Time/12) * Season, random = ~1 | Site, 
+##     data = occasions_cbind, family = binomial(), iter_EM = 0)
+## 
+## Data Descriptives:
+## Number of Observations: 4800
+## Number of Groups: 100 
+## 
+## Model:
+##  family: binomial
+##  link: logit 
+## 
+## Fit statistics:
+##    log.Lik      AIC      BIC
+##  -2234.784 4491.567 4520.224
+## 
+## Random effects covariance matrix:
+##                StdDev
+## (Intercept) 0.8768821
+## 
+## Fixed effects:
+##                               Estimate Std.Err  z-value    p-value
+## (Intercept)                    -7.3440  0.1200 -61.2180    &lt; 1e-04
+## cos(2 * pi * Time/24)           0.4455  0.1112   4.0064    &lt; 1e-04
+## SeasonS                         0.7232  0.0880   8.2204    &lt; 1e-04
+## sin(2 * pi * Time/24)          -0.5206  0.0994  -5.2347    &lt; 1e-04
+## sin(2 * pi * Time/12)          -0.1465  0.0995  -1.4727 0.14082648
+## cos(2 * pi * Time/12)          -0.2416  0.1002  -2.4127 0.01583330
+## cos(2 * pi * Time/24):SeasonS  -0.6815  0.1292  -5.2762    &lt; 1e-04
+## SeasonS:sin(2 * pi * Time/24)   0.3082  0.1109   2.7798 0.00543997
+## SeasonS:sin(2 * pi * Time/12)  -0.4753  0.1150  -4.1340    &lt; 1e-04
+## SeasonS:cos(2 * pi * Time/12)  -0.3853  0.1155  -3.3371 0.00084643
+## 
+## Integration:
+## method: adaptive Gauss-Hermite quadrature rule
+## quadrature points: 11
+## 
+## Optimization:
+## method: quasi-Newton
+## converged: TRUE</code></pre>
+<div class="sourceCode" id="cb215"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb215-1"><a href="kdes.html#cb215-1" tabindex="-1"></a><span class="co"># build estimate of activity</span></span>
+<span id="cb215-2"><a href="kdes.html#cb215-2" tabindex="-1"></a>newdat <span class="ot">&lt;-</span> <span class="fu">with</span>(occasions_cbind, </span>
+<span id="cb215-3"><a href="kdes.html#cb215-3" tabindex="-1"></a>               <span class="fu">expand.grid</span>(<span class="at">Time =</span> <span class="fu">seq</span>(<span class="fu">min</span>(Time), <span class="dv">24</span>, <span class="at">length.out =</span> <span class="dv">48</span>), </span>
+<span id="cb215-4"><a href="kdes.html#cb215-4" tabindex="-1"></a>                           <span class="at">Season =</span> <span class="fu">levels</span>(Season)</span>
+<span id="cb215-5"><a href="kdes.html#cb215-5" tabindex="-1"></a>                           )</span>
+<span id="cb215-6"><a href="kdes.html#cb215-6" tabindex="-1"></a>               )</span>
+<span id="cb215-7"><a href="kdes.html#cb215-7" tabindex="-1"></a>pred_rand_int <span class="ot">&lt;-</span> <span class="fu">effectPlotData</span>(trig_rand_int, newdat, <span class="at">marginal =</span> <span class="cn">FALSE</span>) </span></code></pre></div>
+<div class="sourceCode" id="cb216"><pre class="sourceCode r fold-hide"><code class="sourceCode r"><span id="cb216-1"><a href="kdes.html#cb216-1" tabindex="-1"></a><span class="co"># store plot</span></span>
+<span id="cb216-2"><a href="kdes.html#cb216-2" tabindex="-1"></a>pl_trig <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(pred_rand_int, <span class="fu">aes</span>(Time, <span class="fu">plogis</span>(pred))) <span class="sc">+</span></span>
+<span id="cb216-3"><a href="kdes.html#cb216-3" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> <span class="fu">plogis</span>(low), <span class="at">ymax =</span> <span class="fu">plogis</span>(upp), <span class="at">color =</span> Season, <span class="at">fill =</span> Season), <span class="at">alpha =</span> <span class="fl">0.3</span>, <span class="at">linewidth =</span> <span class="fl">0.25</span>) <span class="sc">+</span></span>
+<span id="cb216-4"><a href="kdes.html#cb216-4" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">color =</span> Season), <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb216-5"><a href="kdes.html#cb216-5" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;orange&quot;</span>, <span class="st">&quot;darkgreen&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb216-6"><a href="kdes.html#cb216-6" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;orange&quot;</span>, <span class="st">&quot;darkgreen&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb216-7"><a href="kdes.html#cb216-7" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;Time of Day (Hour)&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Predicted Activity Pattern </span><span class="sc">\n</span><span class="st"> (probability)&quot;</span>, <span class="at">title =</span> <span class="st">&quot;A: Hierarchical model, </span><span class="sc">\n</span><span class="st">Trigonometric GLMM&quot;</span>)<span class="sc">+</span></span>
+<span id="cb216-8"><a href="kdes.html#cb216-8" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()<span class="sc">+</span></span>
+<span id="cb216-9"><a href="kdes.html#cb216-9" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;bottom&quot;</span>,</span>
+<span id="cb216-10"><a href="kdes.html#cb216-10" tabindex="-1"></a>        <span class="at">legend.title =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb216-11"><a href="kdes.html#cb216-11" tabindex="-1"></a>        <span class="at">legend.text =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">10</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb216-12"><a href="kdes.html#cb216-12" tabindex="-1"></a>        <span class="at">legend.margin=</span><span class="fu">margin</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>),</span>
+<span id="cb216-13"><a href="kdes.html#cb216-13" tabindex="-1"></a>        <span class="at">legend.box.margin=</span><span class="fu">margin</span>(<span class="sc">-</span><span class="dv">5</span>,<span class="sc">-</span><span class="dv">10</span>,<span class="sc">-</span><span class="dv">10</span>,<span class="sc">-</span><span class="dv">10</span>),</span>
+<span id="cb216-14"><a href="kdes.html#cb216-14" tabindex="-1"></a>        <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">10</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb216-15"><a href="kdes.html#cb216-15" tabindex="-1"></a>        <span class="at">axis.line =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb216-16"><a href="kdes.html#cb216-16" tabindex="-1"></a>        <span class="at">axis.ticks =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb216-17"><a href="kdes.html#cb216-17" tabindex="-1"></a>        <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">9</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb216-18"><a href="kdes.html#cb216-18" tabindex="-1"></a>        <span class="at">panel.grid.minor.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb216-19"><a href="kdes.html#cb216-19" tabindex="-1"></a>        <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb216-20"><a href="kdes.html#cb216-20" tabindex="-1"></a>        <span class="at">panel.grid.major.x =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;lightgrey&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;dashed&#39;</span>, <span class="at">linewidth=</span><span class="fl">0.5</span>),</span>
+<span id="cb216-21"><a href="kdes.html#cb216-21" tabindex="-1"></a>        <span class="at">panel.grid.minor.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb216-22"><a href="kdes.html#cb216-22" tabindex="-1"></a>        <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">9</span>, <span class="at">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="at">face =</span> <span class="st">&quot;bold&quot;</span>, <span class="at">hjust =</span> <span class="dv">0</span>)</span>
+<span id="cb216-23"><a href="kdes.html#cb216-23" tabindex="-1"></a>        ) <span class="sc">+</span></span>
+<span id="cb216-24"><a href="kdes.html#cb216-24" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">23</span>,<span class="at">length.out=</span><span class="dv">7</span>), <span class="at">labels=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">24</span>,<span class="dv">4</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb217"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb217-1"><a href="kdes.html#cb217-1" tabindex="-1"></a><span class="co"># Cyclic cubic spline HGAMs </span></span>
+<span id="cb217-2"><a href="kdes.html#cb217-2" tabindex="-1"></a>mod_cycl <span class="ot">&lt;-</span> <span class="fu">bam</span>(<span class="fu">cbind</span>(success, failure) <span class="sc">~</span> </span>
+<span id="cb217-3"><a href="kdes.html#cb217-3" tabindex="-1"></a>                   <span class="fu">s</span>(Time, <span class="at">bs =</span> <span class="st">&quot;cc&quot;</span>, <span class="at">k =</span> <span class="dv">12</span>, <span class="at">by =</span> Season, <span class="at">m =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb217-4"><a href="kdes.html#cb217-4" tabindex="-1"></a>                   Season <span class="sc">+</span> </span>
+<span id="cb217-5"><a href="kdes.html#cb217-5" tabindex="-1"></a>                   <span class="fu">s</span>(Site, <span class="at">bs=</span><span class="st">&quot;re&quot;</span>), </span>
+<span id="cb217-6"><a href="kdes.html#cb217-6" tabindex="-1"></a>                 <span class="at">knots =</span> <span class="fu">list</span>(<span class="at">Time=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">23</span>)),</span>
+<span id="cb217-7"><a href="kdes.html#cb217-7" tabindex="-1"></a>                 <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>, </span>
+<span id="cb217-8"><a href="kdes.html#cb217-8" tabindex="-1"></a>                 <span class="at">data =</span> occasions_cbind</span>
+<span id="cb217-9"><a href="kdes.html#cb217-9" tabindex="-1"></a>                )</span>
+<span id="cb217-10"><a href="kdes.html#cb217-10" tabindex="-1"></a><span class="fu">summary</span>(mod_cycl)</span></code></pre></div>
+<pre><code>## 
+## Family: binomial 
+## Link function: logit 
+## 
+## Formula:
+## cbind(success, failure) ~ s(Time, bs = &quot;cc&quot;, k = 12, by = Season, 
+##     m = 1) + Season + s(Site, bs = &quot;re&quot;)
+## 
+## Parametric coefficients:
+##             Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept) -7.26263    0.11444 -63.461  &lt; 2e-16 ***
+## SeasonS      0.65472    0.08917   7.342  2.1e-13 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Approximate significance of smooth terms:
+##                    edf Ref.df Chi.sq p-value    
+## s(Time):SeasonF  4.179     10  63.48  &lt;2e-16 ***
+## s(Time):SeasonS  8.672     10 237.07  &lt;2e-16 ***
+## s(Site)         81.592     99 591.31  &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## R-sq.(adj) =  0.238   Deviance explained = 31.8%
+## fREML = 6776.2  Scale est. = 1         n = 4800</code></pre>
+<div class="sourceCode" id="cb219"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb219-1"><a href="kdes.html#cb219-1" tabindex="-1"></a><span class="co"># Predict activity patterns</span></span>
+<span id="cb219-2"><a href="kdes.html#cb219-2" tabindex="-1"></a>newdat <span class="ot">&lt;-</span> <span class="fu">with</span>(occasions_cbind, </span>
+<span id="cb219-3"><a href="kdes.html#cb219-3" tabindex="-1"></a>               <span class="fu">expand.grid</span>(<span class="at">Time =</span> <span class="fu">seq</span>(<span class="fu">min</span>(Time), <span class="fu">max</span>(Time), <span class="dv">1</span>), </span>
+<span id="cb219-4"><a href="kdes.html#cb219-4" tabindex="-1"></a>                           <span class="at">Season =</span> <span class="fu">levels</span>(Season), </span>
+<span id="cb219-5"><a href="kdes.html#cb219-5" tabindex="-1"></a>                           <span class="at">Site =</span> <span class="st">&quot;7B&quot;</span> <span class="co">#Station doesn&#39;t matter</span></span>
+<span id="cb219-6"><a href="kdes.html#cb219-6" tabindex="-1"></a>                           )</span>
+<span id="cb219-7"><a href="kdes.html#cb219-7" tabindex="-1"></a>               ) </span>
+<span id="cb219-8"><a href="kdes.html#cb219-8" tabindex="-1"></a></span>
+<span id="cb219-9"><a href="kdes.html#cb219-9" tabindex="-1"></a></span>
+<span id="cb219-10"><a href="kdes.html#cb219-10" tabindex="-1"></a>cycl_pred <span class="ot">&lt;-</span> <span class="fu">predict.bam</span>(mod_cycl, </span>
+<span id="cb219-11"><a href="kdes.html#cb219-11" tabindex="-1"></a>                         <span class="at">newdata =</span> newdat,  </span>
+<span id="cb219-12"><a href="kdes.html#cb219-12" tabindex="-1"></a>                         <span class="at">exclude =</span> <span class="st">&quot;s(Site)&quot;</span>, </span>
+<span id="cb219-13"><a href="kdes.html#cb219-13" tabindex="-1"></a>                         <span class="at">se.fit =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb219-14"><a href="kdes.html#cb219-14" tabindex="-1"></a>                         <span class="at">type =</span> <span class="st">&quot;response&quot;</span></span>
+<span id="cb219-15"><a href="kdes.html#cb219-15" tabindex="-1"></a>                         ) </span>
+<span id="cb219-16"><a href="kdes.html#cb219-16" tabindex="-1"></a>cycl_pred <span class="ot">&lt;-</span> <span class="fu">cbind</span>(newdat, </span>
+<span id="cb219-17"><a href="kdes.html#cb219-17" tabindex="-1"></a>                   <span class="at">fit=</span>cycl_pred<span class="sc">$</span>fit, </span>
+<span id="cb219-18"><a href="kdes.html#cb219-18" tabindex="-1"></a>                   <span class="at">se.fit=</span>cycl_pred<span class="sc">$</span>se.fit, </span>
+<span id="cb219-19"><a href="kdes.html#cb219-19" tabindex="-1"></a>                   <span class="at">Model =</span> <span class="st">&quot;Random-intercept only&quot;</span></span>
+<span id="cb219-20"><a href="kdes.html#cb219-20" tabindex="-1"></a>                   )</span></code></pre></div>
+<div class="sourceCode" id="cb220"><pre class="sourceCode r fold-hide"><code class="sourceCode r"><span id="cb220-1"><a href="kdes.html#cb220-1" tabindex="-1"></a>pl_cycl <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(cycl_pred, <span class="fu">aes</span>(Time, fit)) <span class="sc">+</span></span>
+<span id="cb220-2"><a href="kdes.html#cb220-2" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> fit<span class="fl">-1.96</span><span class="sc">*</span>se.fit, <span class="at">ymax =</span> fit<span class="fl">+1.96</span><span class="sc">*</span>se.fit, <span class="at">color =</span> Season, <span class="at">fill =</span> Season), <span class="at">alpha =</span> <span class="fl">0.3</span>, <span class="at">size =</span> <span class="fl">0.25</span>) <span class="sc">+</span></span>
+<span id="cb220-3"><a href="kdes.html#cb220-3" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">color =</span> Season), <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb220-4"><a href="kdes.html#cb220-4" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;orange&quot;</span>, <span class="st">&quot;darkgreen&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb220-5"><a href="kdes.html#cb220-5" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;orange&quot;</span>, <span class="st">&quot;darkgreen&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb220-6"><a href="kdes.html#cb220-6" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;Time of Day (Hour)&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Predicted Activity Pattern </span><span class="sc">\n</span><span class="st"> (probability)&quot;</span>, <span class="at">title =</span> <span class="st">&quot;B: Hierarchical model, </span><span class="sc">\n</span><span class="st">Cyclic cubic spline HGAM&quot;</span>)<span class="sc">+</span></span>
+<span id="cb220-7"><a href="kdes.html#cb220-7" tabindex="-1"></a>  <span class="fu">coord_cartesian</span>(<span class="at">ylim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.005</span>)) <span class="sc">+</span></span>
+<span id="cb220-8"><a href="kdes.html#cb220-8" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()<span class="sc">+</span></span>
+<span id="cb220-9"><a href="kdes.html#cb220-9" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;bottom&quot;</span>,</span>
+<span id="cb220-10"><a href="kdes.html#cb220-10" tabindex="-1"></a>        <span class="at">legend.title =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb220-11"><a href="kdes.html#cb220-11" tabindex="-1"></a>        <span class="at">legend.text =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">10</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb220-12"><a href="kdes.html#cb220-12" tabindex="-1"></a>        <span class="at">legend.margin=</span><span class="fu">margin</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>),</span>
+<span id="cb220-13"><a href="kdes.html#cb220-13" tabindex="-1"></a>        <span class="at">legend.box.margin=</span><span class="fu">margin</span>(<span class="sc">-</span><span class="dv">5</span>,<span class="sc">-</span><span class="dv">10</span>,<span class="sc">-</span><span class="dv">10</span>,<span class="sc">-</span><span class="dv">10</span>),</span>
+<span id="cb220-14"><a href="kdes.html#cb220-14" tabindex="-1"></a>        <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">10</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb220-15"><a href="kdes.html#cb220-15" tabindex="-1"></a>        <span class="at">axis.line =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb220-16"><a href="kdes.html#cb220-16" tabindex="-1"></a>        <span class="at">axis.ticks =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb220-17"><a href="kdes.html#cb220-17" tabindex="-1"></a>        <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">9</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb220-18"><a href="kdes.html#cb220-18" tabindex="-1"></a>        <span class="at">panel.grid.minor.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb220-19"><a href="kdes.html#cb220-19" tabindex="-1"></a>        <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb220-20"><a href="kdes.html#cb220-20" tabindex="-1"></a>        <span class="at">panel.grid.major.x =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;lightgrey&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;dashed&#39;</span>, <span class="at">linewidth=</span><span class="fl">0.5</span>),</span>
+<span id="cb220-21"><a href="kdes.html#cb220-21" tabindex="-1"></a>        <span class="at">panel.grid.minor.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb220-22"><a href="kdes.html#cb220-22" tabindex="-1"></a>        <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">9</span>, <span class="at">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="at">face =</span> <span class="st">&quot;bold&quot;</span>, <span class="at">hjust =</span> <span class="dv">0</span>)</span>
+<span id="cb220-23"><a href="kdes.html#cb220-23" tabindex="-1"></a>        ) <span class="sc">+</span></span>
+<span id="cb220-24"><a href="kdes.html#cb220-24" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="fu">max</span>(cycl_pred<span class="sc">$</span>Time),<span class="at">length.out=</span><span class="dv">7</span>), <span class="at">labels=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">24</span>,<span class="dv">4</span>)) </span></code></pre></div>
+<p>We now bring together the results based on the three methods and plot them.</p>
+<div class="sourceCode" id="cb221"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb221-1"><a href="kdes.html#cb221-1" tabindex="-1"></a>plotcompare <span class="ot">&lt;-</span> <span class="fu">ggarrange</span>(pl_trig, pl_cycl, pl_KDE, <span class="at">ncol =</span> <span class="dv">3</span>, <span class="at">common.legend =</span> <span class="cn">FALSE</span>, <span class="at">legend =</span> <span class="st">&quot;none&quot;</span>) <span class="sc">+</span></span>
+<span id="cb221-2"><a href="kdes.html#cb221-2" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">plot.margin =</span> <span class="fu">margin</span>(<span class="fl">0.1</span>,<span class="fl">0.1</span>,<span class="fl">0.5</span>,<span class="fl">0.1</span>, <span class="st">&quot;cm&quot;</span>)) </span>
+<span id="cb221-3"><a href="kdes.html#cb221-3" tabindex="-1"></a>plotcompare</span></code></pre></div>
+<p><img src="HMsActivity_files/figure-html/compkde4-1.png" width="672" /></p>
+<div class="sourceCode" id="cb222"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb222-1"><a href="kdes.html#cb222-1" tabindex="-1"></a><span class="fu">ggsave</span>(plotcompare, <span class="at">filename =</span> <span class="st">&quot;ms_figures/Fig3_KDEs_HMs_comparison.jpg&quot;</span>, <span class="at">device =</span> <span class="st">&quot;jpeg&quot;</span>, <span class="at">units =</span> <span class="st">&quot;cm&quot;</span>, <span class="at">width =</span> <span class="dv">24</span>, <span class="at">height =</span> <span class="dv">10</span>, <span class="at">dpi =</span> <span class="dv">600</span>)</span></code></pre></div>
+<p>Both the hierarchical model-based approaches and the KDEs were able to quantify differences in activity patterns across the two seasons. All of the methods also return similar shaped activity curves. However, by using the hierarchical model-based approaches, we are also able to quantify differential levels of activity between Spring and Fall. Because these approaches also account for the differential sampling effort, we can interpret the results in terms of the probability that the species is active throughout the day and also compare the activity patterns across seasons. For example, based on the results, we can say that the probability of the species being active around 20:00 is higher in the Spring (green curves) than in the Fall (yellow curves).
+Likely owing to the assumption of independence, the KDEs were more wiggly than the hierarchical model-based estimates, and these differences might be especially prominent when there are only a few sites with records of the species.</p>
+<p><strong>Model selection.</strong> We can compare the two hierarchical models to their relative null model to assess the importance of the variable <code>Season</code> on bear’s activity patterns.</p>
+<div class="sourceCode" id="cb223"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb223-1"><a href="kdes.html#cb223-1" tabindex="-1"></a><span class="co"># trig GLMM random intercept-only</span></span>
+<span id="cb223-2"><a href="kdes.html#cb223-2" tabindex="-1"></a><span class="co"># null model</span></span>
+<span id="cb223-3"><a href="kdes.html#cb223-3" tabindex="-1"></a>trig_rand_int_null <span class="ot">&lt;-</span> <span class="fu">mixed_model</span>(<span class="at">fixed =</span> <span class="fu">cbind</span>(success, failure) <span class="sc">~</span> </span>
+<span id="cb223-4"><a href="kdes.html#cb223-4" tabindex="-1"></a>                                              <span class="fu">cos</span>(<span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">*</span> Time<span class="sc">/</span><span class="dv">24</span>) <span class="sc">+</span></span>
+<span id="cb223-5"><a href="kdes.html#cb223-5" tabindex="-1"></a>                                              <span class="fu">sin</span>(<span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">*</span> Time<span class="sc">/</span><span class="dv">24</span>) <span class="sc">+</span></span>
+<span id="cb223-6"><a href="kdes.html#cb223-6" tabindex="-1"></a>                                              <span class="fu">sin</span>(<span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">*</span> Time<span class="sc">/</span><span class="dv">12</span>) <span class="sc">+</span></span>
+<span id="cb223-7"><a href="kdes.html#cb223-7" tabindex="-1"></a>                                              <span class="fu">cos</span>(<span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">*</span> Time<span class="sc">/</span><span class="dv">12</span>) ,</span>
+<span id="cb223-8"><a href="kdes.html#cb223-8" tabindex="-1"></a>                                  <span class="at">random =</span> <span class="sc">~</span>  <span class="dv">1</span>  <span class="sc">|</span>   Site,</span>
+<span id="cb223-9"><a href="kdes.html#cb223-9" tabindex="-1"></a>                                  <span class="at">data =</span> occasions_cbind, </span>
+<span id="cb223-10"><a href="kdes.html#cb223-10" tabindex="-1"></a>                                  <span class="at">family =</span> <span class="fu">binomial</span>(), </span>
+<span id="cb223-11"><a href="kdes.html#cb223-11" tabindex="-1"></a>                                  <span class="at">iter_EM =</span> <span class="dv">0</span></span>
+<span id="cb223-12"><a href="kdes.html#cb223-12" tabindex="-1"></a>                                  )</span>
+<span id="cb223-13"><a href="kdes.html#cb223-13" tabindex="-1"></a><span class="fu">summary</span>(trig_rand_int_null)</span></code></pre></div>
+<pre><code>## 
+## Call:
+## mixed_model(fixed = cbind(success, failure) ~ cos(2 * pi * Time/24) + 
+##     sin(2 * pi * Time/24) + sin(2 * pi * Time/12) + cos(2 * pi * 
+##     Time/12), random = ~1 | Site, data = occasions_cbind, family = binomial(), 
+##     iter_EM = 0)
+## 
+## Data Descriptives:
+## Number of Observations: 4800
+## Number of Groups: 100 
+## 
+## Model:
+##  family: binomial
+##  link: logit 
+## 
+## Fit statistics:
+##   log.Lik     AIC      BIC
+##  -2325.26 4662.52 4678.151
+## 
+## Random effects covariance matrix:
+##                StdDev
+## (Intercept) 0.8604153
+## 
+## Fixed effects:
+##                       Estimate Std.Err  z-value p-value
+## (Intercept)            -6.8032  0.0984 -69.1381 &lt; 1e-04
+## cos(2 * pi * Time/24)  -0.0605  0.0546  -1.1083 0.26775
+## sin(2 * pi * Time/24)  -0.2503  0.0430  -5.8229 &lt; 1e-04
+## sin(2 * pi * Time/12)  -0.5153  0.0489 -10.5430 &lt; 1e-04
+## cos(2 * pi * Time/12)  -0.5147  0.0487 -10.5593 &lt; 1e-04
+## 
+## Integration:
+## method: adaptive Gauss-Hermite quadrature rule
+## quadrature points: 11
+## 
+## Optimization:
+## method: quasi-Newton
+## converged: TRUE</code></pre>
+<div class="sourceCode" id="cb225"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb225-1"><a href="kdes.html#cb225-1" tabindex="-1"></a><span class="fu">AIC</span>(trig_rand_int_null) <span class="sc">-</span> <span class="fu">AIC</span>(trig_rand_int)</span></code></pre></div>
+<pre><code>## [1] 170.9523</code></pre>
+<div class="sourceCode" id="cb227"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb227-1"><a href="kdes.html#cb227-1" tabindex="-1"></a><span class="co"># Cyclic cubic spline HGAMs </span></span>
+<span id="cb227-2"><a href="kdes.html#cb227-2" tabindex="-1"></a><span class="co"># null model</span></span>
+<span id="cb227-3"><a href="kdes.html#cb227-3" tabindex="-1"></a>mod_cycl_null <span class="ot">&lt;-</span> <span class="fu">bam</span>(<span class="fu">cbind</span>(success, failure) <span class="sc">~</span> <span class="fu">s</span>(Site, <span class="at">bs=</span><span class="st">&quot;re&quot;</span>), </span>
+<span id="cb227-4"><a href="kdes.html#cb227-4" tabindex="-1"></a>                 <span class="at">knots =</span> <span class="fu">list</span>(<span class="at">Time=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">23</span>)),</span>
+<span id="cb227-5"><a href="kdes.html#cb227-5" tabindex="-1"></a>                 <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>, </span>
+<span id="cb227-6"><a href="kdes.html#cb227-6" tabindex="-1"></a>                 <span class="at">data =</span> occasions_cbind</span>
+<span id="cb227-7"><a href="kdes.html#cb227-7" tabindex="-1"></a>                 )</span>
+<span id="cb227-8"><a href="kdes.html#cb227-8" tabindex="-1"></a><span class="fu">summary</span>(mod_cycl_null)</span></code></pre></div>
+<pre><code>## 
+## Family: binomial 
+## Link function: logit 
+## 
+## Formula:
+## cbind(success, failure) ~ s(Site, bs = &quot;re&quot;)
+## 
+## Parametric coefficients:
+##             Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept) -6.59099    0.09096  -72.46   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Approximate significance of smooth terms:
+##           edf Ref.df Chi.sq p-value    
+## s(Site) 81.13     99  565.8  &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## R-sq.(adj) =  0.105   Deviance explained = 18.1%
+## fREML = 6842.7  Scale est. = 1         n = 4800</code></pre>
+<div class="sourceCode" id="cb229"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb229-1"><a href="kdes.html#cb229-1" tabindex="-1"></a><span class="fu">AIC</span>(mod_cycl_null) <span class="sc">-</span> <span class="fu">AIC</span>(mod_cycl)</span></code></pre></div>
+<pre><code>## [1] 475.2755</code></pre>
+<p>Both hierarchical models support an effect of <code>Season</code> on the activity patterns of black bear.</p>
+
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="condvsmarg.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="app.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"whatsapp": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": null,
+"search": {
+"engine": "fuse",
+"options": null
+},
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

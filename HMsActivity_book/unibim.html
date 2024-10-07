@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Tutorial 5 Evaluating Hypotheses Regarding the Shape of Activity Curves | A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models</title>
+  <meta name="description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript HMsActivity 2024." />
+  <meta name="generator" content="bookdown 0.39 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Tutorial 5 Evaluating Hypotheses Regarding the Shape of Activity Curves | A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models" />
+  <meta property="og:type" content="book" />
+  
+  <meta property="og:description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript HMsActivity 2024." />
+  <meta name="github-repo" content="rstudio/bookdown-demo" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Tutorial 5 Evaluating Hypotheses Regarding the Shape of Activity Curves | A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models" />
+  
+  <meta name="twitter:description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript HMsActivity 2024." />
+  
+
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="dataprep.html"/>
+<link rel="next" href="cov.html"/>
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<style type="text/css">
+  
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+</style>
+<style type="text/css">
+/* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Preface</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#requirements"><i class="fa fa-check"></i><b>1.1</b> Requirements</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="var.html"><a href="var.html"><i class="fa fa-check"></i><b>2</b> Variability in activity patterns</a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="var.html"><a href="var.html#variability-in-frequency-of-site-use"><i class="fa fa-check"></i><b>2.1</b> Variability in frequency of site-use</a></li>
+<li class="chapter" data-level="2.2" data-path="var.html"><a href="var.html#variability-in-timing-of-activity"><i class="fa fa-check"></i><b>2.2</b> Variability in timing of activity</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="est.html"><a href="est.html"><i class="fa fa-check"></i><b>3</b> Estimating activity patterns from time-stamped data</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="est.html"><a href="est.html#simulating-activity-patterns"><i class="fa fa-check"></i><b>3.1</b> Simulating activity patterns</a></li>
+<li class="chapter" data-level="3.2" data-path="est.html"><a href="est.html#data-preparation"><i class="fa fa-check"></i><b>3.2</b> Data preparation</a></li>
+<li class="chapter" data-level="3.3" data-path="est.html"><a href="est.html#trigonometric-glmms"><i class="fa fa-check"></i><b>3.3</b> Trigonometric GLMMs</a></li>
+<li class="chapter" data-level="3.4" data-path="est.html"><a href="est.html#cyclic-cubic-spline-hgams"><i class="fa fa-check"></i><b>3.4</b> Cyclic cubic spline HGAMs</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="dataprep.html"><a href="dataprep.html"><i class="fa fa-check"></i><b>4</b> Data preparation</a></li>
+<li class="chapter" data-level="5" data-path="unibim.html"><a href="unibim.html"><i class="fa fa-check"></i><b>5</b> Evaluating Hypotheses Regarding the Shape of Activity Curves</a></li>
+<li class="chapter" data-level="6" data-path="cov.html"><a href="cov.html"><i class="fa fa-check"></i><b>6</b> Modeling activity patterns with covariates</a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="cov.html"><a href="cov.html#cat"><i class="fa fa-check"></i><b>6.1</b> Categorical covariates</a>
+<ul>
+<li class="chapter" data-level="6.1.1" data-path="cov.html"><a href="cov.html#trigonometric-glmms-1"><i class="fa fa-check"></i><b>6.1.1</b> Trigonometric GLMMs</a></li>
+<li class="chapter" data-level="6.1.2" data-path="cov.html"><a href="cov.html#cyclic-cubic-spline-hgams-1"><i class="fa fa-check"></i><b>6.1.2</b> Cyclic cubic spline HGAMs</a></li>
+</ul></li>
+<li class="chapter" data-level="6.2" data-path="cov.html"><a href="cov.html#cont"><i class="fa fa-check"></i><b>6.2</b> Continuous covariates</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="temppart.html"><a href="temppart.html"><i class="fa fa-check"></i><b>7</b> Temporal partitioning</a></li>
+<li class="chapter" data-level="8" data-path="condvsmarg.html"><a href="condvsmarg.html"><i class="fa fa-check"></i><b>8</b> Conditional and Marginal Mean Activity Patterns</a>
+<ul>
+<li class="chapter" data-level="8.1" data-path="condvsmarg.html"><a href="condvsmarg.html#estimating-conditional-and-marginal-mean-activity-patterns"><i class="fa fa-check"></i><b>8.1</b> Estimating Conditional and Marginal Mean Activity Patterns</a></li>
+<li class="chapter" data-level="8.2" data-path="condvsmarg.html"><a href="condvsmarg.html#the-frequentist-framework"><i class="fa fa-check"></i><b>8.2</b> The frequentist framework</a></li>
+</ul></li>
+<li class="chapter" data-level="9" data-path="kdes.html"><a href="kdes.html"><i class="fa fa-check"></i><b>9</b> Kernel Density Estimators</a>
+<ul>
+<li class="chapter" data-level="9.1" data-path="kdes.html"><a href="kdes.html#dataprepkdes"><i class="fa fa-check"></i><b>9.1</b> Data preparation for KDEs</a></li>
+<li class="chapter" data-level="9.2" data-path="kdes.html"><a href="kdes.html#kdespkg"><i class="fa fa-check"></i><b>9.2</b> Comparison of KDE estimators</a>
+<ul>
+<li class="chapter" data-level="9.2.1" data-path="kdes.html"><a href="kdes.html#using-the-overlap-package"><i class="fa fa-check"></i><b>9.2.1</b> Using the overlap package</a></li>
+<li class="chapter" data-level="9.2.2" data-path="kdes.html"><a href="kdes.html#using-the-activity-package"><i class="fa fa-check"></i><b>9.2.2</b> Using the activity package</a></li>
+<li class="chapter" data-level="9.2.3" data-path="kdes.html"><a href="kdes.html#using-the-circular-package"><i class="fa fa-check"></i><b>9.2.3</b> Using the circular package</a></li>
+<li class="chapter" data-level="9.2.4" data-path="kdes.html"><a href="kdes.html#comparing-the-results-and-plotting"><i class="fa fa-check"></i><b>9.2.4</b> Comparing the results and plotting</a></li>
+</ul></li>
+<li class="chapter" data-level="9.3" data-path="kdes.html"><a href="kdes.html#kdedataaggr"><i class="fa fa-check"></i><b>9.3</b> Aggregating <em>versus</em> non-aggregating data in KDEs</a></li>
+<li class="chapter" data-level="9.4" data-path="kdes.html"><a href="kdes.html#compkde"><i class="fa fa-check"></i><b>9.4</b> KDEs <em>versus</em> hierarchical models approaches</a></li>
+</ul></li>
+<li class="chapter" data-level="10" data-path="app.html"><a href="app.html"><i class="fa fa-check"></i><b>10</b> Appendix</a>
+<ul>
+<li class="chapter" data-level="10.1" data-path="app.html"><a href="app.html#simfunction"><i class="fa fa-check"></i><b>10.1</b> The <em>sim_activity</em> function</a></li>
+<li class="chapter" data-level="10.2" data-path="app.html"><a href="app.html#poisson"><i class="fa fa-check"></i><b>10.2</b> Binomial versus Other Distributions</a>
+<ul>
+<li class="chapter" data-level="10.2.1" data-path="app.html"><a href="app.html#data-preparation-1"><i class="fa fa-check"></i><b>10.2.1</b> Data preparation</a></li>
+<li class="chapter" data-level="10.2.2" data-path="app.html"><a href="app.html#trigonometric-pdf-comparison"><i class="fa fa-check"></i><b>10.2.2</b> Trigonometric PDF Comparison</a></li>
+<li class="chapter" data-level="10.2.3" data-path="app.html"><a href="app.html#cyclic-cubic-pdf-comparison"><i class="fa fa-check"></i><b>10.2.3</b> Cyclic cubic PDF Comparison</a></li>
+<li class="chapter" data-level="10.2.4" data-path="app.html"><a href="app.html#not-controlling-for-sampling-effort"><i class="fa fa-check"></i><b>10.2.4</b> Not Controlling for Sampling Effort</a></li>
+</ul></li>
+<li class="chapter" data-level="10.3" data-path="app.html"><a href="app.html#bay"><i class="fa fa-check"></i><b>10.3</b> Activity patterns in the Bayesian framework</a>
+<ul>
+<li class="chapter" data-level="10.3.1" data-path="app.html"><a href="app.html#data-preparation-2"><i class="fa fa-check"></i><b>10.3.1</b> Data Preparation</a></li>
+<li class="chapter" data-level="10.3.2" data-path="app.html"><a href="app.html#model-setup-and-fitting"><i class="fa fa-check"></i><b>10.3.2</b> Model Setup and Fitting</a></li>
+<li class="chapter" data-level="10.3.3" data-path="app.html"><a href="app.html#model-assessment"><i class="fa fa-check"></i><b>10.3.3</b> Model Assessment</a></li>
+<li class="chapter" data-level="10.3.4" data-path="app.html"><a href="app.html#model-predictions"><i class="fa fa-check"></i><b>10.3.4</b> Model Predictions</a></li>
+</ul></li>
+<li class="chapter" data-level="10.4" data-path="app.html"><a href="app.html#DielNiche"><i class="fa fa-check"></i><b>10.4</b> Link to the Diel.Niche package</a>
+<ul>
+<li class="chapter" data-level="10.4.1" data-path="app.html"><a href="app.html#data"><i class="fa fa-check"></i><b>10.4.1</b> Data</a></li>
+<li class="chapter" data-level="10.4.2" data-path="app.html"><a href="app.html#model-fitting"><i class="fa fa-check"></i><b>10.4.2</b> Model Fitting</a></li>
+<li class="chapter" data-level="10.4.3" data-path="app.html"><a href="app.html#model-predictions-1"><i class="fa fa-check"></i><b>10.4.3</b> Model Predictions</a></li>
+<li class="chapter" data-level="10.4.4" data-path="app.html"><a href="app.html#twilight-daytime-and-nighttime"><i class="fa fa-check"></i><b>10.4.4</b> Twilight, daytime, and nighttime</a></li>
+<li class="chapter" data-level="10.4.5" data-path="app.html"><a href="app.html#diel.niche"><i class="fa fa-check"></i><b>10.4.5</b> Diel.Niche</a></li>
+<li class="chapter" data-level="10.4.6" data-path="app.html"><a href="app.html#conclusion"><i class="fa fa-check"></i><b>10.4.6</b> Conclusion</a></li>
+</ul></li>
+<li class="chapter" data-level="10.5" data-path="app.html"><a href="app.html#info-session"><i class="fa fa-check"></i><b>10.5</b> Info session</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="unibim" class="section level1 hasAnchor" number="5">
+<h1><span class="header-section-number">Tutorial 5</span> Evaluating Hypotheses Regarding the Shape of Activity Curves<a href="unibim.html#unibim" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<p>Diel activity patterns are often described or classified as either:</p>
+<ul>
+<li><strong>unimodal</strong>: the species is mostly active during a restricted portion of the 24-hour cycle, and not (or almost not) active in the remaining time. The activity curve is characterized by only one peak, and it is typical of species that are either diurnal or nocturnal.</li>
+<li><strong>bimodal</strong>: the species is mostly active during two specific times of the 24-hour cycle, often corresponding to sunrise and sunset (i.e. crepuscular species) and inactive (or mostly inactive) during the rest of the time. The activity curve is characterized by having two peaks.</li>
+<li><strong>cathemeral (non-modal)</strong>: the species is equally active throughout the 24-hour cycle and the activity curve approximates a flat line.</li>
+</ul>
+<p>Here, we build and compare trigonometric hierarchical models representing these three different diel activity patterns. To reiterate, we use independent camera-trap records of coyotes (<em>Canis latrans</em>) collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, <span class="citation">(<a href="references.html#ref-Iannarilliea2021">Iannarilli et al. 2021</a>)</span>, with the data organized as described in the previous Tutorial <a href="dataprep.html#dataprep">4</a>.</p>
+<div class="sourceCode" id="cb58"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb58-1"><a href="unibim.html#cb58-1" tabindex="-1"></a><span class="co"># Load libraries</span></span>
+<span id="cb58-2"><a href="unibim.html#cb58-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">129</span>)</span>
+<span id="cb58-3"><a href="unibim.html#cb58-3" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb58-4"><a href="unibim.html#cb58-4" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span>
+<span id="cb58-5"><a href="unibim.html#cb58-5" tabindex="-1"></a><span class="fu">library</span>(GLMMadaptive)</span>
+<span id="cb58-6"><a href="unibim.html#cb58-6" tabindex="-1"></a><span class="fu">library</span>(lmtest)</span>
+<span id="cb58-7"><a href="unibim.html#cb58-7" tabindex="-1"></a><span class="fu">library</span>(ggpubr)</span>
+<span id="cb58-8"><a href="unibim.html#cb58-8" tabindex="-1"></a><span class="fu">head</span>(occasions_cbind)</span></code></pre></div>
+<pre><code>## # A tibble: 6 × 4
+## # Groups:   Site [1]
+##   Site   Time success failure
+##   &lt;fct&gt; &lt;int&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+## 1 10A       0       0     259
+## 2 10A       1       0     259
+## 3 10A       2       0     259
+## 4 10A       3       0     259
+## 5 10A       4       0     259
+## 6 10A       5       0     259</code></pre>
+<p>We start by fitting a model that describes a <em>unimodal</em> activity pattern. This structure includes only the first of the two cosine terms in equation 1 (which translates in the first and second terms of equation 2), and a random intercept and a random slope as described in Tutorial <a href="est.html#est">3</a>.</p>
+<div class="sourceCode" id="cb60"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb60-1"><a href="unibim.html#cb60-1" tabindex="-1"></a><span class="co"># Unimodal </span></span>
+<span id="cb60-2"><a href="unibim.html#cb60-2" tabindex="-1"></a>unimodal <span class="ot">&lt;-</span> <span class="fu">mixed_model</span>(<span class="at">fixed =</span> <span class="fu">cbind</span>(success, failure) <span class="sc">~</span> <span class="fu">cos</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Time<span class="sc">/</span><span class="dv">24</span>) <span class="sc">+</span> <span class="fu">sin</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Time<span class="sc">/</span><span class="dv">24</span>), </span>
+<span id="cb60-3"><a href="unibim.html#cb60-3" tabindex="-1"></a>                        <span class="at">random =</span> <span class="sc">~</span> <span class="fu">cos</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Time<span class="sc">/</span><span class="dv">24</span>) <span class="sc">+</span> <span class="fu">sin</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Time<span class="sc">/</span><span class="dv">24</span>) <span class="sc">||</span> Site,</span>
+<span id="cb60-4"><a href="unibim.html#cb60-4" tabindex="-1"></a>                        <span class="at">family =</span> <span class="fu">binomial</span>(),</span>
+<span id="cb60-5"><a href="unibim.html#cb60-5" tabindex="-1"></a>                        <span class="at">data =</span> occasions_cbind</span>
+<span id="cb60-6"><a href="unibim.html#cb60-6" tabindex="-1"></a>                        )</span>
+<span id="cb60-7"><a href="unibim.html#cb60-7" tabindex="-1"></a></span>
+<span id="cb60-8"><a href="unibim.html#cb60-8" tabindex="-1"></a><span class="fu">summary</span>(unimodal)</span></code></pre></div>
+<pre><code>## 
+## Call:
+## mixed_model(fixed = cbind(success, failure) ~ cos(2 * pi * Time/24) + 
+##     sin(2 * pi * Time/24), random = ~cos(2 * pi * Time/24) + 
+##     sin(2 * pi * Time/24) || Site, data = occasions_cbind, family = binomial())
+## 
+## Data Descriptives:
+## Number of Observations: 2400
+## Number of Groups: 100 
+## 
+## Model:
+##  family: binomial
+##  link: logit 
+## 
+## Fit statistics:
+##    log.Lik      AIC      BIC
+##  -660.5908 1333.182 1348.813
+## 
+## Random effects covariance matrix:
+##                       StdDev
+## (Intercept)           1.4853
+## cos(2 * pi * Time/24) 0.5347
+## sin(2 * pi * Time/24) 0.5315
+## 
+## Fixed effects:
+##                       Estimate Std.Err  z-value p-value
+## (Intercept)            -9.0125  0.2182 -41.3085 &lt; 1e-04
+## cos(2 * pi * Time/24)   0.5754  0.1334   4.3133 &lt; 1e-04
+## sin(2 * pi * Time/24)   0.2232  0.1306   1.7091 0.08743
+## 
+## Integration:
+## method: adaptive Gauss-Hermite quadrature rule
+## quadrature points: 7
+## 
+## Optimization:
+## method: hybrid EM and quasi-Newton
+## converged: TRUE</code></pre>
+<p>To code for a <em>bimodal</em> activity pattern, we extend the model structure above by also including the second cosine term in equation 1 (i.e. third and forth terms in equation 2).</p>
+<div class="sourceCode" id="cb62"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb62-1"><a href="unibim.html#cb62-1" tabindex="-1"></a><span class="co"># Bimodal </span></span>
+<span id="cb62-2"><a href="unibim.html#cb62-2" tabindex="-1"></a>bimodal <span class="ot">&lt;-</span> <span class="fu">mixed_model</span>(<span class="at">fixed =</span> <span class="fu">cbind</span>(success, failure) <span class="sc">~</span> <span class="fu">cos</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Time<span class="sc">/</span><span class="dv">24</span>) <span class="sc">+</span> <span class="fu">sin</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Time<span class="sc">/</span><span class="dv">24</span>)<span class="sc">+</span></span>
+<span id="cb62-3"><a href="unibim.html#cb62-3" tabindex="-1"></a>                                                         <span class="fu">cos</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Time<span class="sc">/</span><span class="dv">12</span>) <span class="sc">+</span> <span class="fu">sin</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Time<span class="sc">/</span><span class="dv">12</span>), </span>
+<span id="cb62-4"><a href="unibim.html#cb62-4" tabindex="-1"></a>                       <span class="at">random =</span> <span class="sc">~</span> <span class="fu">cos</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Time<span class="sc">/</span><span class="dv">24</span>) <span class="sc">+</span> <span class="fu">sin</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Time<span class="sc">/</span><span class="dv">24</span>)<span class="sc">+</span></span>
+<span id="cb62-5"><a href="unibim.html#cb62-5" tabindex="-1"></a>                                  <span class="fu">cos</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Time<span class="sc">/</span><span class="dv">12</span>) <span class="sc">+</span> <span class="fu">sin</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Time<span class="sc">/</span><span class="dv">12</span>) <span class="sc">||</span> Site,</span>
+<span id="cb62-6"><a href="unibim.html#cb62-6" tabindex="-1"></a>                       <span class="at">family =</span> <span class="fu">binomial</span>(),</span>
+<span id="cb62-7"><a href="unibim.html#cb62-7" tabindex="-1"></a>                       <span class="at">data =</span> occasions_cbind</span>
+<span id="cb62-8"><a href="unibim.html#cb62-8" tabindex="-1"></a>                       )</span>
+<span id="cb62-9"><a href="unibim.html#cb62-9" tabindex="-1"></a></span>
+<span id="cb62-10"><a href="unibim.html#cb62-10" tabindex="-1"></a><span class="fu">summary</span>(bimodal)</span></code></pre></div>
+<pre><code>## 
+## Call:
+## mixed_model(fixed = cbind(success, failure) ~ cos(2 * pi * Time/24) + 
+##     sin(2 * pi * Time/24) + cos(2 * pi * Time/12) + sin(2 * pi * 
+##     Time/12), random = ~cos(2 * pi * Time/24) + sin(2 * pi * 
+##     Time/24) + cos(2 * pi * Time/12) + sin(2 * pi * Time/12) || 
+##     Site, data = occasions_cbind, family = binomial())
+## 
+## Data Descriptives:
+## Number of Observations: 2400
+## Number of Groups: 100 
+## 
+## Model:
+##  family: binomial
+##  link: logit 
+## 
+## Fit statistics:
+##    log.Lik      AIC      BIC
+##  -654.8336 1329.667 1355.719
+## 
+## Random effects covariance matrix:
+##                       StdDev
+## (Intercept)           1.4885
+## cos(2 * pi * Time/24) 0.6659
+## sin(2 * pi * Time/24) 0.4075
+## cos(2 * pi * Time/12) 0.1727
+## sin(2 * pi * Time/12) 0.1757
+## 
+## Fixed effects:
+##                       Estimate Std.Err  z-value  p-value
+## (Intercept)            -9.0816  0.2228 -40.7584  &lt; 1e-04
+## cos(2 * pi * Time/24)   0.6865  0.1567   4.3824  &lt; 1e-04
+## sin(2 * pi * Time/24)   0.2897  0.1221   2.3722 0.017683
+## cos(2 * pi * Time/12)  -0.2782  0.1195  -2.3277 0.019927
+## sin(2 * pi * Time/12)  -0.2451  0.1055  -2.3225 0.020205
+## 
+## Integration:
+## method: adaptive Gauss-Hermite quadrature rule
+## quadrature points: 7
+## 
+## Optimization:
+## method: hybrid EM and quasi-Newton
+## converged: TRUE</code></pre>
+<p>Finally, we use a model without any cosine term to describe a <em>cathemeral</em> activity patterns. We include a random intercept but cannot include a random slope due the structure of model itself.</p>
+<div class="sourceCode" id="cb64"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb64-1"><a href="unibim.html#cb64-1" tabindex="-1"></a>null_mod <span class="ot">&lt;-</span> <span class="fu">mixed_model</span>(<span class="at">fixed =</span> <span class="fu">cbind</span>(success, failure) <span class="sc">~</span> <span class="dv">1</span>, </span>
+<span id="cb64-2"><a href="unibim.html#cb64-2" tabindex="-1"></a>                        <span class="at">random =</span> <span class="sc">~</span> <span class="dv">1</span> <span class="sc">|</span> Site,</span>
+<span id="cb64-3"><a href="unibim.html#cb64-3" tabindex="-1"></a>                        <span class="at">family =</span> <span class="fu">binomial</span>(),</span>
+<span id="cb64-4"><a href="unibim.html#cb64-4" tabindex="-1"></a>                        <span class="at">data =</span> occasions_cbind</span>
+<span id="cb64-5"><a href="unibim.html#cb64-5" tabindex="-1"></a>                        )</span>
+<span id="cb64-6"><a href="unibim.html#cb64-6" tabindex="-1"></a><span class="fu">summary</span>(null_mod)</span></code></pre></div>
+<pre><code>## 
+## Call:
+## mixed_model(fixed = cbind(success, failure) ~ 1, random = ~1 | 
+##     Site, data = occasions_cbind, family = binomial())
+## 
+## Data Descriptives:
+## Number of Observations: 2400
+## Number of Groups: 100 
+## 
+## Model:
+##  family: binomial
+##  link: logit 
+## 
+## Fit statistics:
+##    log.Lik      AIC      BIC
+##  -697.7788 1399.558 1404.768
+## 
+## Random effects covariance matrix:
+##               StdDev
+## (Intercept) 1.508908
+## 
+## Fixed effects:
+##             Estimate Std.Err z-value p-value
+## (Intercept)  -8.7938  0.2179 -40.361 &lt; 1e-04
+## 
+## Integration:
+## method: adaptive Gauss-Hermite quadrature rule
+## quadrature points: 11
+## 
+## Optimization:
+## method: EM
+## converged: TRUE</code></pre>
+<p><strong>Model selection.</strong> We can now proceed to compare the different model structures and associated hypotheses. We can do this using the Akaike Information Criterion (AIC; <span class="citation">Burnham and Anderson (<a href="references.html#ref-AIC">2002</a>)</span>).</p>
+<div class="sourceCode" id="cb66"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb66-1"><a href="unibim.html#cb66-1" tabindex="-1"></a><span class="co"># AIC comparison</span></span>
+<span id="cb66-2"><a href="unibim.html#cb66-2" tabindex="-1"></a><span class="fu">AIC</span>(null_mod, unimodal, bimodal)</span></code></pre></div>
+<pre><code>##          df      AIC
+## null_mod  2 1399.558
+## unimodal  6 1333.182
+## bimodal  10 1329.667</code></pre>
+<p>We can also compare the models using a Likelihood Ratio Test (LRT).</p>
+<div class="sourceCode" id="cb68"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb68-1"><a href="unibim.html#cb68-1" tabindex="-1"></a><span class="fu">lrtest</span>(null_mod, unimodal, bimodal)</span></code></pre></div>
+<pre><code>## Likelihood ratio test
+## 
+## Model 1: cbind(success, failure) ~ 1
+## Model 2: cbind(success, failure) ~ cos(2 * pi * Time/24) + sin(2 * pi * 
+##     Time/24)
+## Model 3: cbind(success, failure) ~ cos(2 * pi * Time/24) + sin(2 * pi * 
+##     Time/24) + cos(2 * pi * Time/12) + sin(2 * pi * Time/12)
+##   #Df  LogLik Df  Chisq Pr(&gt;Chisq)    
+## 1   2 -697.78                         
+## 2   6 -660.59  4 74.376    2.7e-15 ***
+## 3  10 -654.83  4 11.514    0.02135 *  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Both comparisons suggest that the bimodal pattern is the most supported model among those compared. We can, thus, conclude that coyotes have a bimodal activity pattern.</p>
+<p>We can also visually compare predicted activity curves based on these models. As in other examples, we first use the function <code>GLMMadaptive::effectPlotData</code> to predict the activity curves throughout the 24-hour cycle and then use <code>ggplot</code> to plot the results.</p>
+<div class="sourceCode" id="cb70"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb70-1"><a href="unibim.html#cb70-1" tabindex="-1"></a><span class="co"># build a new dataset </span></span>
+<span id="cb70-2"><a href="unibim.html#cb70-2" tabindex="-1"></a>newdat <span class="ot">&lt;-</span> <span class="fu">with</span>(occasions_cbind, </span>
+<span id="cb70-3"><a href="unibim.html#cb70-3" tabindex="-1"></a>               <span class="fu">expand.grid</span>(<span class="at">Time =</span> <span class="fu">seq</span>(<span class="fu">min</span>(Time), <span class="fu">max</span>(Time), <span class="at">length.out =</span> <span class="dv">24</span>)</span>
+<span id="cb70-4"><a href="unibim.html#cb70-4" tabindex="-1"></a>                           )</span>
+<span id="cb70-5"><a href="unibim.html#cb70-5" tabindex="-1"></a>               )</span>
+<span id="cb70-6"><a href="unibim.html#cb70-6" tabindex="-1"></a></span>
+<span id="cb70-7"><a href="unibim.html#cb70-7" tabindex="-1"></a><span class="co"># obtain the estimated activity curves</span></span>
+<span id="cb70-8"><a href="unibim.html#cb70-8" tabindex="-1"></a>predict_unimodal <span class="ot">&lt;-</span> <span class="fu">effectPlotData</span>(unimodal, newdat, <span class="at">marginal =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb70-9"><a href="unibim.html#cb70-9" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Model =</span> <span class="st">&quot;Unimodal&quot;</span>)</span>
+<span id="cb70-10"><a href="unibim.html#cb70-10" tabindex="-1"></a>predict_bimodal <span class="ot">&lt;-</span> <span class="fu">effectPlotData</span>(bimodal, newdat, <span class="at">marginal =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb70-11"><a href="unibim.html#cb70-11" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Model =</span> <span class="st">&quot;Bimodal&quot;</span>)</span>
+<span id="cb70-12"><a href="unibim.html#cb70-12" tabindex="-1"></a>predict_cathemeral <span class="ot">&lt;-</span> <span class="fu">effectPlotData</span>(null_mod, newdat, <span class="at">marginal =</span> <span class="cn">FALSE</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb70-13"><a href="unibim.html#cb70-13" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Model =</span> <span class="st">&quot;Cathemeral&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb71"><pre class="sourceCode r fold-hide"><code class="sourceCode r"><span id="cb71-1"><a href="unibim.html#cb71-1" tabindex="-1"></a><span class="co"># join and plot results</span></span>
+<span id="cb71-2"><a href="unibim.html#cb71-2" tabindex="-1"></a>pl_shapes <span class="ot">&lt;-</span> <span class="fu">rbind</span>(predict_unimodal, predict_bimodal, predict_cathemeral) <span class="sc">%&gt;%</span> </span>
+<span id="cb71-3"><a href="unibim.html#cb71-3" tabindex="-1"></a>  <span class="fu">ggplot</span>(., <span class="fu">aes</span>(<span class="at">x =</span> Time, <span class="at">y =</span> <span class="fu">plogis</span>(pred), <span class="at">group =</span> Model, <span class="at">fill =</span> Model)) <span class="sc">+</span></span>
+<span id="cb71-4"><a href="unibim.html#cb71-4" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">colour =</span> Model)) <span class="sc">+</span></span>
+<span id="cb71-5"><a href="unibim.html#cb71-5" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> <span class="fu">plogis</span>(low), <span class="at">ymax =</span> <span class="fu">plogis</span>(upp), <span class="at">colour =</span> <span class="cn">NULL</span>), <span class="at">alpha =</span> <span class="fl">0.3</span>) <span class="sc">+</span></span>
+<span id="cb71-6"><a href="unibim.html#cb71-6" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;Time of Day (Hour)&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Predicted Activity Pattern </span><span class="sc">\n</span><span class="st"> (probability)&quot;</span>)<span class="sc">+</span></span>
+<span id="cb71-7"><a href="unibim.html#cb71-7" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()<span class="sc">+</span></span>
+<span id="cb71-8"><a href="unibim.html#cb71-8" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;top&quot;</span>,</span>
+<span id="cb71-9"><a href="unibim.html#cb71-9" tabindex="-1"></a>        <span class="at">legend.title =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb71-10"><a href="unibim.html#cb71-10" tabindex="-1"></a>        <span class="at">legend.text =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">10</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb71-11"><a href="unibim.html#cb71-11" tabindex="-1"></a>        <span class="at">legend.margin=</span><span class="fu">margin</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>),</span>
+<span id="cb71-12"><a href="unibim.html#cb71-12" tabindex="-1"></a>        <span class="at">legend.box.margin=</span><span class="fu">margin</span>(<span class="sc">-</span><span class="dv">5</span>,<span class="sc">-</span><span class="dv">10</span>,<span class="sc">-</span><span class="dv">10</span>,<span class="sc">-</span><span class="dv">10</span>),</span>
+<span id="cb71-13"><a href="unibim.html#cb71-13" tabindex="-1"></a>        <span class="at">plot.title =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb71-14"><a href="unibim.html#cb71-14" tabindex="-1"></a>        <span class="at">axis.line =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb71-15"><a href="unibim.html#cb71-15" tabindex="-1"></a>        <span class="at">axis.ticks =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb71-16"><a href="unibim.html#cb71-16" tabindex="-1"></a>        <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">9</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb71-17"><a href="unibim.html#cb71-17" tabindex="-1"></a>        <span class="at">panel.grid.minor.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb71-18"><a href="unibim.html#cb71-18" tabindex="-1"></a>        <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb71-19"><a href="unibim.html#cb71-19" tabindex="-1"></a>        <span class="at">panel.grid.major.x =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;lightgrey&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;dashed&#39;</span>, <span class="at">linewidth=</span><span class="fl">0.5</span>),</span>
+<span id="cb71-20"><a href="unibim.html#cb71-20" tabindex="-1"></a>        <span class="at">panel.grid.minor.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb71-21"><a href="unibim.html#cb71-21" tabindex="-1"></a>        <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">9</span>, <span class="at">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="at">face =</span> <span class="st">&quot;bold&quot;</span>, <span class="at">hjust =</span> <span class="dv">0</span>)</span>
+<span id="cb71-22"><a href="unibim.html#cb71-22" tabindex="-1"></a>        ) <span class="sc">+</span></span>
+<span id="cb71-23"><a href="unibim.html#cb71-23" tabindex="-1"></a>  <span class="co">#panel.grid.minor.x = element_line(colour=&#39;deepskyblue4&#39;, linetype = &#39;dotted&#39;, size=0.35))+</span></span>
+<span id="cb71-24"><a href="unibim.html#cb71-24" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">23</span>,<span class="at">length.out=</span><span class="dv">7</span>), <span class="at">labels=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">24</span>,<span class="dv">4</span>))</span>
+<span id="cb71-25"><a href="unibim.html#cb71-25" tabindex="-1"></a>pl_shapes</span></code></pre></div>
+<div class="figure"><span style="display:block;" id="fig:univsbim7b"></span>
+<img src="HMsActivity_files/figure-html/univsbim7b-1.png" alt="Predicted probability of activity by three hypotheses: unimodal, bimodal, and cathemeral; shading represented 95% confidence intervals." width="672" />
+<p class="caption">
+Figure 5.1: Predicted probability of activity by three hypotheses: unimodal, bimodal, and cathemeral; shading represented 95% confidence intervals.
+</p>
+</div>
+<div class="sourceCode" id="cb72"><pre class="sourceCode r fold-hide"><code class="sourceCode r"><span id="cb72-1"><a href="unibim.html#cb72-1" tabindex="-1"></a><span class="co"># save plot</span></span>
+<span id="cb72-2"><a href="unibim.html#cb72-2" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="at">plot =</span> pl_shapes, <span class="at">filename =</span> <span class="st">&quot;ms_figures/Fig2_Uni_vs_Bim_comparison.jpg&quot;</span>, <span class="at">device =</span> <span class="st">&quot;jpeg&quot;</span>, <span class="at">units =</span> <span class="st">&quot;cm&quot;</span>, <span class="at">width =</span> <span class="dv">12</span>, <span class="at">height =</span> <span class="dv">10</span>, <span class="at">dpi =</span> <span class="dv">600</span>)</span></code></pre></div>
+<p>We can test other hypotheses related to the shape of the activity curve for our target species (e.g., three or more peaks) by simply adding additional cosine terms to the model structure and then comparing the different structures using AIC or LRT. However, going beyond two peaks might be computationally challenging, especially when a random slope is included. In these cases, one might need to consider reducing model complexity by only including a random intercept.</p>
+
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="dataprep.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="cov.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"whatsapp": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": null,
+"search": {
+"engine": "fuse",
+"options": null
+},
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Page not found | A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models</title>
+  <meta name="description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript HMsActivity 2024." />
+  <meta name="generator" content="bookdown 0.39 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Page not found | A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models" />
+  <meta property="og:type" content="book" />
+  
+  <meta property="og:description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript HMsActivity 2024." />
+  <meta name="github-repo" content="rstudio/bookdown-demo" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Page not found | A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models" />
+  
+  <meta name="twitter:description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript HMsActivity 2024." />
+  
+
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+
+
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<style type="text/css">
+  
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+</style>
+<style type="text/css">
+/* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Preface</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#requirements"><i class="fa fa-check"></i><b>1.1</b> Requirements</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="var.html"><a href="var.html"><i class="fa fa-check"></i><b>2</b> Variability in activity patterns</a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="var.html"><a href="var.html#variability-in-frequency-of-site-use"><i class="fa fa-check"></i><b>2.1</b> Variability in frequency of site-use</a></li>
+<li class="chapter" data-level="2.2" data-path="var.html"><a href="var.html#variability-in-timing-of-activity"><i class="fa fa-check"></i><b>2.2</b> Variability in timing of activity</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="est.html"><a href="est.html"><i class="fa fa-check"></i><b>3</b> Estimating activity patterns from time-stamped data</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="est.html"><a href="est.html#simulating-activity-patterns"><i class="fa fa-check"></i><b>3.1</b> Simulating activity patterns</a></li>
+<li class="chapter" data-level="3.2" data-path="est.html"><a href="est.html#data-preparation"><i class="fa fa-check"></i><b>3.2</b> Data preparation</a></li>
+<li class="chapter" data-level="3.3" data-path="est.html"><a href="est.html#trigonometric-glmms"><i class="fa fa-check"></i><b>3.3</b> Trigonometric GLMMs</a></li>
+<li class="chapter" data-level="3.4" data-path="est.html"><a href="est.html#cyclic-cubic-spline-hgams"><i class="fa fa-check"></i><b>3.4</b> Cyclic cubic spline HGAMs</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="dataprep.html"><a href="dataprep.html"><i class="fa fa-check"></i><b>4</b> Data preparation</a></li>
+<li class="chapter" data-level="5" data-path="unibim.html"><a href="unibim.html"><i class="fa fa-check"></i><b>5</b> Evaluating Hypotheses Regarding the Shape of Activity Curves</a></li>
+<li class="chapter" data-level="6" data-path="cov.html"><a href="cov.html"><i class="fa fa-check"></i><b>6</b> Modeling activity patterns with covariates</a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="cov.html"><a href="cov.html#cat"><i class="fa fa-check"></i><b>6.1</b> Categorical covariates</a>
+<ul>
+<li class="chapter" data-level="6.1.1" data-path="cov.html"><a href="cov.html#trigonometric-glmms-1"><i class="fa fa-check"></i><b>6.1.1</b> Trigonometric GLMMs</a></li>
+<li class="chapter" data-level="6.1.2" data-path="cov.html"><a href="cov.html#cyclic-cubic-spline-hgams-1"><i class="fa fa-check"></i><b>6.1.2</b> Cyclic cubic spline HGAMs</a></li>
+</ul></li>
+<li class="chapter" data-level="6.2" data-path="cov.html"><a href="cov.html#cont"><i class="fa fa-check"></i><b>6.2</b> Continuous covariates</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="temppart.html"><a href="temppart.html"><i class="fa fa-check"></i><b>7</b> Temporal partitioning</a></li>
+<li class="chapter" data-level="8" data-path="condvsmarg.html"><a href="condvsmarg.html"><i class="fa fa-check"></i><b>8</b> Conditional and Marginal Mean Activity Patterns</a>
+<ul>
+<li class="chapter" data-level="8.1" data-path="condvsmarg.html"><a href="condvsmarg.html#estimating-conditional-and-marginal-mean-activity-patterns"><i class="fa fa-check"></i><b>8.1</b> Estimating Conditional and Marginal Mean Activity Patterns</a></li>
+<li class="chapter" data-level="8.2" data-path="condvsmarg.html"><a href="condvsmarg.html#the-frequentist-framework"><i class="fa fa-check"></i><b>8.2</b> The frequentist framework</a></li>
+</ul></li>
+<li class="chapter" data-level="9" data-path="kdes.html"><a href="kdes.html"><i class="fa fa-check"></i><b>9</b> Kernel Density Estimators</a>
+<ul>
+<li class="chapter" data-level="9.1" data-path="kdes.html"><a href="kdes.html#dataprepkdes"><i class="fa fa-check"></i><b>9.1</b> Data preparation for KDEs</a></li>
+<li class="chapter" data-level="9.2" data-path="kdes.html"><a href="kdes.html#kdespkg"><i class="fa fa-check"></i><b>9.2</b> Comparison of KDE estimators</a>
+<ul>
+<li class="chapter" data-level="9.2.1" data-path="kdes.html"><a href="kdes.html#using-the-overlap-package"><i class="fa fa-check"></i><b>9.2.1</b> Using the overlap package</a></li>
+<li class="chapter" data-level="9.2.2" data-path="kdes.html"><a href="kdes.html#using-the-activity-package"><i class="fa fa-check"></i><b>9.2.2</b> Using the activity package</a></li>
+<li class="chapter" data-level="9.2.3" data-path="kdes.html"><a href="kdes.html#using-the-circular-package"><i class="fa fa-check"></i><b>9.2.3</b> Using the circular package</a></li>
+<li class="chapter" data-level="9.2.4" data-path="kdes.html"><a href="kdes.html#comparing-the-results-and-plotting"><i class="fa fa-check"></i><b>9.2.4</b> Comparing the results and plotting</a></li>
+</ul></li>
+<li class="chapter" data-level="9.3" data-path="kdes.html"><a href="kdes.html#kdedataaggr"><i class="fa fa-check"></i><b>9.3</b> Aggregating <em>versus</em> non-aggregating data in KDEs</a></li>
+<li class="chapter" data-level="9.4" data-path="kdes.html"><a href="kdes.html#compkde"><i class="fa fa-check"></i><b>9.4</b> KDEs <em>versus</em> hierarchical models approaches</a></li>
+</ul></li>
+<li class="chapter" data-level="10" data-path="app.html"><a href="app.html"><i class="fa fa-check"></i><b>10</b> Appendix</a>
+<ul>
+<li class="chapter" data-level="10.1" data-path="app.html"><a href="app.html#simfunction"><i class="fa fa-check"></i><b>10.1</b> The <em>sim_activity</em> function</a></li>
+<li class="chapter" data-level="10.2" data-path="app.html"><a href="app.html#poisson"><i class="fa fa-check"></i><b>10.2</b> Binomial versus Other Distributions</a>
+<ul>
+<li class="chapter" data-level="10.2.1" data-path="app.html"><a href="app.html#data-preparation-1"><i class="fa fa-check"></i><b>10.2.1</b> Data preparation</a></li>
+<li class="chapter" data-level="10.2.2" data-path="app.html"><a href="app.html#trigonometric-pdf-comparison"><i class="fa fa-check"></i><b>10.2.2</b> Trigonometric PDF Comparison</a></li>
+<li class="chapter" data-level="10.2.3" data-path="app.html"><a href="app.html#cyclic-cubic-pdf-comparison"><i class="fa fa-check"></i><b>10.2.3</b> Cyclic cubic PDF Comparison</a></li>
+<li class="chapter" data-level="10.2.4" data-path="app.html"><a href="app.html#not-controlling-for-sampling-effort"><i class="fa fa-check"></i><b>10.2.4</b> Not Controlling for Sampling Effort</a></li>
+</ul></li>
+<li class="chapter" data-level="10.3" data-path="app.html"><a href="app.html#bay"><i class="fa fa-check"></i><b>10.3</b> Activity patterns in the Bayesian framework</a>
+<ul>
+<li class="chapter" data-level="10.3.1" data-path="app.html"><a href="app.html#data-preparation-2"><i class="fa fa-check"></i><b>10.3.1</b> Data Preparation</a></li>
+<li class="chapter" data-level="10.3.2" data-path="app.html"><a href="app.html#model-setup-and-fitting"><i class="fa fa-check"></i><b>10.3.2</b> Model Setup and Fitting</a></li>
+<li class="chapter" data-level="10.3.3" data-path="app.html"><a href="app.html#model-assessment"><i class="fa fa-check"></i><b>10.3.3</b> Model Assessment</a></li>
+<li class="chapter" data-level="10.3.4" data-path="app.html"><a href="app.html#model-predictions"><i class="fa fa-check"></i><b>10.3.4</b> Model Predictions</a></li>
+</ul></li>
+<li class="chapter" data-level="10.4" data-path="app.html"><a href="app.html#DielNiche"><i class="fa fa-check"></i><b>10.4</b> Link to the Diel.Niche package</a>
+<ul>
+<li class="chapter" data-level="10.4.1" data-path="app.html"><a href="app.html#data"><i class="fa fa-check"></i><b>10.4.1</b> Data</a></li>
+<li class="chapter" data-level="10.4.2" data-path="app.html"><a href="app.html#model-fitting"><i class="fa fa-check"></i><b>10.4.2</b> Model Fitting</a></li>
+<li class="chapter" data-level="10.4.3" data-path="app.html"><a href="app.html#model-predictions-1"><i class="fa fa-check"></i><b>10.4.3</b> Model Predictions</a></li>
+<li class="chapter" data-level="10.4.4" data-path="app.html"><a href="app.html#twilight-daytime-and-nighttime"><i class="fa fa-check"></i><b>10.4.4</b> Twilight, daytime, and nighttime</a></li>
+<li class="chapter" data-level="10.4.5" data-path="app.html"><a href="app.html#diel.niche"><i class="fa fa-check"></i><b>10.4.5</b> Diel.Niche</a></li>
+<li class="chapter" data-level="10.4.6" data-path="app.html"><a href="app.html#conclusion"><i class="fa fa-check"></i><b>10.4.6</b> Conclusion</a></li>
+</ul></li>
+<li class="chapter" data-level="10.5" data-path="app.html"><a href="app.html#info-session"><i class="fa fa-check"></i><b>10.5</b> Info session</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="page-not-found" class="section level1">
+<h1>Page not found</h1>
+<p>The page you requested cannot be found (perhaps it was moved or renamed).</p>
+<p>You may want to try searching to find the page's new location, or use
+the table of contents to find the page you are looking for.</p>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+
+
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"whatsapp": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": null,
+"search": {
+"engine": "fuse",
+"options": null
+},
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

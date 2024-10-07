@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>References | A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models</title>
+  <meta name="description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript HMsActivity 2024." />
+  <meta name="generator" content="bookdown 0.39 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="References | A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models" />
+  <meta property="og:type" content="book" />
+  
+  <meta property="og:description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript HMsActivity 2024." />
+  <meta name="github-repo" content="rstudio/bookdown-demo" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="References | A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models" />
+  
+  <meta name="twitter:description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript HMsActivity 2024." />
+  
+
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="app.html"/>
+
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<style type="text/css">
+  
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+</style>
+<style type="text/css">
+/* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Preface</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#requirements"><i class="fa fa-check"></i><b>1.1</b> Requirements</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="var.html"><a href="var.html"><i class="fa fa-check"></i><b>2</b> Variability in activity patterns</a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="var.html"><a href="var.html#variability-in-frequency-of-site-use"><i class="fa fa-check"></i><b>2.1</b> Variability in frequency of site-use</a></li>
+<li class="chapter" data-level="2.2" data-path="var.html"><a href="var.html#variability-in-timing-of-activity"><i class="fa fa-check"></i><b>2.2</b> Variability in timing of activity</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="est.html"><a href="est.html"><i class="fa fa-check"></i><b>3</b> Estimating activity patterns from time-stamped data</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="est.html"><a href="est.html#simulating-activity-patterns"><i class="fa fa-check"></i><b>3.1</b> Simulating activity patterns</a></li>
+<li class="chapter" data-level="3.2" data-path="est.html"><a href="est.html#data-preparation"><i class="fa fa-check"></i><b>3.2</b> Data preparation</a></li>
+<li class="chapter" data-level="3.3" data-path="est.html"><a href="est.html#trigonometric-glmms"><i class="fa fa-check"></i><b>3.3</b> Trigonometric GLMMs</a></li>
+<li class="chapter" data-level="3.4" data-path="est.html"><a href="est.html#cyclic-cubic-spline-hgams"><i class="fa fa-check"></i><b>3.4</b> Cyclic cubic spline HGAMs</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="dataprep.html"><a href="dataprep.html"><i class="fa fa-check"></i><b>4</b> Data preparation</a></li>
+<li class="chapter" data-level="5" data-path="unibim.html"><a href="unibim.html"><i class="fa fa-check"></i><b>5</b> Evaluating Hypotheses Regarding the Shape of Activity Curves</a></li>
+<li class="chapter" data-level="6" data-path="cov.html"><a href="cov.html"><i class="fa fa-check"></i><b>6</b> Modeling activity patterns with covariates</a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="cov.html"><a href="cov.html#cat"><i class="fa fa-check"></i><b>6.1</b> Categorical covariates</a>
+<ul>
+<li class="chapter" data-level="6.1.1" data-path="cov.html"><a href="cov.html#trigonometric-glmms-1"><i class="fa fa-check"></i><b>6.1.1</b> Trigonometric GLMMs</a></li>
+<li class="chapter" data-level="6.1.2" data-path="cov.html"><a href="cov.html#cyclic-cubic-spline-hgams-1"><i class="fa fa-check"></i><b>6.1.2</b> Cyclic cubic spline HGAMs</a></li>
+</ul></li>
+<li class="chapter" data-level="6.2" data-path="cov.html"><a href="cov.html#cont"><i class="fa fa-check"></i><b>6.2</b> Continuous covariates</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="temppart.html"><a href="temppart.html"><i class="fa fa-check"></i><b>7</b> Temporal partitioning</a></li>
+<li class="chapter" data-level="8" data-path="condvsmarg.html"><a href="condvsmarg.html"><i class="fa fa-check"></i><b>8</b> Conditional and Marginal Mean Activity Patterns</a>
+<ul>
+<li class="chapter" data-level="8.1" data-path="condvsmarg.html"><a href="condvsmarg.html#estimating-conditional-and-marginal-mean-activity-patterns"><i class="fa fa-check"></i><b>8.1</b> Estimating Conditional and Marginal Mean Activity Patterns</a></li>
+<li class="chapter" data-level="8.2" data-path="condvsmarg.html"><a href="condvsmarg.html#the-frequentist-framework"><i class="fa fa-check"></i><b>8.2</b> The frequentist framework</a></li>
+</ul></li>
+<li class="chapter" data-level="9" data-path="kdes.html"><a href="kdes.html"><i class="fa fa-check"></i><b>9</b> Kernel Density Estimators</a>
+<ul>
+<li class="chapter" data-level="9.1" data-path="kdes.html"><a href="kdes.html#dataprepkdes"><i class="fa fa-check"></i><b>9.1</b> Data preparation for KDEs</a></li>
+<li class="chapter" data-level="9.2" data-path="kdes.html"><a href="kdes.html#kdespkg"><i class="fa fa-check"></i><b>9.2</b> Comparison of KDE estimators</a>
+<ul>
+<li class="chapter" data-level="9.2.1" data-path="kdes.html"><a href="kdes.html#using-the-overlap-package"><i class="fa fa-check"></i><b>9.2.1</b> Using the overlap package</a></li>
+<li class="chapter" data-level="9.2.2" data-path="kdes.html"><a href="kdes.html#using-the-activity-package"><i class="fa fa-check"></i><b>9.2.2</b> Using the activity package</a></li>
+<li class="chapter" data-level="9.2.3" data-path="kdes.html"><a href="kdes.html#using-the-circular-package"><i class="fa fa-check"></i><b>9.2.3</b> Using the circular package</a></li>
+<li class="chapter" data-level="9.2.4" data-path="kdes.html"><a href="kdes.html#comparing-the-results-and-plotting"><i class="fa fa-check"></i><b>9.2.4</b> Comparing the results and plotting</a></li>
+</ul></li>
+<li class="chapter" data-level="9.3" data-path="kdes.html"><a href="kdes.html#kdedataaggr"><i class="fa fa-check"></i><b>9.3</b> Aggregating <em>versus</em> non-aggregating data in KDEs</a></li>
+<li class="chapter" data-level="9.4" data-path="kdes.html"><a href="kdes.html#compkde"><i class="fa fa-check"></i><b>9.4</b> KDEs <em>versus</em> hierarchical models approaches</a></li>
+</ul></li>
+<li class="chapter" data-level="10" data-path="app.html"><a href="app.html"><i class="fa fa-check"></i><b>10</b> Appendix</a>
+<ul>
+<li class="chapter" data-level="10.1" data-path="app.html"><a href="app.html#simfunction"><i class="fa fa-check"></i><b>10.1</b> The <em>sim_activity</em> function</a></li>
+<li class="chapter" data-level="10.2" data-path="app.html"><a href="app.html#poisson"><i class="fa fa-check"></i><b>10.2</b> Binomial versus Other Distributions</a>
+<ul>
+<li class="chapter" data-level="10.2.1" data-path="app.html"><a href="app.html#data-preparation-1"><i class="fa fa-check"></i><b>10.2.1</b> Data preparation</a></li>
+<li class="chapter" data-level="10.2.2" data-path="app.html"><a href="app.html#trigonometric-pdf-comparison"><i class="fa fa-check"></i><b>10.2.2</b> Trigonometric PDF Comparison</a></li>
+<li class="chapter" data-level="10.2.3" data-path="app.html"><a href="app.html#cyclic-cubic-pdf-comparison"><i class="fa fa-check"></i><b>10.2.3</b> Cyclic cubic PDF Comparison</a></li>
+<li class="chapter" data-level="10.2.4" data-path="app.html"><a href="app.html#not-controlling-for-sampling-effort"><i class="fa fa-check"></i><b>10.2.4</b> Not Controlling for Sampling Effort</a></li>
+</ul></li>
+<li class="chapter" data-level="10.3" data-path="app.html"><a href="app.html#bay"><i class="fa fa-check"></i><b>10.3</b> Activity patterns in the Bayesian framework</a>
+<ul>
+<li class="chapter" data-level="10.3.1" data-path="app.html"><a href="app.html#data-preparation-2"><i class="fa fa-check"></i><b>10.3.1</b> Data Preparation</a></li>
+<li class="chapter" data-level="10.3.2" data-path="app.html"><a href="app.html#model-setup-and-fitting"><i class="fa fa-check"></i><b>10.3.2</b> Model Setup and Fitting</a></li>
+<li class="chapter" data-level="10.3.3" data-path="app.html"><a href="app.html#model-assessment"><i class="fa fa-check"></i><b>10.3.3</b> Model Assessment</a></li>
+<li class="chapter" data-level="10.3.4" data-path="app.html"><a href="app.html#model-predictions"><i class="fa fa-check"></i><b>10.3.4</b> Model Predictions</a></li>
+</ul></li>
+<li class="chapter" data-level="10.4" data-path="app.html"><a href="app.html#DielNiche"><i class="fa fa-check"></i><b>10.4</b> Link to the Diel.Niche package</a>
+<ul>
+<li class="chapter" data-level="10.4.1" data-path="app.html"><a href="app.html#data"><i class="fa fa-check"></i><b>10.4.1</b> Data</a></li>
+<li class="chapter" data-level="10.4.2" data-path="app.html"><a href="app.html#model-fitting"><i class="fa fa-check"></i><b>10.4.2</b> Model Fitting</a></li>
+<li class="chapter" data-level="10.4.3" data-path="app.html"><a href="app.html#model-predictions-1"><i class="fa fa-check"></i><b>10.4.3</b> Model Predictions</a></li>
+<li class="chapter" data-level="10.4.4" data-path="app.html"><a href="app.html#twilight-daytime-and-nighttime"><i class="fa fa-check"></i><b>10.4.4</b> Twilight, daytime, and nighttime</a></li>
+<li class="chapter" data-level="10.4.5" data-path="app.html"><a href="app.html#diel.niche"><i class="fa fa-check"></i><b>10.4.5</b> Diel.Niche</a></li>
+<li class="chapter" data-level="10.4.6" data-path="app.html"><a href="app.html#conclusion"><i class="fa fa-check"></i><b>10.4.6</b> Conclusion</a></li>
+</ul></li>
+<li class="chapter" data-level="10.5" data-path="app.html"><a href="app.html#info-session"><i class="fa fa-check"></i><b>10.5</b> Info session</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="references" class="section level1 unnumbered hasAnchor">
+<h1>References<a href="references.html#references" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="ref-circular2022" class="csl-entry">
+Agostinelli, C., and U. Lund. 2022a. <em><span>R</span> Package <code>circular</code>: Circular Statistics (Version 0.4-95)</em>. CA: Department of Environmental Sciences, Informatics; Statistics, Ca’ Foscari University, Venice, Italy. UL: Department of Statistics, California Polytechnic State University, San Luis Obispo, California, USA. <a href="https://r-forge.r-project.org/projects/circular/">https://r-forge.r-project.org/projects/circular/</a>.
+</div>
+<div id="ref-circular" class="csl-entry">
+———. 2022b. <em><span>R</span> Package <code>circular</code>: Circular Statistics (Version 0.4-95)</em>. CA: Department of Environmental Sciences, Informatics; Statistics, Ca’ Foscari University, Venice, Italy. UL: Department of Statistics, California Polytechnic State University, San Luis Obispo, California, USA. <a href="https://r-forge.r-project.org/projects/circular/">https://r-forge.r-project.org/projects/circular/</a>.
+</div>
+<div id="ref-rmarkdown2024" class="csl-entry">
+Allaire, JJ, Yihui Xie, Christophe Dervieux, Jonathan McPherson, Javier Luraschi, Kevin Ushey, Aron Atkins, et al. 2024. <em><span class="nocase">rmarkdown</span>: Dynamic Documents for r</em>. <a href="https://github.com/rstudio/rmarkdown">https://github.com/rstudio/rmarkdown</a>.
+</div>
+<div id="ref-gridExtra" class="csl-entry">
+Auguie, Baptiste. 2017. <em><span class="nocase">gridExtra</span>: Miscellaneous Functions for <span>“<span>Grid</span>”</span> Graphics</em>. <a href="https://CRAN.R-project.org/package=gridExtra">https://CRAN.R-project.org/package=gridExtra</a>.
+</div>
+<div id="ref-lme4" class="csl-entry">
+Bates, Douglas, Martin Mächler, Ben Bolker, and Steve Walker. 2015. <span>“Fitting Linear Mixed-Effects Models Using <span class="nocase">lme4</span>.”</span> <em>Journal of Statistical Software</em> 67 (1): 1–48. <a href="https://doi.org/10.18637/jss.v067.i01">https://doi.org/10.18637/jss.v067.i01</a>.
+</div>
+<div id="ref-brms2017" class="csl-entry">
+Bürkner, Paul-Christian. 2017. <span>“<span class="nocase">brms</span>: An <span>R</span> Package for <span>Bayesian</span> Multilevel Models Using <span>Stan</span>.”</span> <em>Journal of Statistical Software</em> 80 (1): 1–28. <a href="https://doi.org/10.18637/jss.v080.i01">https://doi.org/10.18637/jss.v080.i01</a>.
+</div>
+<div id="ref-brms2018" class="csl-entry">
+———. 2018. <span>“Advanced <span>Bayesian</span> Multilevel Modeling with the <span>R</span> Package <span class="nocase">brms</span>.”</span> <em>The R Journal</em> 10 (1): 395–411. <a href="https://doi.org/10.32614/RJ-2018-017">https://doi.org/10.32614/RJ-2018-017</a>.
+</div>
+<div id="ref-brms" class="csl-entry">
+———. 2021a. <span>“Bayesian Item Response Modeling in <span>R</span> with <span class="nocase">brms</span> and <span>Stan</span>.”</span> <em>Journal of Statistical Software</em>.
+</div>
+<div id="ref-brms2021" class="csl-entry">
+———. 2021b. <span>“Bayesian Item Response Modeling in <span>R</span> with <span class="nocase">brms</span> and <span>Stan</span>.”</span> <em>Journal of Statistical Software</em> 100 (5): 1–54. <a href="https://doi.org/10.18637/jss.v100.i05">https://doi.org/10.18637/jss.v100.i05</a>.
+</div>
+<div id="ref-AIC" class="csl-entry">
+Burnham, Kenneth P, and David R Anderson. 2002. <em>Model Selection and Multimodel Inference</em>. 2nd ed. New York, NY: Springer.
+</div>
+<div id="ref-Burtonea2015" class="csl-entry">
+Burton, A Cole, Eric Neilson, Dario Moreira, Andrew Ladle, Robin Steenweg, Jason T Fisher, Erin Bayne, and Stan Boutin. 2015. <span>“Wildlife Camera Trapping: A Review and Recommendations for Linking Surveys to Ecological Processes.”</span> <em>J. Appl. Ecol.</em> 52 (3): 675–85.
+</div>
+<div id="ref-nimble2022c" class="csl-entry">
+de Valpine, Perry, Christopher Paciorek, Daniel Turek, Nick Michaud, Cliff Anderson-Bergman, Fritz Obermeyer, Claudia Wehrhahn Cortes, Abel Rodrìguez, Duncan Temple Lang, and Sally Paganin. 2022a. <em><span>NIMBLE</span> User Manual</em> (version 0.12.2). <a href="https://doi.org/10.5281/zenodo.1211190">https://doi.org/10.5281/zenodo.1211190</a>.
+</div>
+<div id="ref-nimble2022b" class="csl-entry">
+———. 2022b. <em><span>NIMBLE</span>: <span>MCMC</span>, Particle Filtering, and Programmable Hierarchical Modeling</em> (version 0.12.2). <a href="https://doi.org/10.5281/zenodo.1211190">https://doi.org/10.5281/zenodo.1211190</a>.
+</div>
+<div id="ref-nimble2017a" class="csl-entry">
+de Valpine, Perry, Daniel Turek, Christopher Paciorek, Cliff Anderson-Bergman, Duncan Temple Lang, and Ras Bodik. 2017. <span>“Programming with Models: Writing Statistical Algorithms for General Model Structures with <span>NIMBLE</span>.”</span> <em>Journal of Computational and Graphical Statistics</em> 26: 403–13. <a href="https://doi.org/10.1080/10618600.2016.1172487">https://doi.org/10.1080/10618600.2016.1172487</a>.
+</div>
+<div id="ref-distill" class="csl-entry">
+Dervieux, Christophe, JJ Allaire, Rich Iannone, Alison Presmanes Hill, and Yihui Xie. 2023. <em><span class="nocase">distill</span>: <span>“<span>R Markdown</span>”</span> Format for Scientific and Technical Writing</em>. <a href="https://CRAN.R-project.org/package=distill">https://CRAN.R-project.org/package=distill</a>.
+</div>
+<div id="ref-MESS" class="csl-entry">
+Ekstrøm, Claus Thorn. 2022. <em><span>MESS</span>: Miscellaneous Esoteric Statistical Scripts</em>. <a href="https://CRAN.R-project.org/package=MESS">https://CRAN.R-project.org/package=MESS</a>.
+</div>
+<div id="ref-fieberg2024" class="csl-entry">
+Fieberg, John. 2024. <em>Statistics for Ecologists: A Frequentist and Bayesian Treatment of Modern Regression Models</em>. University of Minnesota Libraries Publishing. <a href="https://hdl.handle.net/11299/260227">https://hdl.handle.net/11299/260227</a>.
+</div>
+<div id="ref-Fieberg_ea_2009" class="csl-entry">
+Fieberg, John, Randall H Rieger, Michael C Zicus, and Jonathan S Schildcrout. 2009. <span>“Regression Modelling of Correlated Data in Ecology: Subject-Specific and Population Averaged Response Patterns.”</span> <em>J. Appl. Ecol.</em> 46 (5): 1018–25.
+</div>
+<div id="ref-DielNiche" class="csl-entry">
+Gerber, Brian D., Kadambari Devarajan, Zach J. Farris, and Mason Fidino. 2023. <span>“A Model-Based Hypothesis Framework to Define and Estimate the Diel Niche via the Diel.niche’ r Package.”</span> <em>Journal of Animal Ecology</em> 00: 0–15. https://doi.org/<a href="https://doi.org/10.1111/1365-2656.14035">https://doi.org/10.1111/1365-2656.14035</a>.
+</div>
+<div id="ref-Hedeker_ea_2018" class="csl-entry">
+Hedeker, Donald, Stephen H C du Toit, Hakan Demirtas, and Robert D Gibbons. 2018. <span>“A Note on Marginalization of Regression Parameters from Mixed Models of Binary Outcomes.”</span> <em>Biometrics</em> 74 (1): 354–61.
+</div>
+<div id="ref-HMsActivity2024" class="csl-entry">
+"Iannarilli, Fabiola, Brian D. Gerber, John Erb, and John R." Fieberg. 2024. <span>“<a href="">A <span>‘How-to’</span> Guide for Estimating Animal Diel Activity Using Hierarchical Models</a>.”</span> <em>Submitted</em>.
+</div>
+<div id="ref-Iannarilli2020" class="csl-entry">
+Iannarilli, Fabiola. 2020. <span>“Addressing Challenges in Camera-Trap Studies: Survey Designs for Multiple Species, Serial Dependence, and Site-to-Site Variability When Estimating Activity Patterns.”</span> PhD thesis, Retrieved from the University of Minnesota Digital Conservancy. <a href="https://hdl.handle.net/11299/216384">https://hdl.handle.net/11299/216384</a>.
+</div>
+<div id="ref-Iannarilliea2019" class="csl-entry">
+Iannarilli, Fabiola, Todd W Arnold, John Erb, and John R Fieberg. 2019. <span>“Using Lorelograms to Measure and Model Correlation in Binary Data: Applications to Ecological Studies.”</span> <em>Methods Ecol. Evol.</em> 10: 2153–62.
+</div>
+<div id="ref-Iannarilliea2021" class="csl-entry">
+Iannarilli, Fabiola, John Erb, Todd W. Arnold, and John R. Fieberg. 2021. <span>“Evaluating Species-Specific Responses to Camera-Trap Survey Designs.”</span> <em>Wildlife Biology</em> 2021 (1). <a href="https://doi.org/10.2981/wlb.00726">https://doi.org/10.2981/wlb.00726</a>.
+</div>
+<div id="ref-ggpubr" class="csl-entry">
+Kassambara, Alboukadel. 2023. <em><span class="nocase">ggpubr</span>: <span>“<span class="nocase">ggplot2</span>”</span> Based Publication Ready Plots</em>. <a href="https://CRAN.R-project.org/package=ggpubr">https://CRAN.R-project.org/package=ggpubr</a>.
+</div>
+<div id="ref-Kennedyea2019" class="csl-entry">
+Kennedy, J. R. Oakleaf, C. M., and J. Kiesecker. 2019. <span>“Managing the Middle: A Shift in Conservation Priorities Based on the Global Human Modification Gradient.”</span> <em>Global Change Biology</em> 25 (3): 811–26. <a href="https://doi.org/10.1111/gcb.14549">https://doi.org/10.1111/gcb.14549</a>.
+</div>
+<div id="ref-Kennedyea2020" class="csl-entry">
+Kennedy, J. R. Oakleaf, C. M., and J. Kiesecker. 2020. <span>“Global Human Modification of Terrestrial Systems.”</span> <a href="https://doi.org/10.7927/edbc-3z60">https://doi.org/10.7927/edbc-3z60</a>.
+</div>
+<div id="ref-R-overlap" class="csl-entry">
+Meredith, Mike, and Martin Ridout. 2021. <em>Overlap: Estimates of Coefficient of Overlapping for Animal Activity Patterns</em>. <a href="https://CRAN.R-project.org/package=overlap">https://CRAN.R-project.org/package=overlap</a>.
+</div>
+<div id="ref-overlap" class="csl-entry">
+Meredith, Mike, Martin Ridout, and Liz A. D. Campbell. 2024. <em><span class="nocase">overlap</span>: Estimates of Coefficient of Overlapping for Animal Activity Patterns</em>. <a href="https://CRAN.R-project.org/package=overlap">https://CRAN.R-project.org/package=overlap</a>.
+</div>
+<div id="ref-camtrapR" class="csl-entry">
+Niedballa, Jürgen, Rahel Sollmann, Alexandre Courtiol, and Andreas Wilting. 2016. <span>“camtrapR: An r Package for Efficient Camera Trap Data Management.”</span> <em>Methods in Ecology and Evolution</em> 7 (12): 1457–62. <a href="https://doi.org/10.1111/2041-210X.12600">https://doi.org/10.1111/2041-210X.12600</a>.
+</div>
+<div id="ref-Oliveira-Santos2013" class="csl-entry">
+Oliveira-Santos, L G R, C A Zucco, and C Agostinelli. 2013. <span>“Using Conditional Circular Kernel Density Functions to Test Hypotheses on Animal Circadian Activity.”</span> <em>Anim. Behav.</em> 85: 269–80.
+</div>
+<div id="ref-Pedersen2019" class="csl-entry">
+Pedersen, Eric J, David L Miller, Gavin L Simpson, and Noam Ross. 2019. <span>“Hierarchical Generalized Additive Models in Ecology: An Introduction with Mgcv.”</span> <em>PeerJ</em> 2019 (5).
+</div>
+<div id="ref-Peral2022" class="csl-entry">
+Peral, Christopher, Marietjie Landman, and Graham I H Kerley. 2022. <span>“The Inappropriate Use of Time‐to‐independence Biases Estimates of Activity Patterns of Free‐ranging Mammals Derived from Camera Traps.”</span> <em>Ecol. Evol.</em> 12 (10).
+</div>
+<div id="ref-base" class="csl-entry">
+R Core Team. 2022. <em><span>R</span>: A Language and Environment for Statistical Computing</em>. Vienna, Austria: R Foundation for Statistical Computing. <a href="https://www.R-project.org/">https://www.R-project.org/</a>.
+</div>
+<div id="ref-R-base" class="csl-entry">
+———. 2024. <em>R: A Language and Environment for Statistical Computing</em>. Vienna, Austria: R Foundation for Statistical Computing. <a href="https://www.R-project.org/">https://www.R-project.org/</a>.
+</div>
+<div id="ref-Rees2024" class="csl-entry">
+Rees, Matthew W, Brendan A Wintle, Jack H Pascoe, Mark Le Pla, Emma K Birnbaum, and Bronwyn A Hradsky. 2024. <span>“Dynamic Shifts in Predator Diel Activity Patterns Across Landscapes and Threat Levels.”</span> <em>Oikos</em> 2024 (3).
+</div>
+<div id="ref-RidoutLinkie2009" class="csl-entry">
+Ridout, Martin, and Matthew Linkie. 2009. <span>“Estimating Overlap of Daily Activity Patterns from Camera Trap Data.”</span> <em>Journal of Agricultural, Biological, and Environmental Statistics</em> 14 (3): 322–37.
+</div>
+<div id="ref-Rizopoulos2022" class="csl-entry">
+Rizopoulos, Dimitris. 2022. <em>GLMMadaptive: Generalized Linear Mixed Models Using Adaptive Gaussian Quadrature</em>. <a href="https://CRAN.R-project.org/package=GLMMadaptive">https://CRAN.R-project.org/package=GLMMadaptive</a>.
+</div>
+<div id="ref-GLMMadaptive" class="csl-entry">
+———. 2023. <em><span>GLMMadaptive</span>: Generalized Linear Mixed Models Using Adaptive Gaussian Quadrature</em>. <a href="https://CRAN.R-project.org/package=GLMMadaptive">https://CRAN.R-project.org/package=GLMMadaptive</a>.
+</div>
+<div id="ref-Rowcliffeea2014" class="csl-entry">
+Rowcliffe, J Marcus, Roland Kays, Bart Kranstauber, Chris Carbone, and Patrick A Jansen. 2014. <span>“Quantifying Levels of Animal Activity Using Camera Trap Data.”</span> <em>Methods Ecol. Evol.</em> 5: 1170–79.
+</div>
+<div id="ref-activity2022" class="csl-entry">
+Rowcliffe, M. 2022. <em>Activity: Animal Activity Statistics</em>. <a href="https://CRAN.R-project.org/package=activity">https://CRAN.R-project.org/package=activity</a>.
+</div>
+<div id="ref-activity" class="csl-entry">
+Rowcliffe, Marcus. 2023. <em><span class="nocase">activity</span>: Animal Activity Statistics</em>. <a href="https://CRAN.R-project.org/package=activity">https://CRAN.R-project.org/package=activity</a>.
+</div>
+<div id="ref-roy2020convergence" class="csl-entry">
+Roy, Vivekananda. 2019. <span>“Convergence Diagnostics for Markov Chain Monte Carlo,”</span> September. <a href="https://arxiv.org/abs/1909.11827">https://arxiv.org/abs/1909.11827</a>.
+</div>
+<div id="ref-suncalc" class="csl-entry">
+Thieurmel, Benoit, and Achraf Elmarhraoui. 2022. <em><span class="nocase">suncalc</span>: Compute Sun Position, Sunlight Phases, Moon Position and Lunar Phase</em>. <a href="https://CRAN.R-project.org/package=suncalc">https://CRAN.R-project.org/package=suncalc</a>.
+</div>
+<div id="ref-Vazquezea2019" class="csl-entry">
+Vazquez, Carmen, J Marcus Rowcliffe, Kamiel Spoelstra, and Patrick A Jansen. 2019. <span>“Comparing Diel Activity Patterns of Wildlife Across Latitudes and Seasons: Time Transformations Using Day Length.”</span> <em>Methods Ecol. Evol.</em> 10 (12): 2057–66.
+</div>
+<div id="ref-tidyverse" class="csl-entry">
+Wickham, Hadley, Mara Averick, Jennifer Bryan, Winston Chang, Lucy D’Agostino McGowan, Romain François, Garrett Grolemund, et al. 2019. <span>“Welcome to the <span class="nocase">tidyverse</span>.”</span> <em>Journal of Open Source Software</em> 4 (43): 1686. <a href="https://doi.org/10.21105/joss.01686">https://doi.org/10.21105/joss.01686</a>.
+</div>
+<div id="ref-Wood2017" class="csl-entry">
+Wood, S N. 2017a. <em>Generalized Additive Models: An Introduction with <span>R</span></em>. 2nd edition. Chapman; Hall/CRC.
+</div>
+<div id="ref-mgcv2017" class="csl-entry">
+Wood, S. N. 2017b. <em>Generalized Additive Models: An Introduction with r</em>. 2nd ed. Chapman; Hall/CRC.
+</div>
+<div id="ref-mgcv2003" class="csl-entry">
+Wood, S. N. 2003. <span>“Thin-Plate Regression Splines.”</span> <em>Journal of the Royal Statistical Society (B)</em> 65 (1): 95–114.
+</div>
+<div id="ref-mgcv2004" class="csl-entry">
+———. 2004. <span>“Stable and Efficient Multiple Smoothing Parameter Estimation for Generalized Additive Models.”</span> <em>Journal of the American Statistical Association</em> 99 (467): 673–86.
+</div>
+<div id="ref-mgcv2011" class="csl-entry">
+———. 2011. <span>“Fast Stable Restricted Maximum Likelihood and Marginal Likelihood Estimation of Semiparametric Generalized Linear Models.”</span> <em>Journal of the Royal Statistical Society (B)</em> 73 (1): 3–36.
+</div>
+<div id="ref-mgcv2016" class="csl-entry">
+Wood, S. N., N., Pya, and B. S"afken. 2016. <span>“Smoothing Parameter and Model Selection for General Smooth Models (with Discussion).”</span> <em>Journal of the American Statistical Association</em> 111: 1548–75.
+</div>
+<div id="ref-knitr2014" class="csl-entry">
+Xie, Yihui. 2014. <span>“<span class="nocase">knitr</span>: A Comprehensive Tool for Reproducible Research in <span>R</span>.”</span> In <em>Implementing Reproducible Computational Research</em>, edited by Victoria Stodden, Friedrich Leisch, and Roger D. Peng. Chapman; Hall/CRC.
+</div>
+<div id="ref-knitr2015" class="csl-entry">
+———. 2015. <em>Dynamic Documents with <span>R</span> and Knitr</em>. 2nd ed. Boca Raton, Florida: Chapman; Hall/CRC. <a href="https://yihui.org/knitr/">https://yihui.org/knitr/</a>.
+</div>
+<div id="ref-bookdown2" class="csl-entry">
+———. 2016a. <em>Bookdown: Authoring Books and Technical Documents with <span>R</span> Markdown</em>. Boca Raton, Florida: Chapman; Hall/CRC. <a href="https://bookdown.org/yihui/bookdown">https://bookdown.org/yihui/bookdown</a>.
+</div>
+<div id="ref-bookdown2016" class="csl-entry">
+———. 2016b. <em><span class="nocase">bookdown</span>: Authoring Books and Technical Documents with <span>R</span> Markdown</em>. Boca Raton, Florida: Chapman; Hall/CRC. <a href="https://bookdown.org/yihui/bookdown">https://bookdown.org/yihui/bookdown</a>.
+</div>
+<div id="ref-bookdown1" class="csl-entry">
+———. 2024a. <em>Bookdown: Authoring Books and Technical Documents with r Markdown</em>. <a href="https://github.com/rstudio/bookdown">https://github.com/rstudio/bookdown</a>.
+</div>
+<div id="ref-bookdown2024" class="csl-entry">
+———. 2024b. <em><span class="nocase">bookdown</span>: Authoring Books and Technical Documents with r Markdown</em>. <a href="https://github.com/rstudio/bookdown">https://github.com/rstudio/bookdown</a>.
+</div>
+<div id="ref-knitr2024" class="csl-entry">
+———. 2024c. <em><span class="nocase">knitr</span>: A General-Purpose Package for Dynamic Report Generation in r</em>. <a href="https://yihui.org/knitr/">https://yihui.org/knitr/</a>.
+</div>
+<div id="ref-rmarkdown2018" class="csl-entry">
+Xie, Yihui, J. J. Allaire, and Garrett Grolemund. 2018. <em>R Markdown: The Definitive Guide</em>. Boca Raton, Florida: Chapman; Hall/CRC. <a href="https://bookdown.org/yihui/rmarkdown">https://bookdown.org/yihui/rmarkdown</a>.
+</div>
+<div id="ref-rmarkdown2020" class="csl-entry">
+Xie, Yihui, Christophe Dervieux, and Emily Riederer. 2020. <em>R Markdown Cookbook</em>. Boca Raton, Florida: Chapman; Hall/CRC. <a href="https://bookdown.org/yihui/rmarkdown-cookbook">https://bookdown.org/yihui/rmarkdown-cookbook</a>.
+</div>
+<div id="ref-lmtest" class="csl-entry">
+Zeileis, Achim, and Torsten Hothorn. 2002. <span>“Diagnostic Checking in Regression Relationships.”</span> <em>R News</em> 2 (3): 7–10. <a href="https://CRAN.R-project.org/doc/Rnews/">https://CRAN.R-project.org/doc/Rnews/</a>.
+</div>
+</div>
+
+</div>
+
+
+
+
+
+
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="app.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"whatsapp": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": null,
+"search": {
+"engine": "fuse",
+"options": null
+},
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

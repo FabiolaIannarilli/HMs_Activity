@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Tutorial 7 Temporal partitioning | A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models</title>
+  <meta name="description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript HMsActivity 2024." />
+  <meta name="generator" content="bookdown 0.39 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Tutorial 7 Temporal partitioning | A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models" />
+  <meta property="og:type" content="book" />
+  
+  <meta property="og:description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript HMsActivity 2024." />
+  <meta name="github-repo" content="rstudio/bookdown-demo" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Tutorial 7 Temporal partitioning | A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models" />
+  
+  <meta name="twitter:description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript HMsActivity 2024." />
+  
+
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="cov.html"/>
+<link rel="next" href="condvsmarg.html"/>
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<style type="text/css">
+  
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+</style>
+<style type="text/css">
+/* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Preface</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#requirements"><i class="fa fa-check"></i><b>1.1</b> Requirements</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="var.html"><a href="var.html"><i class="fa fa-check"></i><b>2</b> Variability in activity patterns</a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="var.html"><a href="var.html#variability-in-frequency-of-site-use"><i class="fa fa-check"></i><b>2.1</b> Variability in frequency of site-use</a></li>
+<li class="chapter" data-level="2.2" data-path="var.html"><a href="var.html#variability-in-timing-of-activity"><i class="fa fa-check"></i><b>2.2</b> Variability in timing of activity</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="est.html"><a href="est.html"><i class="fa fa-check"></i><b>3</b> Estimating activity patterns from time-stamped data</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="est.html"><a href="est.html#simulating-activity-patterns"><i class="fa fa-check"></i><b>3.1</b> Simulating activity patterns</a></li>
+<li class="chapter" data-level="3.2" data-path="est.html"><a href="est.html#data-preparation"><i class="fa fa-check"></i><b>3.2</b> Data preparation</a></li>
+<li class="chapter" data-level="3.3" data-path="est.html"><a href="est.html#trigonometric-glmms"><i class="fa fa-check"></i><b>3.3</b> Trigonometric GLMMs</a></li>
+<li class="chapter" data-level="3.4" data-path="est.html"><a href="est.html#cyclic-cubic-spline-hgams"><i class="fa fa-check"></i><b>3.4</b> Cyclic cubic spline HGAMs</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="dataprep.html"><a href="dataprep.html"><i class="fa fa-check"></i><b>4</b> Data preparation</a></li>
+<li class="chapter" data-level="5" data-path="unibim.html"><a href="unibim.html"><i class="fa fa-check"></i><b>5</b> Evaluating Hypotheses Regarding the Shape of Activity Curves</a></li>
+<li class="chapter" data-level="6" data-path="cov.html"><a href="cov.html"><i class="fa fa-check"></i><b>6</b> Modeling activity patterns with covariates</a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="cov.html"><a href="cov.html#cat"><i class="fa fa-check"></i><b>6.1</b> Categorical covariates</a>
+<ul>
+<li class="chapter" data-level="6.1.1" data-path="cov.html"><a href="cov.html#trigonometric-glmms-1"><i class="fa fa-check"></i><b>6.1.1</b> Trigonometric GLMMs</a></li>
+<li class="chapter" data-level="6.1.2" data-path="cov.html"><a href="cov.html#cyclic-cubic-spline-hgams-1"><i class="fa fa-check"></i><b>6.1.2</b> Cyclic cubic spline HGAMs</a></li>
+</ul></li>
+<li class="chapter" data-level="6.2" data-path="cov.html"><a href="cov.html#cont"><i class="fa fa-check"></i><b>6.2</b> Continuous covariates</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="temppart.html"><a href="temppart.html"><i class="fa fa-check"></i><b>7</b> Temporal partitioning</a></li>
+<li class="chapter" data-level="8" data-path="condvsmarg.html"><a href="condvsmarg.html"><i class="fa fa-check"></i><b>8</b> Conditional and Marginal Mean Activity Patterns</a>
+<ul>
+<li class="chapter" data-level="8.1" data-path="condvsmarg.html"><a href="condvsmarg.html#estimating-conditional-and-marginal-mean-activity-patterns"><i class="fa fa-check"></i><b>8.1</b> Estimating Conditional and Marginal Mean Activity Patterns</a></li>
+<li class="chapter" data-level="8.2" data-path="condvsmarg.html"><a href="condvsmarg.html#the-frequentist-framework"><i class="fa fa-check"></i><b>8.2</b> The frequentist framework</a></li>
+</ul></li>
+<li class="chapter" data-level="9" data-path="kdes.html"><a href="kdes.html"><i class="fa fa-check"></i><b>9</b> Kernel Density Estimators</a>
+<ul>
+<li class="chapter" data-level="9.1" data-path="kdes.html"><a href="kdes.html#dataprepkdes"><i class="fa fa-check"></i><b>9.1</b> Data preparation for KDEs</a></li>
+<li class="chapter" data-level="9.2" data-path="kdes.html"><a href="kdes.html#kdespkg"><i class="fa fa-check"></i><b>9.2</b> Comparison of KDE estimators</a>
+<ul>
+<li class="chapter" data-level="9.2.1" data-path="kdes.html"><a href="kdes.html#using-the-overlap-package"><i class="fa fa-check"></i><b>9.2.1</b> Using the overlap package</a></li>
+<li class="chapter" data-level="9.2.2" data-path="kdes.html"><a href="kdes.html#using-the-activity-package"><i class="fa fa-check"></i><b>9.2.2</b> Using the activity package</a></li>
+<li class="chapter" data-level="9.2.3" data-path="kdes.html"><a href="kdes.html#using-the-circular-package"><i class="fa fa-check"></i><b>9.2.3</b> Using the circular package</a></li>
+<li class="chapter" data-level="9.2.4" data-path="kdes.html"><a href="kdes.html#comparing-the-results-and-plotting"><i class="fa fa-check"></i><b>9.2.4</b> Comparing the results and plotting</a></li>
+</ul></li>
+<li class="chapter" data-level="9.3" data-path="kdes.html"><a href="kdes.html#kdedataaggr"><i class="fa fa-check"></i><b>9.3</b> Aggregating <em>versus</em> non-aggregating data in KDEs</a></li>
+<li class="chapter" data-level="9.4" data-path="kdes.html"><a href="kdes.html#compkde"><i class="fa fa-check"></i><b>9.4</b> KDEs <em>versus</em> hierarchical models approaches</a></li>
+</ul></li>
+<li class="chapter" data-level="10" data-path="app.html"><a href="app.html"><i class="fa fa-check"></i><b>10</b> Appendix</a>
+<ul>
+<li class="chapter" data-level="10.1" data-path="app.html"><a href="app.html#simfunction"><i class="fa fa-check"></i><b>10.1</b> The <em>sim_activity</em> function</a></li>
+<li class="chapter" data-level="10.2" data-path="app.html"><a href="app.html#poisson"><i class="fa fa-check"></i><b>10.2</b> Binomial versus Other Distributions</a>
+<ul>
+<li class="chapter" data-level="10.2.1" data-path="app.html"><a href="app.html#data-preparation-1"><i class="fa fa-check"></i><b>10.2.1</b> Data preparation</a></li>
+<li class="chapter" data-level="10.2.2" data-path="app.html"><a href="app.html#trigonometric-pdf-comparison"><i class="fa fa-check"></i><b>10.2.2</b> Trigonometric PDF Comparison</a></li>
+<li class="chapter" data-level="10.2.3" data-path="app.html"><a href="app.html#cyclic-cubic-pdf-comparison"><i class="fa fa-check"></i><b>10.2.3</b> Cyclic cubic PDF Comparison</a></li>
+<li class="chapter" data-level="10.2.4" data-path="app.html"><a href="app.html#not-controlling-for-sampling-effort"><i class="fa fa-check"></i><b>10.2.4</b> Not Controlling for Sampling Effort</a></li>
+</ul></li>
+<li class="chapter" data-level="10.3" data-path="app.html"><a href="app.html#bay"><i class="fa fa-check"></i><b>10.3</b> Activity patterns in the Bayesian framework</a>
+<ul>
+<li class="chapter" data-level="10.3.1" data-path="app.html"><a href="app.html#data-preparation-2"><i class="fa fa-check"></i><b>10.3.1</b> Data Preparation</a></li>
+<li class="chapter" data-level="10.3.2" data-path="app.html"><a href="app.html#model-setup-and-fitting"><i class="fa fa-check"></i><b>10.3.2</b> Model Setup and Fitting</a></li>
+<li class="chapter" data-level="10.3.3" data-path="app.html"><a href="app.html#model-assessment"><i class="fa fa-check"></i><b>10.3.3</b> Model Assessment</a></li>
+<li class="chapter" data-level="10.3.4" data-path="app.html"><a href="app.html#model-predictions"><i class="fa fa-check"></i><b>10.3.4</b> Model Predictions</a></li>
+</ul></li>
+<li class="chapter" data-level="10.4" data-path="app.html"><a href="app.html#DielNiche"><i class="fa fa-check"></i><b>10.4</b> Link to the Diel.Niche package</a>
+<ul>
+<li class="chapter" data-level="10.4.1" data-path="app.html"><a href="app.html#data"><i class="fa fa-check"></i><b>10.4.1</b> Data</a></li>
+<li class="chapter" data-level="10.4.2" data-path="app.html"><a href="app.html#model-fitting"><i class="fa fa-check"></i><b>10.4.2</b> Model Fitting</a></li>
+<li class="chapter" data-level="10.4.3" data-path="app.html"><a href="app.html#model-predictions-1"><i class="fa fa-check"></i><b>10.4.3</b> Model Predictions</a></li>
+<li class="chapter" data-level="10.4.4" data-path="app.html"><a href="app.html#twilight-daytime-and-nighttime"><i class="fa fa-check"></i><b>10.4.4</b> Twilight, daytime, and nighttime</a></li>
+<li class="chapter" data-level="10.4.5" data-path="app.html"><a href="app.html#diel.niche"><i class="fa fa-check"></i><b>10.4.5</b> Diel.Niche</a></li>
+<li class="chapter" data-level="10.4.6" data-path="app.html"><a href="app.html#conclusion"><i class="fa fa-check"></i><b>10.4.6</b> Conclusion</a></li>
+</ul></li>
+<li class="chapter" data-level="10.5" data-path="app.html"><a href="app.html#info-session"><i class="fa fa-check"></i><b>10.5</b> Info session</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="temppart" class="section level1 hasAnchor" number="7">
+<h1><span class="header-section-number">Tutorial 7</span> Temporal partitioning<a href="temppart.html#temppart" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<p>Another common question related to activity patterns often asked by ecologists is whether a species changes its activity due to the co-occurrence of another species. In this Tutorial, we illustrate how hierarchical models can be used to also address this set of questions.</p>
+<p>As an example, we analyze temporal partitioning between coyotes and wolves (<em>Canis lupus</em>). We format the data as usual.</p>
+<div class="sourceCode" id="cb118"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb118-1"><a href="temppart.html#cb118-1" tabindex="-1"></a><span class="co"># Load libraries</span></span>
+<span id="cb118-2"><a href="temppart.html#cb118-2" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">ls</span>())</span>
+<span id="cb118-3"><a href="temppart.html#cb118-3" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">129</span>)</span>
+<span id="cb118-4"><a href="temppart.html#cb118-4" tabindex="-1"></a><span class="fu">library</span>(dplyr) </span>
+<span id="cb118-5"><a href="temppart.html#cb118-5" tabindex="-1"></a><span class="fu">library</span>(lubridate) </span>
+<span id="cb118-6"><a href="temppart.html#cb118-6" tabindex="-1"></a><span class="fu">library</span>(GLMMadaptive)</span>
+<span id="cb118-7"><a href="temppart.html#cb118-7" tabindex="-1"></a><span class="fu">library</span>(ggpubr)</span>
+<span id="cb118-8"><a href="temppart.html#cb118-8" tabindex="-1"></a><span class="fu">library</span>(mgcv)</span>
+<span id="cb118-9"><a href="temppart.html#cb118-9" tabindex="-1"></a><span class="fu">library</span>(forcats)</span></code></pre></div>
+<div class="sourceCode" id="cb119"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb119-1"><a href="temppart.html#cb119-1" tabindex="-1"></a><span class="co"># Load data: Coyote/Wolf Species interactions</span></span>
+<span id="cb119-2"><a href="temppart.html#cb119-2" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">&quot;data_input/species_records.csv&quot;</span>, <span class="at">as.is =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb119-3"><a href="temppart.html#cb119-3" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">c</span>(Species <span class="sc">==</span> <span class="st">&quot;Coyote&quot;</span> <span class="sc">|</span> Species <span class="sc">==</span> <span class="st">&quot;Wolf&quot;</span>)) <span class="sc">%&gt;%</span> <span class="fu">droplevels</span>() <span class="sc">%&gt;%</span>  </span>
+<span id="cb119-4"><a href="temppart.html#cb119-4" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">DateTimeOriginal =</span> <span class="fu">ymd_hm</span>(DateTimeOriginal))</span>
+<span id="cb119-5"><a href="temppart.html#cb119-5" tabindex="-1"></a>cov <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">&quot;data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv&quot;</span>, <span class="at">as.is =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb119-6"><a href="temppart.html#cb119-6" tabindex="-1"></a>  <span class="fu">select</span>(<span class="fu">c</span>(Session, Site, Date_setup, Date_retr, Problem1_from, Problem1_to)) <span class="sc">%&gt;%</span> </span>
+<span id="cb119-7"><a href="temppart.html#cb119-7" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Date_setup =</span> <span class="fu">mdy</span>(Date_setup),</span>
+<span id="cb119-8"><a href="temppart.html#cb119-8" tabindex="-1"></a>         <span class="at">Date_retr =</span> <span class="fu">mdy</span>(Date_retr),</span>
+<span id="cb119-9"><a href="temppart.html#cb119-9" tabindex="-1"></a>         <span class="at">Problem1_from =</span> <span class="fu">mdy</span>(Problem1_from),</span>
+<span id="cb119-10"><a href="temppart.html#cb119-10" tabindex="-1"></a>         <span class="at">Problem1_to =</span> <span class="fu">mdy</span>(Problem1_to)</span>
+<span id="cb119-11"><a href="temppart.html#cb119-11" tabindex="-1"></a>         ) </span></code></pre></div>
+<p>However, before organizing the data using the <code>cbind(success, failure)</code> approach we need to include the additional information on whether the other species was also detected at least once at a certain site during a sampling session. We thus create two lists of <em>site X session</em> (hereafter, <em>site-session</em>) in which either wolves or coyotes have been encountered and then look at the overlap between these two lists.</p>
+<div class="sourceCode" id="cb120"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb120-1"><a href="temppart.html#cb120-1" tabindex="-1"></a><span class="co"># Where both species were detected at the same site during a session?</span></span>
+<span id="cb120-2"><a href="temppart.html#cb120-2" tabindex="-1"></a><span class="co"># List sites with at least a detection on a given session</span></span>
+<span id="cb120-3"><a href="temppart.html#cb120-3" tabindex="-1"></a>site_Co <span class="ot">&lt;-</span> dat <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Species <span class="sc">==</span> <span class="st">&quot;Coyote&quot;</span>) <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(Session, Station) <span class="sc">%&gt;%</span> </span>
+<span id="cb120-4"><a href="temppart.html#cb120-4" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">n =</span> <span class="fu">n</span>()) </span></code></pre></div>
+<pre><code>## `summarise()` has grouped output by &#39;Session&#39;. You can override using the `.groups` argument.</code></pre>
+<div class="sourceCode" id="cb122"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb122-1"><a href="temppart.html#cb122-1" tabindex="-1"></a>site_Wo <span class="ot">&lt;-</span> dat <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Species <span class="sc">==</span> <span class="st">&quot;Wolf&quot;</span>) <span class="sc">%&gt;%</span> <span class="fu">group_by</span>(Session, Station) <span class="sc">%&gt;%</span> </span>
+<span id="cb122-2"><a href="temppart.html#cb122-2" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">n =</span> <span class="fu">n</span>()) </span></code></pre></div>
+<pre><code>## `summarise()` has grouped output by &#39;Session&#39;. You can override using the `.groups` argument.</code></pre>
+<div class="sourceCode" id="cb124"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb124-1"><a href="temppart.html#cb124-1" tabindex="-1"></a>site <span class="ot">&lt;-</span> <span class="fu">semi_join</span>(site_Co, site_Wo, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">&quot;Session&quot;</span>, <span class="st">&quot;Station&quot;</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb124-2"><a href="temppart.html#cb124-2" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Sess_site =</span> <span class="fu">paste</span>(Session, Station, <span class="at">sep =</span> <span class="st">&quot;_&quot;</span>))</span></code></pre></div>
+<p>Wolves and coyotes have been detected at 191 and 104 site-sessions, respectively, with 47 occurrences of both species at the same site-session.</p>
+<div class="sourceCode" id="cb125"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb125-1"><a href="temppart.html#cb125-1" tabindex="-1"></a><span class="co"># Add binary variable for presence of other species</span></span>
+<span id="cb125-2"><a href="temppart.html#cb125-2" tabindex="-1"></a>dat<span class="sc">$</span>oth_sp <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb125-3"><a href="temppart.html#cb125-3" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(dat)){</span>
+<span id="cb125-4"><a href="temppart.html#cb125-4" tabindex="-1"></a>  dat<span class="sc">$</span>oth_sp[i] <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(<span class="fu">paste</span>(dat<span class="sc">$</span>Session[i], dat<span class="sc">$</span>Station[i], <span class="at">sep =</span> <span class="st">&quot;_&quot;</span>) <span class="sc">%in%</span> site<span class="sc">$</span>Sess_site, <span class="dv">1</span>,<span class="dv">0</span>)</span>
+<span id="cb125-5"><a href="temppart.html#cb125-5" tabindex="-1"></a>}</span>
+<span id="cb125-6"><a href="temppart.html#cb125-6" tabindex="-1"></a><span class="fu">table</span>(dat<span class="sc">$</span>Species, dat<span class="sc">$</span>oth_sp)</span></code></pre></div>
+<pre><code>##         
+##             0    1
+##   Coyote 3209 1747
+##   Wolf   8148 2248</code></pre>
+<p>For each species (e.g., coyote), we used a dummy variable called <code>oth_sp</code> to describe whether the other species (e.g., wolf) was photographed at least once (<code>oth_sp</code> = 1; 0 otherwise) at the same site during a specific site-session. This resulted in 1747 and 3209 records of coyotes at site-sessions where wolves were and were not recorded, and 2248 and 8148 records of wolves at site-sessions where coyotes were and were not recorded. With this additional piece of information, we can proceed with formatting the data (i.e. counting the number of successes and failures for each grouping), starting with coyotes. We will build a dataframe to store the encounter/nonencounter information for each species.</p>
+<div class="sourceCode" id="cb127"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb127-1"><a href="temppart.html#cb127-1" tabindex="-1"></a><span class="co"># Prepare data for model-based methods</span></span>
+<span id="cb127-2"><a href="temppart.html#cb127-2" tabindex="-1"></a><span class="co"># Merge time of deployment and retrieval + problems</span></span>
+<span id="cb127-3"><a href="temppart.html#cb127-3" tabindex="-1"></a>site_Co2 <span class="ot">&lt;-</span> cov</span>
+<span id="cb127-4"><a href="temppart.html#cb127-4" tabindex="-1"></a>site_Co2<span class="sc">$</span>end <span class="ot">&lt;-</span> <span class="fu">ymd</span>(<span class="st">&quot;2000-01-01&quot;</span>)</span>
+<span id="cb127-5"><a href="temppart.html#cb127-5" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(site_Co2)){</span>
+<span id="cb127-6"><a href="temppart.html#cb127-6" tabindex="-1"></a>  site_Co2<span class="sc">$</span>end[i] <span class="ot">&lt;-</span>  <span class="fu">min</span>(site_Co2<span class="sc">$</span>Date_retr[i], </span>
+<span id="cb127-7"><a href="temppart.html#cb127-7" tabindex="-1"></a>                          site_Co2<span class="sc">$</span>Problem1_from[i], </span>
+<span id="cb127-8"><a href="temppart.html#cb127-8" tabindex="-1"></a>                          <span class="at">na.rm =</span> <span class="cn">TRUE</span></span>
+<span id="cb127-9"><a href="temppart.html#cb127-9" tabindex="-1"></a>                          )</span>
+<span id="cb127-10"><a href="temppart.html#cb127-10" tabindex="-1"></a>}</span>
+<span id="cb127-11"><a href="temppart.html#cb127-11" tabindex="-1"></a></span>
+<span id="cb127-12"><a href="temppart.html#cb127-12" tabindex="-1"></a><span class="co"># Create dataframe to store captures </span></span>
+<span id="cb127-13"><a href="temppart.html#cb127-13" tabindex="-1"></a>occasions_Co <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">&quot;list&quot;</span>, <span class="at">length =</span> <span class="fu">nrow</span>(site_Co2))</span>
+<span id="cb127-14"><a href="temppart.html#cb127-14" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(site_Co2)){</span>
+<span id="cb127-15"><a href="temppart.html#cb127-15" tabindex="-1"></a>  occasions_Co[[i]] <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">Session =</span> site_Co2<span class="sc">$</span>Session[i],</span>
+<span id="cb127-16"><a href="temppart.html#cb127-16" tabindex="-1"></a>                                  <span class="at">site =</span> site_Co2<span class="sc">$</span>Site[i],</span>
+<span id="cb127-17"><a href="temppart.html#cb127-17" tabindex="-1"></a>                                  <span class="at">start =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="fu">ymd_hms</span>(<span class="fu">paste</span>(site_Co2<span class="sc">$</span>Date_setup[i], <span class="st">&quot;00:00:00&quot;</span>, <span class="at">sep =</span> <span class="st">&quot; &quot;</span>)), </span>
+<span id="cb127-18"><a href="temppart.html#cb127-18" tabindex="-1"></a>                                              <span class="at">to =</span> <span class="fu">ymd_hms</span>(<span class="fu">paste</span>(site_Co2<span class="sc">$</span>end[i], <span class="st">&quot;23:59:59&quot;</span>, <span class="at">sep =</span> <span class="st">&quot; &quot;</span>)), <span class="at">by =</span> <span class="st">&#39;60 min&#39;</span>)</span>
+<span id="cb127-19"><a href="temppart.html#cb127-19" tabindex="-1"></a>                                  ) <span class="sc">%&gt;%</span> </span>
+<span id="cb127-20"><a href="temppart.html#cb127-20" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">end =</span> <span class="fu">c</span>(start[<span class="dv">2</span><span class="sc">:</span><span class="fu">length</span>(start)], </span>
+<span id="cb127-21"><a href="temppart.html#cb127-21" tabindex="-1"></a>                   start[<span class="fu">length</span>(start)]<span class="sc">+</span><span class="fu">minutes</span>(<span class="dv">60</span>)</span>
+<span id="cb127-22"><a href="temppart.html#cb127-22" tabindex="-1"></a>                   )</span>
+<span id="cb127-23"><a href="temppart.html#cb127-23" tabindex="-1"></a>           ) </span>
+<span id="cb127-24"><a href="temppart.html#cb127-24" tabindex="-1"></a>}</span>
+<span id="cb127-25"><a href="temppart.html#cb127-25" tabindex="-1"></a>occasions_Co <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind.data.frame, occasions_Co)</span>
+<span id="cb127-26"><a href="temppart.html#cb127-26" tabindex="-1"></a>occasions_Co<span class="sc">$</span>capt <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb127-27"><a href="temppart.html#cb127-27" tabindex="-1"></a>occasions_Wo <span class="ot">&lt;-</span> occasions_Co</span></code></pre></div>
+<p>Then, we populate these dataframes with the information recorded for coyotes and wolves, respectively. We start with coyotes.</p>
+<div class="sourceCode" id="cb128"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb128-1"><a href="temppart.html#cb128-1" tabindex="-1"></a><span class="co"># Coyote data:</span></span>
+<span id="cb128-2"><a href="temppart.html#cb128-2" tabindex="-1"></a><span class="co"># Store captures</span></span>
+<span id="cb128-3"><a href="temppart.html#cb128-3" tabindex="-1"></a>dat_Co <span class="ot">&lt;-</span> dat <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Species <span class="sc">==</span> <span class="st">&quot;Coyote&quot;</span>)</span>
+<span id="cb128-4"><a href="temppart.html#cb128-4" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(dat_Co)){</span>
+<span id="cb128-5"><a href="temppart.html#cb128-5" tabindex="-1"></a>  occasions_Co[occasions_Co<span class="sc">$</span>Session <span class="sc">==</span> <span class="fu">as.character</span>(dat_Co<span class="sc">$</span>Session[i]) <span class="sc">&amp;</span></span>
+<span id="cb128-6"><a href="temppart.html#cb128-6" tabindex="-1"></a>                 occasions_Co<span class="sc">$</span>site <span class="sc">==</span> <span class="fu">as.character</span>(dat_Co<span class="sc">$</span>Station[i]) <span class="sc">&amp;</span></span>
+<span id="cb128-7"><a href="temppart.html#cb128-7" tabindex="-1"></a>                 occasions_Co<span class="sc">$</span>start <span class="sc">&lt;=</span> dat_Co<span class="sc">$</span>DateTimeOriginal[i] <span class="sc">&amp;</span> </span>
+<span id="cb128-8"><a href="temppart.html#cb128-8" tabindex="-1"></a>                 occasions_Co<span class="sc">$</span>end <span class="sc">&gt;</span> dat_Co<span class="sc">$</span>DateTimeOriginal[i], <span class="st">&quot;capt&quot;</span>] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb128-9"><a href="temppart.html#cb128-9" tabindex="-1"></a>}</span>
+<span id="cb128-10"><a href="temppart.html#cb128-10" tabindex="-1"></a></span>
+<span id="cb128-11"><a href="temppart.html#cb128-11" tabindex="-1"></a><span class="co"># Format data </span></span>
+<span id="cb128-12"><a href="temppart.html#cb128-12" tabindex="-1"></a>occasions_Co<span class="sc">$</span>Time <span class="ot">&lt;-</span> <span class="fu">hour</span>(occasions_Co<span class="sc">$</span>start)</span>
+<span id="cb128-13"><a href="temppart.html#cb128-13" tabindex="-1"></a>occasions_Co<span class="sc">$</span>oth_sp <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb128-14"><a href="temppart.html#cb128-14" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(occasions_Co)){</span>
+<span id="cb128-15"><a href="temppart.html#cb128-15" tabindex="-1"></a>  occasions_Co<span class="sc">$</span>oth_sp[i] <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(<span class="fu">paste</span>(occasions_Co<span class="sc">$</span>Session[i], occasions_Co<span class="sc">$</span>site[i], <span class="at">sep =</span> <span class="st">&quot;_&quot;</span>) <span class="sc">%in%</span> site<span class="sc">$</span>Sess_site, <span class="dv">1</span>,<span class="dv">0</span>)</span>
+<span id="cb128-16"><a href="temppart.html#cb128-16" tabindex="-1"></a>}</span>
+<span id="cb128-17"><a href="temppart.html#cb128-17" tabindex="-1"></a><span class="fu">table</span>(occasions_Co<span class="sc">$</span>oth_sp, occasions_Co<span class="sc">$</span>capt)</span></code></pre></div>
+<pre><code>##    
+##          0      1
+##   0 514127    121
+##   1  56798    130</code></pre>
+<div class="sourceCode" id="cb130"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb130-1"><a href="temppart.html#cb130-1" tabindex="-1"></a>occasions_Co<span class="sc">$</span>site <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(occasions_Co<span class="sc">$</span>site)</span>
+<span id="cb130-2"><a href="temppart.html#cb130-2" tabindex="-1"></a>occasions_Co<span class="sc">$</span>oth_sp <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(occasions_Co<span class="sc">$</span>oth_sp)</span>
+<span id="cb130-3"><a href="temppart.html#cb130-3" tabindex="-1"></a></span>
+<span id="cb130-4"><a href="temppart.html#cb130-4" tabindex="-1"></a><span class="co"># format data for cbind(success, failure)</span></span>
+<span id="cb130-5"><a href="temppart.html#cb130-5" tabindex="-1"></a>occasions_Co_cbind <span class="ot">&lt;-</span> occasions_Co <span class="sc">%&gt;%</span> </span>
+<span id="cb130-6"><a href="temppart.html#cb130-6" tabindex="-1"></a>  <span class="fu">group_by</span>(site, Time, oth_sp) <span class="sc">%&gt;%</span> </span>
+<span id="cb130-7"><a href="temppart.html#cb130-7" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">success =</span> <span class="fu">sum</span>(capt),</span>
+<span id="cb130-8"><a href="temppart.html#cb130-8" tabindex="-1"></a>            <span class="at">failure =</span> <span class="fu">n</span>() <span class="sc">-</span> success)</span></code></pre></div>
+<pre><code>## `summarise()` has grouped output by &#39;site&#39;, &#39;Time&#39;. You can override using the `.groups` argument.</code></pre>
+<p>We had 130 hourly intervals (out of 56 928) and 121 hourly intervals (out of 514 248) in which coyotes were recorded at a site-session where wolves were and were not photographed.</p>
+<p>We repeat the same steps for wolves.</p>
+<div class="sourceCode" id="cb132"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb132-1"><a href="temppart.html#cb132-1" tabindex="-1"></a><span class="co"># Store captures</span></span>
+<span id="cb132-2"><a href="temppart.html#cb132-2" tabindex="-1"></a>dat_Wo <span class="ot">&lt;-</span> dat <span class="sc">%&gt;%</span> <span class="fu">filter</span>(Species <span class="sc">==</span> <span class="st">&quot;Wolf&quot;</span>)</span>
+<span id="cb132-3"><a href="temppart.html#cb132-3" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(dat_Wo)){</span>
+<span id="cb132-4"><a href="temppart.html#cb132-4" tabindex="-1"></a>  occasions_Wo[occasions_Wo<span class="sc">$</span>Session <span class="sc">==</span> <span class="fu">as.character</span>(dat_Wo<span class="sc">$</span>Session[i]) <span class="sc">&amp;</span></span>
+<span id="cb132-5"><a href="temppart.html#cb132-5" tabindex="-1"></a>                 occasions_Wo<span class="sc">$</span>site <span class="sc">==</span> <span class="fu">as.character</span>(dat_Wo<span class="sc">$</span>Station[i]) <span class="sc">&amp;</span></span>
+<span id="cb132-6"><a href="temppart.html#cb132-6" tabindex="-1"></a>                 occasions_Wo<span class="sc">$</span>start <span class="sc">&lt;=</span> dat_Wo<span class="sc">$</span>DateTimeOriginal[i] <span class="sc">&amp;</span> </span>
+<span id="cb132-7"><a href="temppart.html#cb132-7" tabindex="-1"></a>                 occasions_Wo<span class="sc">$</span>end <span class="sc">&gt;</span> dat_Wo<span class="sc">$</span>DateTimeOriginal[i], <span class="st">&quot;capt&quot;</span>] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb132-8"><a href="temppart.html#cb132-8" tabindex="-1"></a>}</span>
+<span id="cb132-9"><a href="temppart.html#cb132-9" tabindex="-1"></a></span>
+<span id="cb132-10"><a href="temppart.html#cb132-10" tabindex="-1"></a><span class="co"># Format data </span></span>
+<span id="cb132-11"><a href="temppart.html#cb132-11" tabindex="-1"></a>occasions_Wo<span class="sc">$</span>Time <span class="ot">&lt;-</span> <span class="fu">hour</span>(occasions_Wo<span class="sc">$</span>start)</span>
+<span id="cb132-12"><a href="temppart.html#cb132-12" tabindex="-1"></a>occasions_Wo<span class="sc">$</span>oth_sp <span class="ot">&lt;-</span> <span class="cn">NA</span></span>
+<span id="cb132-13"><a href="temppart.html#cb132-13" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(occasions_Wo)){</span>
+<span id="cb132-14"><a href="temppart.html#cb132-14" tabindex="-1"></a>  occasions_Wo<span class="sc">$</span>oth_sp[i] <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(<span class="fu">paste</span>(occasions_Wo<span class="sc">$</span>Session[i], occasions_Wo<span class="sc">$</span>site[i], <span class="at">sep =</span> <span class="st">&quot;_&quot;</span>) <span class="sc">%in%</span> site<span class="sc">$</span>Sess_site, <span class="dv">1</span>,<span class="dv">0</span>)</span>
+<span id="cb132-15"><a href="temppart.html#cb132-15" tabindex="-1"></a>}</span>
+<span id="cb132-16"><a href="temppart.html#cb132-16" tabindex="-1"></a><span class="fu">table</span>(occasions_Wo<span class="sc">$</span>oth_sp, occasions_Wo<span class="sc">$</span>capt)</span></code></pre></div>
+<pre><code>##    
+##          0      1
+##   0 513894    354
+##   1  56747    181</code></pre>
+<div class="sourceCode" id="cb134"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb134-1"><a href="temppart.html#cb134-1" tabindex="-1"></a>occasions_Wo<span class="sc">$</span>site <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(occasions_Wo<span class="sc">$</span>site)</span>
+<span id="cb134-2"><a href="temppart.html#cb134-2" tabindex="-1"></a>occasions_Wo<span class="sc">$</span>oth_sp <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(occasions_Wo<span class="sc">$</span>oth_sp)</span>
+<span id="cb134-3"><a href="temppart.html#cb134-3" tabindex="-1"></a></span>
+<span id="cb134-4"><a href="temppart.html#cb134-4" tabindex="-1"></a><span class="co"># format data for cbind(success, failure)</span></span>
+<span id="cb134-5"><a href="temppart.html#cb134-5" tabindex="-1"></a>occasions_Wo_cbind <span class="ot">&lt;-</span> occasions_Wo <span class="sc">%&gt;%</span> </span>
+<span id="cb134-6"><a href="temppart.html#cb134-6" tabindex="-1"></a>  <span class="fu">group_by</span>(site, Time, oth_sp) <span class="sc">%&gt;%</span> </span>
+<span id="cb134-7"><a href="temppart.html#cb134-7" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">success =</span> <span class="fu">sum</span>(capt),</span>
+<span id="cb134-8"><a href="temppart.html#cb134-8" tabindex="-1"></a>            <span class="at">failure =</span> <span class="fu">n</span>() <span class="sc">-</span> success)</span></code></pre></div>
+<pre><code>## `summarise()` has grouped output by &#39;site&#39;, &#39;Time&#39;. You can override using the `.groups` argument.</code></pre>
+<p>For this species, we had 181 (out of 56 928) and 354 (out of 514 248) hourly intervals with at least 1 record of wolves at site-sessions in which coyotes were and were not recorded.</p>
+<p>We now proceed to fit a model to the data for each species. For convenience, we run a trigonometric random intercept-only model, but more complex trigonometric GLMMs or cyclic cubic spline HGAMs could be considered.</p>
+<div class="sourceCode" id="cb136"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb136-1"><a href="temppart.html#cb136-1" tabindex="-1"></a><span class="co"># run model: coyote</span></span>
+<span id="cb136-2"><a href="temppart.html#cb136-2" tabindex="-1"></a>mod_trig_Co <span class="ot">&lt;-</span> <span class="fu">mixed_model</span>(<span class="at">fixed =</span> <span class="fu">cbind</span>(success, failure) <span class="sc">~</span> <span class="fu">cos</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Time<span class="sc">/</span><span class="dv">24</span>)<span class="sc">*</span>oth_sp <span class="sc">+</span> <span class="fu">sin</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Time<span class="sc">/</span><span class="dv">24</span>)<span class="sc">*</span>oth_sp <span class="sc">+</span></span>
+<span id="cb136-3"><a href="temppart.html#cb136-3" tabindex="-1"></a>                                                             <span class="fu">cos</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Time<span class="sc">/</span><span class="dv">12</span>)<span class="sc">*</span>oth_sp <span class="sc">+</span> <span class="fu">sin</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Time<span class="sc">/</span><span class="dv">12</span>)<span class="sc">*</span>oth_sp, </span>
+<span id="cb136-4"><a href="temppart.html#cb136-4" tabindex="-1"></a>                           <span class="at">random =</span> <span class="sc">~</span> <span class="dv">1</span> <span class="sc">|</span> site,</span>
+<span id="cb136-5"><a href="temppart.html#cb136-5" tabindex="-1"></a>                           <span class="at">family =</span> <span class="fu">binomial</span>(),</span>
+<span id="cb136-6"><a href="temppart.html#cb136-6" tabindex="-1"></a>                           <span class="at">data =</span> occasions_Co_cbind,</span>
+<span id="cb136-7"><a href="temppart.html#cb136-7" tabindex="-1"></a>                           <span class="at">iter_EM =</span> <span class="dv">0</span></span>
+<span id="cb136-8"><a href="temppart.html#cb136-8" tabindex="-1"></a>                           ) </span>
+<span id="cb136-9"><a href="temppart.html#cb136-9" tabindex="-1"></a><span class="fu">summary</span>(mod_trig_Co)</span></code></pre></div>
+<pre><code>## 
+## Call:
+## mixed_model(fixed = cbind(success, failure) ~ cos(2 * pi * Time/24) * 
+##     oth_sp + sin(2 * pi * Time/24) * oth_sp + cos(2 * pi * Time/12) * 
+##     oth_sp + sin(2 * pi * Time/12) * oth_sp, random = ~1 | site, 
+##     data = occasions_Co_cbind, family = binomial(), iter_EM = 0)
+## 
+## Data Descriptives:
+## Number of Observations: 3168
+## Number of Groups: 100 
+## 
+## Model:
+##  family: binomial
+##  link: logit 
+## 
+## Fit statistics:
+##    log.Lik      AIC      BIC
+##  -743.6756 1509.351 1538.008
+## 
+## Random effects covariance matrix:
+##               StdDev
+## (Intercept) 1.164095
+## 
+## Fixed effects:
+##                               Estimate Std.Err  z-value  p-value
+## (Intercept)                    -9.0237  0.1935 -46.6262  &lt; 1e-04
+## cos(2 * pi * Time/24)           0.6432  0.1617   3.9778  &lt; 1e-04
+## oth_sp1                         1.4042  0.1932   7.2670  &lt; 1e-04
+## sin(2 * pi * Time/24)           0.3302  0.1322   2.4974 0.012512
+## cos(2 * pi * Time/12)          -0.3449  0.1389  -2.4830 0.013030
+## sin(2 * pi * Time/12)          -0.3411  0.1392  -2.4502 0.014279
+## cos(2 * pi * Time/24):oth_sp1   0.1993  0.2248   0.8866 0.375297
+## oth_sp1:sin(2 * pi * Time/24)   0.0174  0.1953   0.0892 0.928941
+## oth_sp1:cos(2 * pi * Time/12)   0.3083  0.1946   1.5840 0.113191
+## oth_sp1:sin(2 * pi * Time/12)   0.1930  0.1954   0.9876 0.323334
+## 
+## Integration:
+## method: adaptive Gauss-Hermite quadrature rule
+## quadrature points: 11
+## 
+## Optimization:
+## method: quasi-Newton
+## converged: TRUE</code></pre>
+<div class="sourceCode" id="cb138"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb138-1"><a href="temppart.html#cb138-1" tabindex="-1"></a><span class="co"># run model: wolf</span></span>
+<span id="cb138-2"><a href="temppart.html#cb138-2" tabindex="-1"></a>mod_trig_Wo <span class="ot">&lt;-</span> <span class="fu">mixed_model</span>(<span class="at">fixed =</span> <span class="fu">cbind</span>(success, failure) <span class="sc">~</span> <span class="fu">cos</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Time<span class="sc">/</span><span class="dv">24</span>)<span class="sc">*</span>oth_sp <span class="sc">+</span> <span class="fu">sin</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Time<span class="sc">/</span><span class="dv">24</span>)<span class="sc">*</span>oth_sp <span class="sc">+</span></span>
+<span id="cb138-3"><a href="temppart.html#cb138-3" tabindex="-1"></a>                                                             <span class="fu">cos</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Time<span class="sc">/</span><span class="dv">12</span>)<span class="sc">*</span>oth_sp <span class="sc">+</span> <span class="fu">sin</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Time<span class="sc">/</span><span class="dv">12</span>)<span class="sc">*</span>oth_sp, </span>
+<span id="cb138-4"><a href="temppart.html#cb138-4" tabindex="-1"></a>                           <span class="at">random =</span> <span class="sc">~</span> <span class="dv">1</span> <span class="sc">|</span> site,</span>
+<span id="cb138-5"><a href="temppart.html#cb138-5" tabindex="-1"></a>                           <span class="at">family =</span> <span class="fu">binomial</span>(),</span>
+<span id="cb138-6"><a href="temppart.html#cb138-6" tabindex="-1"></a>                           <span class="at">data =</span> occasions_Wo_cbind,</span>
+<span id="cb138-7"><a href="temppart.html#cb138-7" tabindex="-1"></a>                           <span class="at">iter_EM =</span> <span class="dv">0</span></span>
+<span id="cb138-8"><a href="temppart.html#cb138-8" tabindex="-1"></a>                           ) </span>
+<span id="cb138-9"><a href="temppart.html#cb138-9" tabindex="-1"></a><span class="fu">summary</span>(mod_trig_Wo)</span></code></pre></div>
+<pre><code>## 
+## Call:
+## mixed_model(fixed = cbind(success, failure) ~ cos(2 * pi * Time/24) * 
+##     oth_sp + sin(2 * pi * Time/24) * oth_sp + cos(2 * pi * Time/12) * 
+##     oth_sp + sin(2 * pi * Time/12) * oth_sp, random = ~1 | site, 
+##     data = occasions_Wo_cbind, family = binomial(), iter_EM = 0)
+## 
+## Data Descriptives:
+## Number of Observations: 3168
+## Number of Groups: 100 
+## 
+## Model:
+##  family: binomial
+##  link: logit 
+## 
+## Fit statistics:
+##    log.Lik      AIC      BIC
+##  -1275.273 2572.546 2601.203
+## 
+## Random effects covariance matrix:
+##               StdDev
+## (Intercept) 1.134112
+## 
+## Fixed effects:
+##                               Estimate Std.Err  z-value    p-value
+## (Intercept)                    -7.8886  0.1439 -54.8261    &lt; 1e-04
+## cos(2 * pi * Time/24)           0.5082  0.0880   5.7740    &lt; 1e-04
+## oth_sp1                         0.4711  0.1457   3.2344 0.00121891
+## sin(2 * pi * Time/24)           0.3586  0.0783   4.5796    &lt; 1e-04
+## cos(2 * pi * Time/12)          -0.2094  0.0791  -2.6452 0.00816464
+## sin(2 * pi * Time/12)          -0.3083  0.0800  -3.8520 0.00011716
+## cos(2 * pi * Time/24):oth_sp1   0.1295  0.1457   0.8893 0.37385895
+## oth_sp1:sin(2 * pi * Time/24)  -0.1112  0.1473  -0.7547 0.45045328
+## oth_sp1:cos(2 * pi * Time/12)   0.4407  0.1379   3.1956 0.00139527
+## oth_sp1:sin(2 * pi * Time/12)  -0.0862  0.1405  -0.6133 0.53966172
+## 
+## Integration:
+## method: adaptive Gauss-Hermite quadrature rule
+## quadrature points: 11
+## 
+## Optimization:
+## method: quasi-Newton
+## converged: TRUE</code></pre>
+<p>We now plot the results for both coyotes and wolves in the presence and absence of the other species. We focus on estimating marginal mean activity patterns because our aim is to compare between two groups that differ in their characteristics (i.e. site-sessions with and without the other species). The only change to the code required to obtain the marginal means is to set the argument <code>marginal</code> in the <code>effectPlotData</code> function equal to <code>TRUE</code> (see Tutorial <a href="condvsmarg.html#condvsmarg">8</a> for more on conditional and marginal mean activity patterns).</p>
+<div class="sourceCode" id="cb140"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb140-1"><a href="temppart.html#cb140-1" tabindex="-1"></a><span class="co"># coyote</span></span>
+<span id="cb140-2"><a href="temppart.html#cb140-2" tabindex="-1"></a>newdat <span class="ot">&lt;-</span> <span class="fu">with</span>(occasions_Co_cbind, <span class="fu">expand.grid</span>(<span class="at">Time =</span> <span class="fu">seq</span>(<span class="fu">min</span>(Time), <span class="dv">24</span>, <span class="at">length.out =</span> <span class="dv">48</span>), </span>
+<span id="cb140-3"><a href="temppart.html#cb140-3" tabindex="-1"></a>                                               <span class="at">oth_sp =</span> <span class="fu">as.factor</span>(<span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>))</span>
+<span id="cb140-4"><a href="temppart.html#cb140-4" tabindex="-1"></a>                                               )</span>
+<span id="cb140-5"><a href="temppart.html#cb140-5" tabindex="-1"></a>               )</span>
+<span id="cb140-6"><a href="temppart.html#cb140-6" tabindex="-1"></a>cond_eff_Co <span class="ot">&lt;-</span> <span class="fu">effectPlotData</span>(mod_trig_Co, newdat, <span class="at">marginal =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb140-7"><a href="temppart.html#cb140-7" tabindex="-1"></a>cond_eff_Co<span class="sc">$</span>Species <span class="ot">&lt;-</span> <span class="st">&quot;Coyote&quot;</span></span>
+<span id="cb140-8"><a href="temppart.html#cb140-8" tabindex="-1"></a></span>
+<span id="cb140-9"><a href="temppart.html#cb140-9" tabindex="-1"></a><span class="co"># wolf</span></span>
+<span id="cb140-10"><a href="temppart.html#cb140-10" tabindex="-1"></a>newdat <span class="ot">&lt;-</span> <span class="fu">with</span>(occasions_Wo_cbind, <span class="fu">expand.grid</span>(<span class="at">Time =</span> <span class="fu">seq</span>(<span class="fu">min</span>(Time), <span class="dv">24</span>, <span class="at">length.out =</span> <span class="dv">48</span>), </span>
+<span id="cb140-11"><a href="temppart.html#cb140-11" tabindex="-1"></a>                                               <span class="at">oth_sp =</span> <span class="fu">as.factor</span>(<span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>))</span>
+<span id="cb140-12"><a href="temppart.html#cb140-12" tabindex="-1"></a>                                               )</span>
+<span id="cb140-13"><a href="temppart.html#cb140-13" tabindex="-1"></a>               )</span>
+<span id="cb140-14"><a href="temppart.html#cb140-14" tabindex="-1"></a>cond_eff_Wo <span class="ot">&lt;-</span> <span class="fu">effectPlotData</span>(mod_trig_Wo, newdat, <span class="at">marginal =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb140-15"><a href="temppart.html#cb140-15" tabindex="-1"></a>cond_eff_Wo<span class="sc">$</span>Species <span class="ot">&lt;-</span> <span class="st">&quot;Wolf&quot;</span></span>
+<span id="cb140-16"><a href="temppart.html#cb140-16" tabindex="-1"></a></span>
+<span id="cb140-17"><a href="temppart.html#cb140-17" tabindex="-1"></a>cond_eff <span class="ot">&lt;-</span> <span class="fu">rbind</span>(cond_eff_Co, cond_eff_Wo) <span class="sc">%&gt;%</span> </span>
+<span id="cb140-18"><a href="temppart.html#cb140-18" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">oth_sp_labels =</span> <span class="fu">fct_recode</span>(oth_sp, <span class="st">&quot;Without the other species&quot;</span> <span class="ot">=</span> <span class="st">&quot;0&quot;</span>, <span class="st">&quot;With the other species&quot;</span> <span class="ot">=</span> <span class="st">&quot;1&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb141"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb141-1"><a href="temppart.html#cb141-1" tabindex="-1"></a>(pl_trig <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(cond_eff, <span class="fu">aes</span>(Time, <span class="fu">plogis</span>(pred), <span class="at">color=</span>Species, <span class="at">group=</span>Species)) <span class="sc">+</span></span>
+<span id="cb141-2"><a href="temppart.html#cb141-2" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin=</span><span class="fu">plogis</span>(low), <span class="at">ymax=</span><span class="fu">plogis</span>(upp), <span class="at">fill=</span>Species), <span class="at">alpha=</span><span class="fl">0.5</span>, <span class="at">linewidth =</span> <span class="fl">0.25</span>) <span class="sc">+</span></span>
+<span id="cb141-3"><a href="temppart.html#cb141-3" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">size=</span><span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb141-4"><a href="temppart.html#cb141-4" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;Time of Day (Hour)&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Predicted Activity Pattern </span><span class="sc">\n</span><span class="st"> (probability)&quot;</span>, <span class="at">title =</span> <span class="st">&quot;A: trigonometric GLMMs&quot;</span>)<span class="sc">+</span></span>
+<span id="cb141-5"><a href="temppart.html#cb141-5" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;#E69F00&quot;</span>, <span class="st">&quot;#0072B2&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb141-6"><a href="temppart.html#cb141-6" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;#E69F00&quot;</span>, <span class="st">&quot;#0072B2&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb141-7"><a href="temppart.html#cb141-7" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()<span class="sc">+</span></span>
+<span id="cb141-8"><a href="temppart.html#cb141-8" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;right&quot;</span>,</span>
+<span id="cb141-9"><a href="temppart.html#cb141-9" tabindex="-1"></a>        <span class="at">legend.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">10</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb141-10"><a href="temppart.html#cb141-10" tabindex="-1"></a>        <span class="at">plot.title =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb141-11"><a href="temppart.html#cb141-11" tabindex="-1"></a>        <span class="at">axis.line =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb141-12"><a href="temppart.html#cb141-12" tabindex="-1"></a>        <span class="at">axis.ticks =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb141-13"><a href="temppart.html#cb141-13" tabindex="-1"></a>        <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">9</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb141-14"><a href="temppart.html#cb141-14" tabindex="-1"></a>        <span class="at">panel.grid.minor.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb141-15"><a href="temppart.html#cb141-15" tabindex="-1"></a>        <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb141-16"><a href="temppart.html#cb141-16" tabindex="-1"></a>        <span class="at">panel.grid.major.x =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;lightgrey&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;dashed&#39;</span>, <span class="at">linewidth=</span><span class="fl">0.5</span>),</span>
+<span id="cb141-17"><a href="temppart.html#cb141-17" tabindex="-1"></a>        <span class="at">panel.grid.minor.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb141-18"><a href="temppart.html#cb141-18" tabindex="-1"></a>        <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">&quot;bold&quot;</span>)</span>
+<span id="cb141-19"><a href="temppart.html#cb141-19" tabindex="-1"></a>        ) <span class="sc">+</span></span>
+<span id="cb141-20"><a href="temppart.html#cb141-20" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">24</span>,<span class="dv">4</span>), <span class="at">labels=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">24</span>,<span class="dv">4</span>)) <span class="sc">+</span></span>
+<span id="cb141-21"><a href="temppart.html#cb141-21" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>oth_sp_labels, <span class="at">scales =</span> <span class="st">&quot;fixed&quot;</span>)</span>
+<span id="cb141-22"><a href="temppart.html#cb141-22" tabindex="-1"></a> )</span></code></pre></div>
+<div class="figure"><span style="display:block;" id="fig:temp8b"></span>
+<img src="HMsActivity_files/figure-html/temp8b-1.png" alt="Predicted probability of activity by coyote and wolf and depending on each others presence or absence; shading corresponds to 95% confidence intervals." width="672" />
+<p class="caption">
+Figure 7.1: Predicted probability of activity by coyote and wolf and depending on each others presence or absence; shading corresponds to 95% confidence intervals.
+</p>
+</div>
+<div class="sourceCode" id="cb142"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb142-1"><a href="temppart.html#cb142-1" tabindex="-1"></a><span class="fu">ggsave</span>(<span class="at">plot =</span> pl_trig, <span class="at">filename =</span> <span class="st">&quot;ms_figures/Fig5_Coyote_Wolf_patterns.jpg&quot;</span>, <span class="at">device =</span> <span class="st">&quot;jpeg&quot;</span>, <span class="at">units =</span> <span class="st">&quot;cm&quot;</span>, <span class="at">width =</span> <span class="dv">24</span>, <span class="at">height =</span> <span class="dv">10</span>, <span class="at">dpi =</span> <span class="dv">600</span>)</span></code></pre></div>
+<p>This figure is presented in <span class="citation">"Iannarilli et al. (<a href="references.html#ref-HMsActivity2024">2024</a>)</span> (Figure 5), where we offer additional discussion regarding the estimated activity curves.</p>
+<p>Next, we consider a cyclic cubic spline HGAM (without a site-specific smoother) for each species, which we compare to the trigonometric GLMM below.</p>
+<div class="sourceCode" id="cb143"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb143-1"><a href="temppart.html#cb143-1" tabindex="-1"></a><span class="co"># Cyclic cubic splines (&#39;random intercept-only&#39;)</span></span>
+<span id="cb143-2"><a href="temppart.html#cb143-2" tabindex="-1"></a><span class="co"># Coyote</span></span>
+<span id="cb143-3"><a href="temppart.html#cb143-3" tabindex="-1"></a>mod_cycl_Co <span class="ot">&lt;-</span> <span class="fu">bam</span>(<span class="fu">cbind</span>(success, failure) <span class="sc">~</span> <span class="fu">s</span>(Time, <span class="at">bs =</span> <span class="st">&quot;cc&quot;</span>, <span class="at">k =</span> <span class="dv">12</span>, <span class="at">by =</span> oth_sp, <span class="at">m =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb143-4"><a href="temppart.html#cb143-4" tabindex="-1"></a>                                              oth_sp <span class="sc">+</span> </span>
+<span id="cb143-5"><a href="temppart.html#cb143-5" tabindex="-1"></a>                                              <span class="fu">s</span>(site, <span class="at">bs=</span><span class="st">&quot;re&quot;</span>), </span>
+<span id="cb143-6"><a href="temppart.html#cb143-6" tabindex="-1"></a>                   <span class="at">knots =</span> <span class="fu">list</span>(<span class="at">Time=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">23</span>)),</span>
+<span id="cb143-7"><a href="temppart.html#cb143-7" tabindex="-1"></a>                   <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>, </span>
+<span id="cb143-8"><a href="temppart.html#cb143-8" tabindex="-1"></a>                   <span class="at">data =</span> occasions_Co_cbind</span>
+<span id="cb143-9"><a href="temppart.html#cb143-9" tabindex="-1"></a>                   )</span>
+<span id="cb143-10"><a href="temppart.html#cb143-10" tabindex="-1"></a></span>
+<span id="cb143-11"><a href="temppart.html#cb143-11" tabindex="-1"></a>newdat <span class="ot">&lt;-</span> <span class="fu">with</span>(occasions_Co_cbind, <span class="fu">expand.grid</span>(<span class="at">Time =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">24</span>, <span class="dv">1</span>), </span>
+<span id="cb143-12"><a href="temppart.html#cb143-12" tabindex="-1"></a>                                               <span class="at">oth_sp =</span> <span class="fu">as.factor</span>(<span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>)), </span>
+<span id="cb143-13"><a href="temppart.html#cb143-13" tabindex="-1"></a>                                               <span class="at">site =</span> <span class="st">&quot;10E&quot;</span> <span class="co">#Site doesn&#39;t matter</span></span>
+<span id="cb143-14"><a href="temppart.html#cb143-14" tabindex="-1"></a>                                              ) </span>
+<span id="cb143-15"><a href="temppart.html#cb143-15" tabindex="-1"></a>               ) </span>
+<span id="cb143-16"><a href="temppart.html#cb143-16" tabindex="-1"></a>cycl_pred_Co <span class="ot">&lt;-</span> <span class="fu">predict.bam</span>(mod_cycl_Co, </span>
+<span id="cb143-17"><a href="temppart.html#cb143-17" tabindex="-1"></a>                            <span class="at">newdata =</span> newdat,  </span>
+<span id="cb143-18"><a href="temppart.html#cb143-18" tabindex="-1"></a>                            <span class="at">exclude =</span> <span class="st">&quot;s(site)&quot;</span>, </span>
+<span id="cb143-19"><a href="temppart.html#cb143-19" tabindex="-1"></a>                            <span class="at">se.fit =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb143-20"><a href="temppart.html#cb143-20" tabindex="-1"></a>                            <span class="at">type =</span> <span class="st">&quot;response&quot;</span></span>
+<span id="cb143-21"><a href="temppart.html#cb143-21" tabindex="-1"></a>                            ) </span>
+<span id="cb143-22"><a href="temppart.html#cb143-22" tabindex="-1"></a>cycl_pred_Co <span class="ot">&lt;-</span> <span class="fu">cbind</span>(newdat, </span>
+<span id="cb143-23"><a href="temppart.html#cb143-23" tabindex="-1"></a>                      <span class="at">fit=</span>cycl_pred_Co<span class="sc">$</span>fit, </span>
+<span id="cb143-24"><a href="temppart.html#cb143-24" tabindex="-1"></a>                      <span class="at">se.fit=</span>cycl_pred_Co<span class="sc">$</span>se.fit, </span>
+<span id="cb143-25"><a href="temppart.html#cb143-25" tabindex="-1"></a>                      <span class="at">Species =</span> <span class="st">&quot;Coyote&quot;</span></span>
+<span id="cb143-26"><a href="temppart.html#cb143-26" tabindex="-1"></a>                      )</span>
+<span id="cb143-27"><a href="temppart.html#cb143-27" tabindex="-1"></a></span>
+<span id="cb143-28"><a href="temppart.html#cb143-28" tabindex="-1"></a><span class="co"># Wolf</span></span>
+<span id="cb143-29"><a href="temppart.html#cb143-29" tabindex="-1"></a>mod_cycl_Wo <span class="ot">&lt;-</span> <span class="fu">bam</span>(<span class="fu">cbind</span>(success, failure) <span class="sc">~</span> <span class="fu">s</span>(Time, <span class="at">bs =</span> <span class="st">&quot;cc&quot;</span>, <span class="at">k =</span> <span class="dv">12</span>, <span class="at">by =</span> oth_sp, <span class="at">m =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb143-30"><a href="temppart.html#cb143-30" tabindex="-1"></a>                                              oth_sp <span class="sc">+</span> </span>
+<span id="cb143-31"><a href="temppart.html#cb143-31" tabindex="-1"></a>                                              <span class="fu">s</span>(site, <span class="at">bs=</span><span class="st">&quot;re&quot;</span>), </span>
+<span id="cb143-32"><a href="temppart.html#cb143-32" tabindex="-1"></a>                   <span class="at">knots =</span> <span class="fu">list</span>(<span class="at">Time=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">23</span>)),</span>
+<span id="cb143-33"><a href="temppart.html#cb143-33" tabindex="-1"></a>                   <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>, </span>
+<span id="cb143-34"><a href="temppart.html#cb143-34" tabindex="-1"></a>                   <span class="at">data =</span> occasions_Wo_cbind</span>
+<span id="cb143-35"><a href="temppart.html#cb143-35" tabindex="-1"></a>                   )</span>
+<span id="cb143-36"><a href="temppart.html#cb143-36" tabindex="-1"></a></span>
+<span id="cb143-37"><a href="temppart.html#cb143-37" tabindex="-1"></a>newdat <span class="ot">&lt;-</span> <span class="fu">with</span>(occasions_Wo_cbind, <span class="fu">expand.grid</span>(<span class="at">Time =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">24</span>, <span class="dv">1</span>), </span>
+<span id="cb143-38"><a href="temppart.html#cb143-38" tabindex="-1"></a>                                               <span class="at">oth_sp =</span> <span class="fu">as.factor</span>(<span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>)), </span>
+<span id="cb143-39"><a href="temppart.html#cb143-39" tabindex="-1"></a>                                               <span class="at">site =</span> <span class="st">&quot;10E&quot;</span> <span class="co">#Site doesn&#39;t matter</span></span>
+<span id="cb143-40"><a href="temppart.html#cb143-40" tabindex="-1"></a>                                               )</span>
+<span id="cb143-41"><a href="temppart.html#cb143-41" tabindex="-1"></a>               ) </span>
+<span id="cb143-42"><a href="temppart.html#cb143-42" tabindex="-1"></a>cycl_pred_Wo <span class="ot">&lt;-</span> <span class="fu">predict.bam</span>(mod_cycl_Wo, </span>
+<span id="cb143-43"><a href="temppart.html#cb143-43" tabindex="-1"></a>                            <span class="at">newdata =</span> newdat,  </span>
+<span id="cb143-44"><a href="temppart.html#cb143-44" tabindex="-1"></a>                            <span class="at">exclude =</span> <span class="st">&quot;s(site)&quot;</span>, </span>
+<span id="cb143-45"><a href="temppart.html#cb143-45" tabindex="-1"></a>                            <span class="at">se.fit =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb143-46"><a href="temppart.html#cb143-46" tabindex="-1"></a>                            <span class="at">type =</span> <span class="st">&quot;response&quot;</span></span>
+<span id="cb143-47"><a href="temppart.html#cb143-47" tabindex="-1"></a>                            ) </span>
+<span id="cb143-48"><a href="temppart.html#cb143-48" tabindex="-1"></a>cycl_pred_Wo <span class="ot">&lt;-</span> <span class="fu">cbind</span>(newdat, </span>
+<span id="cb143-49"><a href="temppart.html#cb143-49" tabindex="-1"></a>                      <span class="at">fit=</span>cycl_pred_Wo<span class="sc">$</span>fit, </span>
+<span id="cb143-50"><a href="temppart.html#cb143-50" tabindex="-1"></a>                      <span class="at">se.fit=</span>cycl_pred_Wo<span class="sc">$</span>se.fit, </span>
+<span id="cb143-51"><a href="temppart.html#cb143-51" tabindex="-1"></a>                      <span class="at">Species =</span> <span class="st">&quot;Wolf&quot;</span></span>
+<span id="cb143-52"><a href="temppart.html#cb143-52" tabindex="-1"></a>                      )</span>
+<span id="cb143-53"><a href="temppart.html#cb143-53" tabindex="-1"></a>cycl_pred <span class="ot">&lt;-</span> <span class="fu">rbind</span>(cycl_pred_Co, cycl_pred_Wo) <span class="sc">%&gt;%</span> </span>
+<span id="cb143-54"><a href="temppart.html#cb143-54" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">oth_sp_labels =</span> <span class="fu">fct_recode</span>(oth_sp, <span class="st">&quot;Without the other species&quot;</span> <span class="ot">=</span> <span class="st">&quot;0&quot;</span>, <span class="st">&quot;With the other species&quot;</span> <span class="ot">=</span> <span class="st">&quot;1&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb144"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb144-1"><a href="temppart.html#cb144-1" tabindex="-1"></a>pl_cycl <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(cycl_pred, <span class="fu">aes</span>(Time, fit, <span class="at">color=</span>Species, <span class="at">group=</span>Species)) <span class="sc">+</span></span>
+<span id="cb144-2"><a href="temppart.html#cb144-2" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin=</span>fit<span class="fl">-1.96</span><span class="sc">*</span>se.fit, <span class="at">ymax=</span>fit<span class="fl">+1.96</span><span class="sc">*</span>se.fit, <span class="at">fill=</span>Species), <span class="at">alpha=</span><span class="fl">0.5</span>, <span class="at">size =</span> <span class="fl">0.25</span>) <span class="sc">+</span></span>
+<span id="cb144-3"><a href="temppart.html#cb144-3" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb144-4"><a href="temppart.html#cb144-4" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;Time of Day (Hour)&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Predicted Activity Pattern </span><span class="sc">\n</span><span class="st"> (probability)&quot;</span>, <span class="at">title =</span> <span class="st">&quot;B: Conditional mean (cyclic cubic spline HGAMs)&quot;</span>)<span class="sc">+</span></span>
+<span id="cb144-5"><a href="temppart.html#cb144-5" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;#E69F00&quot;</span>, <span class="st">&quot;#0072B2&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb144-6"><a href="temppart.html#cb144-6" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">&quot;#E69F00&quot;</span>, <span class="st">&quot;#0072B2&quot;</span>)) <span class="sc">+</span></span>
+<span id="cb144-7"><a href="temppart.html#cb144-7" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()<span class="sc">+</span></span>
+<span id="cb144-8"><a href="temppart.html#cb144-8" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;none&quot;</span>,</span>
+<span id="cb144-9"><a href="temppart.html#cb144-9" tabindex="-1"></a>        <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">10</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb144-10"><a href="temppart.html#cb144-10" tabindex="-1"></a>        <span class="at">axis.line =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb144-11"><a href="temppart.html#cb144-11" tabindex="-1"></a>        <span class="at">axis.ticks =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb144-12"><a href="temppart.html#cb144-12" tabindex="-1"></a>        <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">9</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb144-13"><a href="temppart.html#cb144-13" tabindex="-1"></a>        <span class="at">panel.grid.minor.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb144-14"><a href="temppart.html#cb144-14" tabindex="-1"></a>        <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb144-15"><a href="temppart.html#cb144-15" tabindex="-1"></a>        <span class="at">panel.grid.major.x =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;lightgrey&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;dashed&#39;</span>, <span class="at">size=</span><span class="fl">0.5</span>),</span>
+<span id="cb144-16"><a href="temppart.html#cb144-16" tabindex="-1"></a>        <span class="at">panel.grid.minor.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb144-17"><a href="temppart.html#cb144-17" tabindex="-1"></a>        <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">&quot;bold&quot;</span>)</span>
+<span id="cb144-18"><a href="temppart.html#cb144-18" tabindex="-1"></a>        ) <span class="sc">+</span></span>
+<span id="cb144-19"><a href="temppart.html#cb144-19" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">24</span>,<span class="dv">4</span>), <span class="at">labels=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">24</span>,<span class="dv">4</span>)) <span class="sc">+</span></span>
+<span id="cb144-20"><a href="temppart.html#cb144-20" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>oth_sp_labels, <span class="at">scales =</span> <span class="st">&quot;fixed&quot;</span>)</span></code></pre></div>
+<pre><code>## Warning: The `size` argument of `element_line()` is deprecated as of ggplot2 3.4.0.
+## ℹ Please use the `linewidth` argument instead.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was generated.</code></pre>
+<div class="sourceCode" id="cb146"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb146-1"><a href="temppart.html#cb146-1" tabindex="-1"></a>pl_trig2 <span class="ot">&lt;-</span> pl_trig <span class="sc">+</span> <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">&quot;A: Marginal mean (trigonometric GLMM)&quot;</span>) <span class="sc">+</span> <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;none&quot;</span>, <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">10</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>, <span class="at">hjust =</span> <span class="dv">0</span>))</span>
+<span id="cb146-2"><a href="temppart.html#cb146-2" tabindex="-1"></a><span class="fu">ggarrange</span>(pl_trig2, pl_cycl, <span class="at">nrow =</span> <span class="dv">2</span>, <span class="at">ncol =</span> <span class="dv">1</span>, <span class="at">common.legend =</span> <span class="cn">TRUE</span>, <span class="at">legend =</span> <span class="st">&quot;right&quot;</span>)</span></code></pre></div>
+<div class="figure"><span style="display:block;" id="fig:temp9b"></span>
+<img src="HMsActivity_files/figure-html/temp9b-1.png" alt="Predicted probability of activity by coyote and wolf and depending on each others presence or absence from a trigonmetric (A) and cyclic cubic spline (B) hierarhical model; shading corresponds to 95% confidence intervals." width="672" />
+<p class="caption">
+Figure 7.2: Predicted probability of activity by coyote and wolf and depending on each others presence or absence from a trigonmetric (A) and cyclic cubic spline (B) hierarhical model; shading corresponds to 95% confidence intervals.
+</p>
+</div>
+<p>We see that the trigonometric and the cyclic cubic spline hierarchical models return the same general pattern.</p>
+<p><em>Model selection.</em> As with the other examples, we can assess the importance of the presence of the competitor species by comparing models with and without terms involving this covariate (i.e. <code>oth_sp</code>). We fit the reduced model below. <!---In this example, this results in models without the interactions of the cosine terms with the variable *oth_sp*. However, it is preferable to run this comparison only considering the trigonometric models. When removing the effect of the covariate, we change the model structure to one that contains a global smoother and, as highlighted in @Pedersen2019, AIC might not be reliable when comparing HGAMs with and without a global smoother. In these cases, AIC tend to select the model without the global smoother.---></p>
+<div class="sourceCode" id="cb147"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb147-1"><a href="temppart.html#cb147-1" tabindex="-1"></a><span class="co"># Trigonometric GLMM (random intercept-only)</span></span>
+<span id="cb147-2"><a href="temppart.html#cb147-2" tabindex="-1"></a><span class="co"># run model: coyote</span></span>
+<span id="cb147-3"><a href="temppart.html#cb147-3" tabindex="-1"></a>mod_trig_Co_null <span class="ot">&lt;-</span> <span class="fu">mixed_model</span>(<span class="at">fixed =</span> <span class="fu">cbind</span>(success, failure) <span class="sc">~</span> <span class="fu">cos</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Time<span class="sc">/</span><span class="dv">24</span>) <span class="sc">+</span> <span class="fu">sin</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Time<span class="sc">/</span><span class="dv">24</span>) <span class="sc">+</span></span>
+<span id="cb147-4"><a href="temppart.html#cb147-4" tabindex="-1"></a>                                                                  <span class="fu">cos</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Time<span class="sc">/</span><span class="dv">12</span>) <span class="sc">+</span> <span class="fu">sin</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Time<span class="sc">/</span><span class="dv">12</span>), </span>
+<span id="cb147-5"><a href="temppart.html#cb147-5" tabindex="-1"></a>                                <span class="at">random =</span> <span class="sc">~</span> <span class="dv">1</span> <span class="sc">|</span> site,</span>
+<span id="cb147-6"><a href="temppart.html#cb147-6" tabindex="-1"></a>                                <span class="at">family =</span> <span class="fu">binomial</span>(),</span>
+<span id="cb147-7"><a href="temppart.html#cb147-7" tabindex="-1"></a>                                <span class="at">data =</span> occasions_Co_cbind,</span>
+<span id="cb147-8"><a href="temppart.html#cb147-8" tabindex="-1"></a>                                <span class="at">iter_EM =</span> <span class="dv">0</span></span>
+<span id="cb147-9"><a href="temppart.html#cb147-9" tabindex="-1"></a>                                ) </span>
+<span id="cb147-10"><a href="temppart.html#cb147-10" tabindex="-1"></a></span>
+<span id="cb147-11"><a href="temppart.html#cb147-11" tabindex="-1"></a><span class="co"># run model: wolf</span></span>
+<span id="cb147-12"><a href="temppart.html#cb147-12" tabindex="-1"></a>mod_trig_Wo_null <span class="ot">&lt;-</span> <span class="fu">mixed_model</span>(<span class="at">fixed =</span> <span class="fu">cbind</span>(success, failure) <span class="sc">~</span> <span class="fu">cos</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Time<span class="sc">/</span><span class="dv">24</span>) <span class="sc">+</span> <span class="fu">sin</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Time<span class="sc">/</span><span class="dv">24</span>) <span class="sc">+</span></span>
+<span id="cb147-13"><a href="temppart.html#cb147-13" tabindex="-1"></a>                                                                  <span class="fu">cos</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Time<span class="sc">/</span><span class="dv">12</span>) <span class="sc">+</span> <span class="fu">sin</span>(<span class="dv">2</span><span class="sc">*</span>pi<span class="sc">*</span>Time<span class="sc">/</span><span class="dv">12</span>), </span>
+<span id="cb147-14"><a href="temppart.html#cb147-14" tabindex="-1"></a>                                <span class="at">random =</span> <span class="sc">~</span> <span class="dv">1</span> <span class="sc">|</span> site,</span>
+<span id="cb147-15"><a href="temppart.html#cb147-15" tabindex="-1"></a>                                <span class="at">family =</span> <span class="fu">binomial</span>(),</span>
+<span id="cb147-16"><a href="temppart.html#cb147-16" tabindex="-1"></a>                                <span class="at">data =</span> occasions_Wo_cbind,</span>
+<span id="cb147-17"><a href="temppart.html#cb147-17" tabindex="-1"></a>                                <span class="at">iter_EM =</span> <span class="dv">0</span></span>
+<span id="cb147-18"><a href="temppart.html#cb147-18" tabindex="-1"></a>                                ) </span></code></pre></div>
+<p>For each of the two species, we can now compare the models that include and do not include the presence of the other species. For coyotes,</p>
+<div class="sourceCode" id="cb148"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb148-1"><a href="temppart.html#cb148-1" tabindex="-1"></a><span class="fu">AIC</span>(mod_trig_Co_null, mod_trig_Co)</span></code></pre></div>
+<pre><code>##                  df      AIC
+## mod_trig_Co_null  6 1576.861
+## mod_trig_Co      11 1509.351</code></pre>
+<div class="sourceCode" id="cb150"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb150-1"><a href="temppart.html#cb150-1" tabindex="-1"></a><span class="fu">AIC</span>(mod_trig_Co_null) <span class="sc">-</span> <span class="fu">AIC</span>(mod_trig_Co)</span></code></pre></div>
+<pre><code>## [1] 67.5101</code></pre>
+<p>Based on AIC, there is a strong support for the model that assumes an effect of the presence of wolves as a driver of coyotes’ activity patterns.</p>
+<div class="sourceCode" id="cb152"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb152-1"><a href="temppart.html#cb152-1" tabindex="-1"></a><span class="fu">AIC</span>(mod_trig_Wo_null, mod_trig_Wo)</span></code></pre></div>
+<pre><code>##                  df      AIC
+## mod_trig_Wo_null  6 2592.905
+## mod_trig_Wo      11 2572.546</code></pre>
+<div class="sourceCode" id="cb154"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb154-1"><a href="temppart.html#cb154-1" tabindex="-1"></a><span class="fu">AIC</span>(mod_trig_Wo_null) <span class="sc">-</span> <span class="fu">AIC</span>(mod_trig_Wo)</span></code></pre></div>
+<pre><code>## [1] 20.35866</code></pre>
+<p>A similar conclusion is reached for the wolf. These results do not imply a casual effect, but rather define an association: in site-sessions where the species co-occur (i.e. in space and time), they tend to have activity patterns that differ compared to site-sessions when they do not co-occur. These differences might be driven by other factors (e.g., level of human disturbance) not considered in the analysis.</p>
+
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="cov.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="condvsmarg.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"whatsapp": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": null,
+"search": {
+"engine": "fuse",
+"options": null
+},
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

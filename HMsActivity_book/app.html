@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Tutorial 10 Appendix | A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models</title>
+  <meta name="description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript HMsActivity 2024." />
+  <meta name="generator" content="bookdown 0.39 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Tutorial 10 Appendix | A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models" />
+  <meta property="og:type" content="book" />
+  
+  <meta property="og:description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript HMsActivity 2024." />
+  <meta name="github-repo" content="rstudio/bookdown-demo" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Tutorial 10 Appendix | A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models" />
+  
+  <meta name="twitter:description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript HMsActivity 2024." />
+  
+
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="kdes.html"/>
+<link rel="next" href="references.html"/>
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<style type="text/css">
+  
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+</style>
+<style type="text/css">
+/* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Preface</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#requirements"><i class="fa fa-check"></i><b>1.1</b> Requirements</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="var.html"><a href="var.html"><i class="fa fa-check"></i><b>2</b> Variability in activity patterns</a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="var.html"><a href="var.html#variability-in-frequency-of-site-use"><i class="fa fa-check"></i><b>2.1</b> Variability in frequency of site-use</a></li>
+<li class="chapter" data-level="2.2" data-path="var.html"><a href="var.html#variability-in-timing-of-activity"><i class="fa fa-check"></i><b>2.2</b> Variability in timing of activity</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="est.html"><a href="est.html"><i class="fa fa-check"></i><b>3</b> Estimating activity patterns from time-stamped data</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="est.html"><a href="est.html#simulating-activity-patterns"><i class="fa fa-check"></i><b>3.1</b> Simulating activity patterns</a></li>
+<li class="chapter" data-level="3.2" data-path="est.html"><a href="est.html#data-preparation"><i class="fa fa-check"></i><b>3.2</b> Data preparation</a></li>
+<li class="chapter" data-level="3.3" data-path="est.html"><a href="est.html#trigonometric-glmms"><i class="fa fa-check"></i><b>3.3</b> Trigonometric GLMMs</a></li>
+<li class="chapter" data-level="3.4" data-path="est.html"><a href="est.html#cyclic-cubic-spline-hgams"><i class="fa fa-check"></i><b>3.4</b> Cyclic cubic spline HGAMs</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="dataprep.html"><a href="dataprep.html"><i class="fa fa-check"></i><b>4</b> Data preparation</a></li>
+<li class="chapter" data-level="5" data-path="unibim.html"><a href="unibim.html"><i class="fa fa-check"></i><b>5</b> Evaluating Hypotheses Regarding the Shape of Activity Curves</a></li>
+<li class="chapter" data-level="6" data-path="cov.html"><a href="cov.html"><i class="fa fa-check"></i><b>6</b> Modeling activity patterns with covariates</a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="cov.html"><a href="cov.html#cat"><i class="fa fa-check"></i><b>6.1</b> Categorical covariates</a>
+<ul>
+<li class="chapter" data-level="6.1.1" data-path="cov.html"><a href="cov.html#trigonometric-glmms-1"><i class="fa fa-check"></i><b>6.1.1</b> Trigonometric GLMMs</a></li>
+<li class="chapter" data-level="6.1.2" data-path="cov.html"><a href="cov.html#cyclic-cubic-spline-hgams-1"><i class="fa fa-check"></i><b>6.1.2</b> Cyclic cubic spline HGAMs</a></li>
+</ul></li>
+<li class="chapter" data-level="6.2" data-path="cov.html"><a href="cov.html#cont"><i class="fa fa-check"></i><b>6.2</b> Continuous covariates</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="temppart.html"><a href="temppart.html"><i class="fa fa-check"></i><b>7</b> Temporal partitioning</a></li>
+<li class="chapter" data-level="8" data-path="condvsmarg.html"><a href="condvsmarg.html"><i class="fa fa-check"></i><b>8</b> Conditional and Marginal Mean Activity Patterns</a>
+<ul>
+<li class="chapter" data-level="8.1" data-path="condvsmarg.html"><a href="condvsmarg.html#estimating-conditional-and-marginal-mean-activity-patterns"><i class="fa fa-check"></i><b>8.1</b> Estimating Conditional and Marginal Mean Activity Patterns</a></li>
+<li class="chapter" data-level="8.2" data-path="condvsmarg.html"><a href="condvsmarg.html#the-frequentist-framework"><i class="fa fa-check"></i><b>8.2</b> The frequentist framework</a></li>
+</ul></li>
+<li class="chapter" data-level="9" data-path="kdes.html"><a href="kdes.html"><i class="fa fa-check"></i><b>9</b> Kernel Density Estimators</a>
+<ul>
+<li class="chapter" data-level="9.1" data-path="kdes.html"><a href="kdes.html#dataprepkdes"><i class="fa fa-check"></i><b>9.1</b> Data preparation for KDEs</a></li>
+<li class="chapter" data-level="9.2" data-path="kdes.html"><a href="kdes.html#kdespkg"><i class="fa fa-check"></i><b>9.2</b> Comparison of KDE estimators</a>
+<ul>
+<li class="chapter" data-level="9.2.1" data-path="kdes.html"><a href="kdes.html#using-the-overlap-package"><i class="fa fa-check"></i><b>9.2.1</b> Using the overlap package</a></li>
+<li class="chapter" data-level="9.2.2" data-path="kdes.html"><a href="kdes.html#using-the-activity-package"><i class="fa fa-check"></i><b>9.2.2</b> Using the activity package</a></li>
+<li class="chapter" data-level="9.2.3" data-path="kdes.html"><a href="kdes.html#using-the-circular-package"><i class="fa fa-check"></i><b>9.2.3</b> Using the circular package</a></li>
+<li class="chapter" data-level="9.2.4" data-path="kdes.html"><a href="kdes.html#comparing-the-results-and-plotting"><i class="fa fa-check"></i><b>9.2.4</b> Comparing the results and plotting</a></li>
+</ul></li>
+<li class="chapter" data-level="9.3" data-path="kdes.html"><a href="kdes.html#kdedataaggr"><i class="fa fa-check"></i><b>9.3</b> Aggregating <em>versus</em> non-aggregating data in KDEs</a></li>
+<li class="chapter" data-level="9.4" data-path="kdes.html"><a href="kdes.html#compkde"><i class="fa fa-check"></i><b>9.4</b> KDEs <em>versus</em> hierarchical models approaches</a></li>
+</ul></li>
+<li class="chapter" data-level="10" data-path="app.html"><a href="app.html"><i class="fa fa-check"></i><b>10</b> Appendix</a>
+<ul>
+<li class="chapter" data-level="10.1" data-path="app.html"><a href="app.html#simfunction"><i class="fa fa-check"></i><b>10.1</b> The <em>sim_activity</em> function</a></li>
+<li class="chapter" data-level="10.2" data-path="app.html"><a href="app.html#poisson"><i class="fa fa-check"></i><b>10.2</b> Binomial versus Other Distributions</a>
+<ul>
+<li class="chapter" data-level="10.2.1" data-path="app.html"><a href="app.html#data-preparation-1"><i class="fa fa-check"></i><b>10.2.1</b> Data preparation</a></li>
+<li class="chapter" data-level="10.2.2" data-path="app.html"><a href="app.html#trigonometric-pdf-comparison"><i class="fa fa-check"></i><b>10.2.2</b> Trigonometric PDF Comparison</a></li>
+<li class="chapter" data-level="10.2.3" data-path="app.html"><a href="app.html#cyclic-cubic-pdf-comparison"><i class="fa fa-check"></i><b>10.2.3</b> Cyclic cubic PDF Comparison</a></li>
+<li class="chapter" data-level="10.2.4" data-path="app.html"><a href="app.html#not-controlling-for-sampling-effort"><i class="fa fa-check"></i><b>10.2.4</b> Not Controlling for Sampling Effort</a></li>
+</ul></li>
+<li class="chapter" data-level="10.3" data-path="app.html"><a href="app.html#bay"><i class="fa fa-check"></i><b>10.3</b> Activity patterns in the Bayesian framework</a>
+<ul>
+<li class="chapter" data-level="10.3.1" data-path="app.html"><a href="app.html#data-preparation-2"><i class="fa fa-check"></i><b>10.3.1</b> Data Preparation</a></li>
+<li class="chapter" data-level="10.3.2" data-path="app.html"><a href="app.html#model-setup-and-fitting"><i class="fa fa-check"></i><b>10.3.2</b> Model Setup and Fitting</a></li>
+<li class="chapter" data-level="10.3.3" data-path="app.html"><a href="app.html#model-assessment"><i class="fa fa-check"></i><b>10.3.3</b> Model Assessment</a></li>
+<li class="chapter" data-level="10.3.4" data-path="app.html"><a href="app.html#model-predictions"><i class="fa fa-check"></i><b>10.3.4</b> Model Predictions</a></li>
+</ul></li>
+<li class="chapter" data-level="10.4" data-path="app.html"><a href="app.html#DielNiche"><i class="fa fa-check"></i><b>10.4</b> Link to the Diel.Niche package</a>
+<ul>
+<li class="chapter" data-level="10.4.1" data-path="app.html"><a href="app.html#data"><i class="fa fa-check"></i><b>10.4.1</b> Data</a></li>
+<li class="chapter" data-level="10.4.2" data-path="app.html"><a href="app.html#model-fitting"><i class="fa fa-check"></i><b>10.4.2</b> Model Fitting</a></li>
+<li class="chapter" data-level="10.4.3" data-path="app.html"><a href="app.html#model-predictions-1"><i class="fa fa-check"></i><b>10.4.3</b> Model Predictions</a></li>
+<li class="chapter" data-level="10.4.4" data-path="app.html"><a href="app.html#twilight-daytime-and-nighttime"><i class="fa fa-check"></i><b>10.4.4</b> Twilight, daytime, and nighttime</a></li>
+<li class="chapter" data-level="10.4.5" data-path="app.html"><a href="app.html#diel.niche"><i class="fa fa-check"></i><b>10.4.5</b> Diel.Niche</a></li>
+<li class="chapter" data-level="10.4.6" data-path="app.html"><a href="app.html#conclusion"><i class="fa fa-check"></i><b>10.4.6</b> Conclusion</a></li>
+</ul></li>
+<li class="chapter" data-level="10.5" data-path="app.html"><a href="app.html#info-session"><i class="fa fa-check"></i><b>10.5</b> Info session</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="app" class="section level1 hasAnchor" number="10">
+<h1><span class="header-section-number">Tutorial 10</span> Appendix<a href="app.html#app" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<div id="simfunction" class="section level2 hasAnchor" number="10.1">
+<h2><span class="header-section-number">10.1</span> The <em>sim_activity</em> function<a href="app.html#simfunction" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Throughout the tutorial we use the <code>sim_activity</code> function for simulating activity patterns. This function simulates realized activity patterns based on a ‘true’ activity pattern distribution density build as specified in equation 1 reported in Tutorial <a href="var.html#var">2</a> and introduced in <span class="citation">"Iannarilli et al. (<a href="references.html#ref-HMsActivity2024">2024</a>)</span>. The arguments of the function specify the following:</p>
+<ul>
+<li><code>M</code>: Numeric. Number of sampling units (e.g. sites).</li>
+<li><code>J</code>: Numeric. Number of cycles (e.g. days).</li>
+<li><code>wavelength</code>: Numeric. Length of a period (i.e. distance between identical points in a trigonometric function)</li>
+<li><code>b0</code>: Numeric. Intercept.</li>
+<li><code>b0_constant</code>: Logic. If TRUE (default), b0 is held constant; otherwise time-varying.</li>
+<li><code>tau_constant</code>: Logic. If TRUE (default), random intercept is equal to 0 and there is no variability in use among sampling units</li>
+<li><code>sdtau</code>: Numeric. Only if `tau_constant} = FALSE. Random intercept describing variability in use among sampling units coded as a Normal distribution N(0,sdtau).</li>
+<li><code>b1</code>: Numeric. Wave amplitude of first cosinusoidal curve.</li>
+<li><code>b2</code>: Numeric. Wave amplitude of second cosinusoidal curve.</li>
+<li><code>theta0</code>: Numeric. Curve-specific phaseshift for the first cosinusoidal curve.</li>
+<li><code>theta1</code>: Numeric. Curve-specific phaseshift for the second cosinusoidal curve.</li>
+<li><code>n_peak</code>: Numeric. Number of peak in activity during a period - a day - (e.g. unimodal = 1, bimodal = 2). Must be a positive integer.</li>
+<li><code>phaseshift_constant</code>: Logic. Should all the sites have a peak at the same time? (Default = TRUE).</li>
+<li><code>sd_phaseshift</code>: Numeric. Variability in timing of peak activity among sites (i.e. standard deviation of the phaseshift in the sinusoidal curve that determines an horizontal shift).</li>
+<li><code>n_sim</code>: Numeric. Number of datasets of realized detections to create.</li>
+<li><code>plot_true_act</code>: Logic. If TRUE (default), a plot of the conditional and marginal means probability of activity by occasion is returned.</li>
+</ul>
+<p>When the goal is simulating diel activity patterns, <code>wavelength</code> can be specified either as the number of hours (i.e. <code>wavelength</code> = 24) or number of minutes (i.e. <code>wavelength</code> = 1440) in the diel cycle. When <code>b2</code> = 0, the function returns a curve governed only by the first cosine term, and thus a curve with a unimodal pattern (the frequency of the first cosine term is set to 24).</p>
+<div class="sourceCode" id="cb231"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb231-1"><a href="app.html#cb231-1" tabindex="-1"></a><span class="co"># Load function</span></span>
+<span id="cb231-2"><a href="app.html#cb231-2" tabindex="-1"></a><span class="fu">source</span>(<span class="st">&quot;source_functions/sim_activity.R&quot;</span>)</span>
+<span id="cb231-3"><a href="app.html#cb231-3" tabindex="-1"></a></span>
+<span id="cb231-4"><a href="app.html#cb231-4" tabindex="-1"></a><span class="co"># Set equations&#39; parameters</span></span>
+<span id="cb231-5"><a href="app.html#cb231-5" tabindex="-1"></a>M <span class="ot">=</span> <span class="dv">100</span></span>
+<span id="cb231-6"><a href="app.html#cb231-6" tabindex="-1"></a>J <span class="ot">=</span> <span class="dv">30</span></span>
+<span id="cb231-7"><a href="app.html#cb231-7" tabindex="-1"></a>wavelength <span class="ot">=</span> <span class="dv">24</span></span>
+<span id="cb231-8"><a href="app.html#cb231-8" tabindex="-1"></a>n_peak <span class="ot">=</span> <span class="dv">2</span></span>
+<span id="cb231-9"><a href="app.html#cb231-9" tabindex="-1"></a>b0 <span class="ot">=</span> <span class="sc">-</span><span class="dv">3</span></span>
+<span id="cb231-10"><a href="app.html#cb231-10" tabindex="-1"></a>b1 <span class="ot">=</span> <span class="dv">1</span> </span>
+<span id="cb231-11"><a href="app.html#cb231-11" tabindex="-1"></a>b2 <span class="ot">=</span> <span class="dv">0</span></span>
+<span id="cb231-12"><a href="app.html#cb231-12" tabindex="-1"></a>theta0 <span class="ot">=</span> <span class="dv">3</span></span>
+<span id="cb231-13"><a href="app.html#cb231-13" tabindex="-1"></a>theta1 <span class="ot">=</span> <span class="dv">2</span> </span>
+<span id="cb231-14"><a href="app.html#cb231-14" tabindex="-1"></a>sd_tau <span class="ot">=</span> <span class="dv">1</span></span>
+<span id="cb231-15"><a href="app.html#cb231-15" tabindex="-1"></a>sd_gamma <span class="ot">=</span> <span class="fl">0.3</span></span>
+<span id="cb231-16"><a href="app.html#cb231-16" tabindex="-1"></a>time <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">23</span>, <span class="at">length.out =</span> <span class="dv">100</span>)</span>
+<span id="cb231-17"><a href="app.html#cb231-17" tabindex="-1"></a></span>
+<span id="cb231-18"><a href="app.html#cb231-18" tabindex="-1"></a><span class="co"># simulate data</span></span>
+<span id="cb231-19"><a href="app.html#cb231-19" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">sim_activity</span>(<span class="at">M =</span> M, </span>
+<span id="cb231-20"><a href="app.html#cb231-20" tabindex="-1"></a>                     <span class="at">J =</span> J, </span>
+<span id="cb231-21"><a href="app.html#cb231-21" tabindex="-1"></a>                     <span class="at">wavelength =</span> wavelength, </span>
+<span id="cb231-22"><a href="app.html#cb231-22" tabindex="-1"></a>                     <span class="at">n_peak =</span> n_peak, </span>
+<span id="cb231-23"><a href="app.html#cb231-23" tabindex="-1"></a>                     <span class="at">n_sim =</span> <span class="dv">1</span>, </span>
+<span id="cb231-24"><a href="app.html#cb231-24" tabindex="-1"></a>                     <span class="at">b0 =</span> b0, </span>
+<span id="cb231-25"><a href="app.html#cb231-25" tabindex="-1"></a>                     <span class="at">b0_constant =</span> <span class="cn">TRUE</span>, <span class="co"># common intercept</span></span>
+<span id="cb231-26"><a href="app.html#cb231-26" tabindex="-1"></a>                     <span class="at">tau_constant =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb231-27"><a href="app.html#cb231-27" tabindex="-1"></a>                     <span class="at">sdtau =</span> sd_tau, <span class="co"># ~site-specific intercept</span></span>
+<span id="cb231-28"><a href="app.html#cb231-28" tabindex="-1"></a>                     <span class="at">b1 =</span> b1, </span>
+<span id="cb231-29"><a href="app.html#cb231-29" tabindex="-1"></a>                     <span class="at">b2 =</span> b2, <span class="co"># amplitude of the cosine terms </span></span>
+<span id="cb231-30"><a href="app.html#cb231-30" tabindex="-1"></a>                     <span class="at">theta0 =</span> theta0, </span>
+<span id="cb231-31"><a href="app.html#cb231-31" tabindex="-1"></a>                     <span class="at">theta1 =</span> theta1, <span class="co"># common phaseshifts for the cosine terms</span></span>
+<span id="cb231-32"><a href="app.html#cb231-32" tabindex="-1"></a>                     <span class="at">phaseshift_constant =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb231-33"><a href="app.html#cb231-33" tabindex="-1"></a>                     <span class="at">sd_phaseshift =</span> sd_gamma, <span class="co"># site-specific phaseshift (equal for both cosine terms)</span></span>
+<span id="cb231-34"><a href="app.html#cb231-34" tabindex="-1"></a>                     <span class="at">plot_true_act =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<p><img src="HMsActivity_files/figure-html/app1-1.png" width="672" /></p>
+<p>When <code>b2</code> differs from zero, the function returns a bimodal pattern. The presence of two cosine terms allows us to simulate curves with the two peaks having different heights and, thus, resembling real activity patterns.</p>
+<div class="sourceCode" id="cb232"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb232-1"><a href="app.html#cb232-1" tabindex="-1"></a><span class="co"># Set equations&#39; parameters (all others as used before)</span></span>
+<span id="cb232-2"><a href="app.html#cb232-2" tabindex="-1"></a>n_peak <span class="ot">=</span> <span class="dv">2</span></span>
+<span id="cb232-3"><a href="app.html#cb232-3" tabindex="-1"></a>b1 <span class="ot">=</span> <span class="fl">0.2</span></span>
+<span id="cb232-4"><a href="app.html#cb232-4" tabindex="-1"></a>b2 <span class="ot">=</span> <span class="fl">0.6</span></span>
+<span id="cb232-5"><a href="app.html#cb232-5" tabindex="-1"></a>theta0 <span class="ot">=</span> <span class="dv">1</span></span>
+<span id="cb232-6"><a href="app.html#cb232-6" tabindex="-1"></a>theta1 <span class="ot">=</span> <span class="dv">2</span> </span>
+<span id="cb232-7"><a href="app.html#cb232-7" tabindex="-1"></a></span>
+<span id="cb232-8"><a href="app.html#cb232-8" tabindex="-1"></a><span class="co"># simulate data</span></span>
+<span id="cb232-9"><a href="app.html#cb232-9" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">sim_activity</span>(<span class="at">M =</span> M, </span>
+<span id="cb232-10"><a href="app.html#cb232-10" tabindex="-1"></a>                     <span class="at">J =</span> J, </span>
+<span id="cb232-11"><a href="app.html#cb232-11" tabindex="-1"></a>                     <span class="at">wavelength =</span> wavelength, </span>
+<span id="cb232-12"><a href="app.html#cb232-12" tabindex="-1"></a>                     <span class="at">n_peak =</span> n_peak, </span>
+<span id="cb232-13"><a href="app.html#cb232-13" tabindex="-1"></a>                     <span class="at">n_sim =</span> <span class="dv">1</span>, </span>
+<span id="cb232-14"><a href="app.html#cb232-14" tabindex="-1"></a>                     <span class="at">b0 =</span> b0, </span>
+<span id="cb232-15"><a href="app.html#cb232-15" tabindex="-1"></a>                     <span class="at">b0_constant =</span> <span class="cn">TRUE</span>, <span class="co"># common intercept</span></span>
+<span id="cb232-16"><a href="app.html#cb232-16" tabindex="-1"></a>                     <span class="at">tau_constant =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb232-17"><a href="app.html#cb232-17" tabindex="-1"></a>                     <span class="at">sdtau =</span> sd_tau, <span class="co"># ~site-specific intercept</span></span>
+<span id="cb232-18"><a href="app.html#cb232-18" tabindex="-1"></a>                     <span class="at">b1 =</span> b1, </span>
+<span id="cb232-19"><a href="app.html#cb232-19" tabindex="-1"></a>                     <span class="at">b2 =</span> b2, <span class="co"># amplitude of the cosine terms </span></span>
+<span id="cb232-20"><a href="app.html#cb232-20" tabindex="-1"></a>                     <span class="at">theta0 =</span> theta0, </span>
+<span id="cb232-21"><a href="app.html#cb232-21" tabindex="-1"></a>                     <span class="at">theta1 =</span> theta1, <span class="co"># common phaseshifts for the cosine terms</span></span>
+<span id="cb232-22"><a href="app.html#cb232-22" tabindex="-1"></a>                     <span class="at">phaseshift_constant =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb232-23"><a href="app.html#cb232-23" tabindex="-1"></a>                     <span class="at">sd_phaseshift =</span> sd_gamma, <span class="co"># site-specific phaseshift (equal for both cosine terms)</span></span>
+<span id="cb232-24"><a href="app.html#cb232-24" tabindex="-1"></a>                     <span class="at">plot_true_act =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<p><img src="HMsActivity_files/figure-html/app2-1.png" width="672" /></p>
+<p>Activity patterns having two peaks that are the same height can be simulated setting <code>b1</code> = 0, <code>n_peak</code> = 2, and <code>b2</code> to a value other than zero. These choices silence the first cosine term (with frequency of 24) and impose single cosine with a frequency of 12.</p>
+<div class="sourceCode" id="cb233"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb233-1"><a href="app.html#cb233-1" tabindex="-1"></a><span class="co"># Set equations&#39; parameters (all others as used before)</span></span>
+<span id="cb233-2"><a href="app.html#cb233-2" tabindex="-1"></a>n_peak <span class="ot">=</span> <span class="dv">2</span></span>
+<span id="cb233-3"><a href="app.html#cb233-3" tabindex="-1"></a>b1 <span class="ot">=</span> <span class="dv">0</span> </span>
+<span id="cb233-4"><a href="app.html#cb233-4" tabindex="-1"></a>b2 <span class="ot">=</span> <span class="dv">3</span></span>
+<span id="cb233-5"><a href="app.html#cb233-5" tabindex="-1"></a>theta0 <span class="ot">=</span> <span class="dv">2</span></span>
+<span id="cb233-6"><a href="app.html#cb233-6" tabindex="-1"></a>theta1 <span class="ot">=</span> <span class="dv">2</span> </span>
+<span id="cb233-7"><a href="app.html#cb233-7" tabindex="-1"></a></span>
+<span id="cb233-8"><a href="app.html#cb233-8" tabindex="-1"></a><span class="co"># simulate data</span></span>
+<span id="cb233-9"><a href="app.html#cb233-9" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">sim_activity</span>(<span class="at">M =</span> M, </span>
+<span id="cb233-10"><a href="app.html#cb233-10" tabindex="-1"></a>                     <span class="at">J =</span> J, </span>
+<span id="cb233-11"><a href="app.html#cb233-11" tabindex="-1"></a>                     <span class="at">wavelength =</span> wavelength, </span>
+<span id="cb233-12"><a href="app.html#cb233-12" tabindex="-1"></a>                     <span class="at">n_peak =</span> n_peak, </span>
+<span id="cb233-13"><a href="app.html#cb233-13" tabindex="-1"></a>                     <span class="at">n_sim =</span> <span class="dv">1</span>, </span>
+<span id="cb233-14"><a href="app.html#cb233-14" tabindex="-1"></a>                     <span class="at">b0 =</span> b0, </span>
+<span id="cb233-15"><a href="app.html#cb233-15" tabindex="-1"></a>                     <span class="at">b0_constant =</span> <span class="cn">TRUE</span>, <span class="co"># common intercept</span></span>
+<span id="cb233-16"><a href="app.html#cb233-16" tabindex="-1"></a>                     <span class="at">tau_constant =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb233-17"><a href="app.html#cb233-17" tabindex="-1"></a>                     <span class="at">sdtau =</span> sd_tau, <span class="co"># ~site-specific intercept</span></span>
+<span id="cb233-18"><a href="app.html#cb233-18" tabindex="-1"></a>                     <span class="at">b1 =</span> b1, </span>
+<span id="cb233-19"><a href="app.html#cb233-19" tabindex="-1"></a>                     <span class="at">b2 =</span> b2, <span class="co"># amplitude of the cosine terms </span></span>
+<span id="cb233-20"><a href="app.html#cb233-20" tabindex="-1"></a>                     <span class="at">theta0 =</span> theta0, </span>
+<span id="cb233-21"><a href="app.html#cb233-21" tabindex="-1"></a>                     <span class="at">theta1 =</span> theta1, <span class="co"># common phaseshifts for the cosine terms</span></span>
+<span id="cb233-22"><a href="app.html#cb233-22" tabindex="-1"></a>                     <span class="at">phaseshift_constant =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb233-23"><a href="app.html#cb233-23" tabindex="-1"></a>                     <span class="at">sd_phaseshift =</span> sd_gamma, <span class="co"># site-specific phaseshift (equal for both cosine terms)</span></span>
+<span id="cb233-24"><a href="app.html#cb233-24" tabindex="-1"></a>                     <span class="at">plot_true_act =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<p><img src="HMsActivity_files/figure-html/app3-1.png" width="672" /></p>
+</div>
+<div id="poisson" class="section level2 hasAnchor" number="10.2">
+<h2><span class="header-section-number">10.2</span> Binomial versus Other Distributions<a href="app.html#poisson" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>How we aggregate observations of activity determines how we model our data. <span class="citation">Rees et al. (<a href="references.html#ref-Rees2024">2024</a>)</span> modeled animal diel activity using a generalized additive modeling approach with a negative binomial distribution after determining there was overdispersion using a Poisson distribution. The Poisson probability density function (PDF) is a special case of the Negative Binomial. Throughout, we have used the binomial probability mass function to model diel activity in both trigonometric GLMMs and cyclic cubic splines HGAMs. The Poisson distribution is in fact a special case of the binomial when the number of ‘trials’ is very large. As such, we can gain similar inference using these different distributions, but we need to think about how sampling effort is accounted for.</p>
+<p>In the binomial application, the zeros indicate that a camera was active on a given day, but there was no detection of the species. When using the Poisson or negative binomial distribution to model the counts of detections, we need to include sampling effort (e.g., <span class="citation">Rees et al. (<a href="references.html#ref-Rees2024">2024</a>)</span>). We can do this as an offset within the model, which changes our inference from the expected number of counts to the expected number of counts per unit of effort (i.e. thus modeling a rate). If setup this way, results using these different probability distributions should be quite similar (depending on sample size). There however may be computational benefits modeling counts at very large sample sizes.</p>
+<p>Below, we demonstrate the equivalence between using the binomial and Poisson probability distributions when fitting animal activity data using trigonometric and cyclic spline hierarchical models.</p>
+<div id="data-preparation-1" class="section level3 hasAnchor" number="10.2.1">
+<h3><span class="header-section-number">10.2.1</span> Data preparation<a href="app.html#data-preparation-1" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>We use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, <span class="citation">(<a href="references.html#ref-Iannarilliea2021">Iannarilli et al. 2021</a>)</span>. We use the same data records of American black bear (<em>Ursus americanus</em>) as done in the Tutorial <a href="cov.html#cat">6.1</a>. However, we ignore the season covariate for simplicity and just focus on modeling the fall data. We first load the <code>occasions_cbind</code> object that we saved in the Tutorial <a href="cov.html#cat">6.1</a>, then subset the data to only include records related to the Fall season.</p>
+<div class="sourceCode" id="cb234"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb234-1"><a href="app.html#cb234-1" tabindex="-1"></a><span class="co"># Load Libraries</span></span>
+<span id="cb234-2"><a href="app.html#cb234-2" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">ls</span>())</span>
+<span id="cb234-3"><a href="app.html#cb234-3" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">129</span>)</span>
+<span id="cb234-4"><a href="app.html#cb234-4" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb234-5"><a href="app.html#cb234-5" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span>
+<span id="cb234-6"><a href="app.html#cb234-6" tabindex="-1"></a><span class="fu">library</span>(GLMMadaptive)</span>
+<span id="cb234-7"><a href="app.html#cb234-7" tabindex="-1"></a><span class="fu">library</span>(mgcv)</span>
+<span id="cb234-8"><a href="app.html#cb234-8" tabindex="-1"></a><span class="fu">library</span>(ggpubr)</span>
+<span id="cb234-9"><a href="app.html#cb234-9" tabindex="-1"></a></span>
+<span id="cb234-10"><a href="app.html#cb234-10" tabindex="-1"></a><span class="co"># Load data</span></span>
+<span id="cb234-11"><a href="app.html#cb234-11" tabindex="-1"></a>occasions_cbind <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">&quot;data_output/occasions_cbind_Ursus_americanus_seasons.csv&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb234-12"><a href="app.html#cb234-12" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Site =</span> <span class="fu">as.factor</span>(Site))</span>
+<span id="cb234-13"><a href="app.html#cb234-13" tabindex="-1"></a></span>
+<span id="cb234-14"><a href="app.html#cb234-14" tabindex="-1"></a><span class="co">#Subset the data to the Fall data only, thus removing Spring data.</span></span>
+<span id="cb234-15"><a href="app.html#cb234-15" tabindex="-1"></a>y_fall <span class="ot">&lt;-</span>  occasions_cbind[<span class="fu">which</span>(occasions_cbind<span class="sc">$</span>Season <span class="sc">==</span> <span class="st">&quot;F&quot;</span>),]</span>
+<span id="cb234-16"><a href="app.html#cb234-16" tabindex="-1"></a><span class="fu">head</span>(y_fall)</span></code></pre></div>
+<pre><code>##     X Site Time Season success failure
+## 1   1  10A    0      F       0     100
+## 3   3  10A    1      F       0     100
+## 5   5  10A    2      F       0     100
+## 7   7  10A    3      F       0     100
+## 9   9  10A    4      F       0     100
+## 11 11  10A    5      F       0     100</code></pre>
+<div class="sourceCode" id="cb236"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb236-1"><a href="app.html#cb236-1" tabindex="-1"></a><span class="co"># Create a column of the total number of possible detections (i.e. trials) to be used</span></span>
+<span id="cb236-2"><a href="app.html#cb236-2" tabindex="-1"></a><span class="co"># as the offset when controlling for sampling effort when using the Poisson PDF.</span></span>
+<span id="cb236-3"><a href="app.html#cb236-3" tabindex="-1"></a>y_fall<span class="sc">$</span>total <span class="ot">&lt;-</span>  y_fall<span class="sc">$</span>success <span class="sc">+</span> y_fall<span class="sc">$</span>failure</span></code></pre></div>
+</div>
+<div id="trigonometric-pdf-comparison" class="section level3 hasAnchor" number="10.2.2">
+<h3><span class="header-section-number">10.2.2</span> Trigonometric PDF Comparison<a href="app.html#trigonometric-pdf-comparison" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Fit the model using a binomial distribution and then fit the equivalent count-based model with an offset to control for sampling effort.</p>
+<div class="sourceCode" id="cb237"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb237-1"><a href="app.html#cb237-1" tabindex="-1"></a><span class="co"># Fit the Binomial model</span></span>
+<span id="cb237-2"><a href="app.html#cb237-2" tabindex="-1"></a>trig_rand_int <span class="ot">&lt;-</span> <span class="fu">mixed_model</span>(<span class="at">fixed =</span> <span class="fu">cbind</span>(success, failure) <span class="sc">~</span> </span>
+<span id="cb237-3"><a href="app.html#cb237-3" tabindex="-1"></a>                                              <span class="fu">cos</span>(<span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">*</span> Time<span class="sc">/</span><span class="dv">24</span>) <span class="sc">+</span></span>
+<span id="cb237-4"><a href="app.html#cb237-4" tabindex="-1"></a>                                              <span class="fu">sin</span>(<span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">*</span> Time<span class="sc">/</span><span class="dv">24</span>) <span class="sc">+</span></span>
+<span id="cb237-5"><a href="app.html#cb237-5" tabindex="-1"></a>                                              <span class="fu">sin</span>(<span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">*</span> Time<span class="sc">/</span><span class="dv">12</span>) <span class="sc">+</span></span>
+<span id="cb237-6"><a href="app.html#cb237-6" tabindex="-1"></a>                                              <span class="fu">cos</span>(<span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">*</span> Time<span class="sc">/</span><span class="dv">12</span>) ,</span>
+<span id="cb237-7"><a href="app.html#cb237-7" tabindex="-1"></a>            <span class="at">random =</span> <span class="sc">~</span>  <span class="dv">1</span>  <span class="sc">|</span>   Site,</span>
+<span id="cb237-8"><a href="app.html#cb237-8" tabindex="-1"></a>            <span class="at">data =</span> y_fall, <span class="at">family =</span> <span class="fu">binomial</span>(), <span class="at">iter_EM =</span> <span class="dv">0</span>)</span>
+<span id="cb237-9"><a href="app.html#cb237-9" tabindex="-1"></a><span class="fu">summary</span>(trig_rand_int)</span></code></pre></div>
+<pre><code>## 
+## Call:
+## mixed_model(fixed = cbind(success, failure) ~ cos(2 * pi * Time/24) + 
+##     sin(2 * pi * Time/24) + sin(2 * pi * Time/12) + cos(2 * pi * 
+##     Time/12), random = ~1 | Site, data = y_fall, family = binomial(), 
+##     iter_EM = 0)
+## 
+## Data Descriptives:
+## Number of Observations: 2400
+## Number of Groups: 100 
+## 
+## Model:
+##  family: binomial
+##  link: logit 
+## 
+## Fit statistics:
+##    log.Lik      AIC      BIC
+##  -727.3341 1466.668 1482.299
+## 
+## Random effects covariance matrix:
+##               StdDev
+## (Intercept) 1.104286
+## 
+## Fixed effects:
+##                       Estimate Std.Err  z-value  p-value
+## (Intercept)            -7.5021  0.1610 -46.6107  &lt; 1e-04
+## cos(2 * pi * Time/24)   0.4811  0.1102   4.3649  &lt; 1e-04
+## sin(2 * pi * Time/24)  -0.5557  0.0989  -5.6179  &lt; 1e-04
+## sin(2 * pi * Time/12)  -0.1698  0.0980  -1.7323 0.083226
+## cos(2 * pi * Time/12)  -0.2360  0.0987  -2.3921 0.016751
+## 
+## Integration:
+## method: adaptive Gauss-Hermite quadrature rule
+## quadrature points: 11
+## 
+## Optimization:
+## method: quasi-Newton
+## converged: TRUE</code></pre>
+<div class="sourceCode" id="cb239"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb239-1"><a href="app.html#cb239-1" tabindex="-1"></a><span class="co">#Fit Poisson Model with log offset using the variable &#39;total&#39;</span></span>
+<span id="cb239-2"><a href="app.html#cb239-2" tabindex="-1"></a>trig_rand_int_P <span class="ot">&lt;-</span> <span class="fu">mixed_model</span>(<span class="at">fixed =</span> success <span class="sc">~</span> </span>
+<span id="cb239-3"><a href="app.html#cb239-3" tabindex="-1"></a>                                              <span class="fu">cos</span>(<span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">*</span> Time<span class="sc">/</span><span class="dv">24</span>) <span class="sc">+</span></span>
+<span id="cb239-4"><a href="app.html#cb239-4" tabindex="-1"></a>                                              <span class="fu">sin</span>(<span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">*</span> Time<span class="sc">/</span><span class="dv">24</span>) <span class="sc">+</span></span>
+<span id="cb239-5"><a href="app.html#cb239-5" tabindex="-1"></a>                                              <span class="fu">sin</span>(<span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">*</span> Time<span class="sc">/</span><span class="dv">12</span>) <span class="sc">+</span></span>
+<span id="cb239-6"><a href="app.html#cb239-6" tabindex="-1"></a>                                              <span class="fu">cos</span>(<span class="dv">2</span> <span class="sc">*</span> pi <span class="sc">*</span> Time<span class="sc">/</span><span class="dv">12</span>) <span class="sc">+</span> <span class="fu">offset</span>(<span class="fu">log</span>(total)),</span>
+<span id="cb239-7"><a href="app.html#cb239-7" tabindex="-1"></a>            <span class="at">random =</span> <span class="sc">~</span>  <span class="dv">1</span>  <span class="sc">|</span>   Site,</span>
+<span id="cb239-8"><a href="app.html#cb239-8" tabindex="-1"></a>            <span class="at">data =</span> y_fall, <span class="at">family =</span> <span class="fu">poisson</span>(), <span class="at">iter_EM =</span> <span class="dv">0</span>)</span>
+<span id="cb239-9"><a href="app.html#cb239-9" tabindex="-1"></a><span class="fu">summary</span>(trig_rand_int_P)</span></code></pre></div>
+<pre><code>## 
+## Call:
+## mixed_model(fixed = success ~ cos(2 * pi * Time/24) + sin(2 * 
+##     pi * Time/24) + sin(2 * pi * Time/12) + cos(2 * pi * Time/12) + 
+##     offset(log(total)), random = ~1 | Site, data = y_fall, family = poisson(), 
+##     iter_EM = 0)
+## 
+## Data Descriptives:
+## Number of Observations: 2400
+## Number of Groups: 100 
+## 
+## Model:
+##  family: poisson
+##  link: log 
+## 
+## Fit statistics:
+##    log.Lik      AIC      BIC
+##  -727.3675 1466.735 1482.366
+## 
+## Random effects covariance matrix:
+##               StdDev
+## (Intercept) 1.101219
+## 
+## Fixed effects:
+##                       Estimate Std.Err  z-value  p-value
+## (Intercept)            -7.5017  0.1606 -46.6996  &lt; 1e-04
+## cos(2 * pi * Time/24)   0.4799  0.1101   4.3582  &lt; 1e-04
+## sin(2 * pi * Time/24)  -0.5540  0.0988  -5.6074  &lt; 1e-04
+## sin(2 * pi * Time/12)  -0.1690  0.0979  -1.7259 0.084364
+## cos(2 * pi * Time/12)  -0.2353  0.0985  -2.3876 0.016960
+## 
+## Integration:
+## method: adaptive Gauss-Hermite quadrature rule
+## quadrature points: 11
+## 
+## Optimization:
+## method: quasi-Newton
+## converged: TRUE</code></pre>
+<p>First, note the similarity in the coefficient estimates. Next, we can predict the diel activity for each model. Note that to be equivalent, we need to consider the same predictions for 1 unit of sampling effort, thus we use ‘total = 1’.</p>
+<div class="sourceCode" id="cb241"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb241-1"><a href="app.html#cb241-1" tabindex="-1"></a>newdat <span class="ot">&lt;-</span> <span class="fu">with</span>(occasions_cbind, <span class="fu">expand.grid</span>(<span class="at">Time =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">24</span>, <span class="at">length.out =</span> <span class="dv">24</span>), <span class="at">total=</span><span class="dv">1</span>))</span>
+<span id="cb241-2"><a href="app.html#cb241-2" tabindex="-1"></a>pred_rand_int <span class="ot">&lt;-</span> <span class="fu">effectPlotData</span>(trig_rand_int, newdat, <span class="at">marginal =</span> <span class="cn">FALSE</span>) </span>
+<span id="cb241-3"><a href="app.html#cb241-3" tabindex="-1"></a>pred_rand_int_P <span class="ot">&lt;-</span> <span class="fu">effectPlotData</span>(trig_rand_int_P, newdat, <span class="at">marginal =</span> <span class="cn">FALSE</span>) </span></code></pre></div>
+<p>Now, we can plot the activity predictions from both models.</p>
+<div class="sourceCode" id="cb242"><pre class="sourceCode r fold-hide"><code class="sourceCode r"><span id="cb242-1"><a href="app.html#cb242-1" tabindex="-1"></a><span class="co"># plot 1</span></span>
+<span id="cb242-2"><a href="app.html#cb242-2" tabindex="-1"></a>pl_trig1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(pred_rand_int, <span class="fu">aes</span>(Time, <span class="fu">plogis</span>(pred))) <span class="sc">+</span></span>
+<span id="cb242-3"><a href="app.html#cb242-3" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> <span class="fu">plogis</span>(low), <span class="at">ymax =</span> <span class="fu">plogis</span>(upp)), <span class="at">alpha =</span> <span class="fl">0.1</span>, <span class="at">linewidth =</span> <span class="fl">0.25</span>) <span class="sc">+</span></span>
+<span id="cb242-4"><a href="app.html#cb242-4" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(), <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb242-5"><a href="app.html#cb242-5" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;Time of Day (Hour)&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Predicted Activity Pattern </span><span class="sc">\n</span><span class="st"> (probability)&quot;</span>, <span class="at">title =</span> <span class="st">&quot;B: Trigonometric Binomial Model&quot;</span>)<span class="sc">+</span></span>
+<span id="cb242-6"><a href="app.html#cb242-6" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()<span class="sc">+</span></span>
+<span id="cb242-7"><a href="app.html#cb242-7" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;bottom&quot;</span>,</span>
+<span id="cb242-8"><a href="app.html#cb242-8" tabindex="-1"></a>        <span class="at">legend.title =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb242-9"><a href="app.html#cb242-9" tabindex="-1"></a>        <span class="at">legend.text =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">10</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb242-10"><a href="app.html#cb242-10" tabindex="-1"></a>        <span class="at">legend.margin=</span><span class="fu">margin</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>),</span>
+<span id="cb242-11"><a href="app.html#cb242-11" tabindex="-1"></a>        <span class="at">legend.box.margin=</span><span class="fu">margin</span>(<span class="sc">-</span><span class="dv">5</span>,<span class="sc">-</span><span class="dv">10</span>,<span class="sc">-</span><span class="dv">10</span>,<span class="sc">-</span><span class="dv">10</span>),</span>
+<span id="cb242-12"><a href="app.html#cb242-12" tabindex="-1"></a>        <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">10</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb242-13"><a href="app.html#cb242-13" tabindex="-1"></a>        <span class="at">axis.line =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb242-14"><a href="app.html#cb242-14" tabindex="-1"></a>        <span class="at">axis.ticks =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb242-15"><a href="app.html#cb242-15" tabindex="-1"></a>        <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">9</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb242-16"><a href="app.html#cb242-16" tabindex="-1"></a>        <span class="at">panel.grid.minor.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb242-17"><a href="app.html#cb242-17" tabindex="-1"></a>        <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb242-18"><a href="app.html#cb242-18" tabindex="-1"></a>        <span class="at">panel.grid.major.x =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;lightgrey&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;dashed&#39;</span>, <span class="at">linewidth=</span><span class="fl">0.5</span>),</span>
+<span id="cb242-19"><a href="app.html#cb242-19" tabindex="-1"></a>        <span class="at">panel.grid.minor.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb242-20"><a href="app.html#cb242-20" tabindex="-1"></a>        <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">9</span>, <span class="at">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="at">face =</span> <span class="st">&quot;bold&quot;</span>, <span class="at">hjust =</span> <span class="dv">0</span>))<span class="sc">+</span></span>
+<span id="cb242-21"><a href="app.html#cb242-21" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">23</span>,<span class="at">length.out=</span><span class="dv">7</span>), <span class="at">labels=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">24</span>,<span class="dv">4</span>))</span>
+<span id="cb242-22"><a href="app.html#cb242-22" tabindex="-1"></a></span>
+<span id="cb242-23"><a href="app.html#cb242-23" tabindex="-1"></a><span class="co"># plot 2</span></span>
+<span id="cb242-24"><a href="app.html#cb242-24" tabindex="-1"></a>pl_trig1_P <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(pred_rand_int_P, <span class="fu">aes</span>(Time, <span class="fu">plogis</span>(pred))) <span class="sc">+</span></span>
+<span id="cb242-25"><a href="app.html#cb242-25" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> <span class="fu">plogis</span>(low), <span class="at">ymax =</span> <span class="fu">plogis</span>(upp)), <span class="at">alpha =</span> <span class="fl">0.1</span>, <span class="at">linewidth =</span> <span class="fl">0.25</span>) <span class="sc">+</span></span>
+<span id="cb242-26"><a href="app.html#cb242-26" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(), <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb242-27"><a href="app.html#cb242-27" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;Time of Day (Hour)&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Predicted Activity Pattern </span><span class="sc">\n</span><span class="st"> (probability)&quot;</span>, <span class="at">title =</span> <span class="st">&quot;A: Trigonometric Poisson Model &quot;</span>)<span class="sc">+</span></span>
+<span id="cb242-28"><a href="app.html#cb242-28" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()<span class="sc">+</span></span>
+<span id="cb242-29"><a href="app.html#cb242-29" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;bottom&quot;</span>,</span>
+<span id="cb242-30"><a href="app.html#cb242-30" tabindex="-1"></a>        <span class="at">legend.title =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb242-31"><a href="app.html#cb242-31" tabindex="-1"></a>        <span class="at">legend.text =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">10</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb242-32"><a href="app.html#cb242-32" tabindex="-1"></a>        <span class="at">legend.margin=</span><span class="fu">margin</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>),</span>
+<span id="cb242-33"><a href="app.html#cb242-33" tabindex="-1"></a>        <span class="at">legend.box.margin=</span><span class="fu">margin</span>(<span class="sc">-</span><span class="dv">5</span>,<span class="sc">-</span><span class="dv">10</span>,<span class="sc">-</span><span class="dv">10</span>,<span class="sc">-</span><span class="dv">10</span>),</span>
+<span id="cb242-34"><a href="app.html#cb242-34" tabindex="-1"></a>        <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">10</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb242-35"><a href="app.html#cb242-35" tabindex="-1"></a>        <span class="at">axis.line =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb242-36"><a href="app.html#cb242-36" tabindex="-1"></a>        <span class="at">axis.ticks =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb242-37"><a href="app.html#cb242-37" tabindex="-1"></a>        <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">9</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb242-38"><a href="app.html#cb242-38" tabindex="-1"></a>        <span class="at">panel.grid.minor.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb242-39"><a href="app.html#cb242-39" tabindex="-1"></a>        <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb242-40"><a href="app.html#cb242-40" tabindex="-1"></a>        <span class="at">panel.grid.major.x =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;lightgrey&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;dashed&#39;</span>, <span class="at">linewidth=</span><span class="fl">0.5</span>),</span>
+<span id="cb242-41"><a href="app.html#cb242-41" tabindex="-1"></a>        <span class="at">panel.grid.minor.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb242-42"><a href="app.html#cb242-42" tabindex="-1"></a>        <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">9</span>, <span class="at">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="at">face =</span> <span class="st">&quot;bold&quot;</span>, <span class="at">hjust =</span> <span class="dv">0</span>))<span class="sc">+</span></span>
+<span id="cb242-43"><a href="app.html#cb242-43" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">23</span>,<span class="at">length.out=</span><span class="dv">7</span>), <span class="at">labels=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">24</span>,<span class="dv">4</span>)) </span>
+<span id="cb242-44"><a href="app.html#cb242-44" tabindex="-1"></a><span class="fu">ggarrange</span>(pl_trig1_P, pl_trig1)</span></code></pre></div>
+<p><img src="HMsActivity_files/figure-html/pdf4-1.png" width="672" /></p>
+<p>We can see that the predictions are equivalent.</p>
+</div>
+<div id="cyclic-cubic-pdf-comparison" class="section level3 hasAnchor" number="10.2.3">
+<h3><span class="header-section-number">10.2.3</span> Cyclic cubic PDF Comparison<a href="app.html#cyclic-cubic-pdf-comparison" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Now, let’s do the same comparison when fitting models in a generalized additive model framework.</p>
+<div class="sourceCode" id="cb243"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb243-1"><a href="app.html#cb243-1" tabindex="-1"></a><span class="co"># Fit binomial model</span></span>
+<span id="cb243-2"><a href="app.html#cb243-2" tabindex="-1"></a>mod_cycl <span class="ot">&lt;-</span> <span class="fu">bam</span>(<span class="fu">cbind</span>(success, failure) <span class="sc">~</span> </span>
+<span id="cb243-3"><a href="app.html#cb243-3" tabindex="-1"></a>                   <span class="fu">s</span>(Time, <span class="at">bs =</span> <span class="st">&quot;cc&quot;</span>, <span class="at">k =</span> <span class="dv">12</span>) <span class="sc">+</span> </span>
+<span id="cb243-4"><a href="app.html#cb243-4" tabindex="-1"></a>                   <span class="fu">s</span>(Site, <span class="at">bs =</span> <span class="st">&quot;re&quot;</span>), </span>
+<span id="cb243-5"><a href="app.html#cb243-5" tabindex="-1"></a>                 <span class="at">knots =</span> <span class="fu">list</span>(<span class="at">Time =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">23</span>)),</span>
+<span id="cb243-6"><a href="app.html#cb243-6" tabindex="-1"></a>                 <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>, </span>
+<span id="cb243-7"><a href="app.html#cb243-7" tabindex="-1"></a>                 <span class="at">data =</span> y_fall)</span>
+<span id="cb243-8"><a href="app.html#cb243-8" tabindex="-1"></a></span>
+<span id="cb243-9"><a href="app.html#cb243-9" tabindex="-1"></a><span class="co"># Predict activity patterns</span></span>
+<span id="cb243-10"><a href="app.html#cb243-10" tabindex="-1"></a>newdat <span class="ot">&lt;-</span> <span class="fu">with</span>(occasions_cbind, <span class="fu">expand.grid</span>(<span class="at">Time =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">24</span>, <span class="at">length.out=</span><span class="dv">24</span>),<span class="at">total=</span><span class="dv">1</span>, </span>
+<span id="cb243-11"><a href="app.html#cb243-11" tabindex="-1"></a>                                          <span class="at">Site =</span> <span class="st">&quot;7B&quot;</span>)) <span class="co">#Station doesn&#39;t matter</span></span>
+<span id="cb243-12"><a href="app.html#cb243-12" tabindex="-1"></a></span>
+<span id="cb243-13"><a href="app.html#cb243-13" tabindex="-1"></a><span class="co"># Create predictions and confidence intervals</span></span>
+<span id="cb243-14"><a href="app.html#cb243-14" tabindex="-1"></a>cycl_pred <span class="ot">&lt;-</span> <span class="fu">predict.bam</span>(mod_cycl, <span class="at">newdata =</span> newdat,  <span class="at">exclude =</span> <span class="st">&quot;s(Site)&quot;</span>, <span class="at">se.fit =</span> <span class="cn">TRUE</span>, <span class="at">type =</span> <span class="st">&quot;link&quot;</span>) </span>
+<span id="cb243-15"><a href="app.html#cb243-15" tabindex="-1"></a>cycl_pred<span class="sc">$</span>low <span class="ot">&lt;-</span> cycl_pred<span class="sc">$</span>fit <span class="sc">-</span> (<span class="fl">1.96</span> <span class="sc">*</span> cycl_pred<span class="sc">$</span>se.fit)</span>
+<span id="cb243-16"><a href="app.html#cb243-16" tabindex="-1"></a>cycl_pred<span class="sc">$</span>upp <span class="ot">&lt;-</span> cycl_pred<span class="sc">$</span>fit <span class="sc">+</span> (<span class="fl">1.96</span> <span class="sc">*</span> cycl_pred<span class="sc">$</span>se.fit)</span>
+<span id="cb243-17"><a href="app.html#cb243-17" tabindex="-1"></a>cycl_pred<span class="sc">$</span>Time <span class="ot">&lt;-</span> newdat<span class="sc">$</span>Time</span>
+<span id="cb243-18"><a href="app.html#cb243-18" tabindex="-1"></a>cycl_pred <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(cycl_pred)</span>
+<span id="cb243-19"><a href="app.html#cb243-19" tabindex="-1"></a></span>
+<span id="cb243-20"><a href="app.html#cb243-20" tabindex="-1"></a><span class="co">#Fit Poisson model</span></span>
+<span id="cb243-21"><a href="app.html#cb243-21" tabindex="-1"></a>mod_cycl_P <span class="ot">&lt;-</span> <span class="fu">bam</span>(success <span class="sc">~</span> </span>
+<span id="cb243-22"><a href="app.html#cb243-22" tabindex="-1"></a>                   <span class="fu">s</span>(Time, <span class="at">bs =</span> <span class="st">&quot;cc&quot;</span>, <span class="at">k =</span> <span class="dv">12</span>) <span class="sc">+</span> </span>
+<span id="cb243-23"><a href="app.html#cb243-23" tabindex="-1"></a>                   <span class="fu">s</span>(Site, <span class="at">bs =</span> <span class="st">&quot;re&quot;</span>) <span class="sc">+</span> <span class="fu">offset</span>(<span class="fu">log</span>(total)), </span>
+<span id="cb243-24"><a href="app.html#cb243-24" tabindex="-1"></a>                 <span class="at">knots =</span> <span class="fu">list</span>(<span class="at">Time =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">23</span>)),</span>
+<span id="cb243-25"><a href="app.html#cb243-25" tabindex="-1"></a>                 <span class="at">family =</span> <span class="st">&quot;poisson&quot;</span>, </span>
+<span id="cb243-26"><a href="app.html#cb243-26" tabindex="-1"></a>                 <span class="at">data =</span> y_fall)</span>
+<span id="cb243-27"><a href="app.html#cb243-27" tabindex="-1"></a></span>
+<span id="cb243-28"><a href="app.html#cb243-28" tabindex="-1"></a><span class="co"># Create predictions and confidence intervals</span></span>
+<span id="cb243-29"><a href="app.html#cb243-29" tabindex="-1"></a>cycl_pred_P <span class="ot">&lt;-</span> <span class="fu">predict.bam</span>(mod_cycl_P, <span class="at">newdata =</span> newdat,  <span class="at">exclude =</span> <span class="st">&quot;s(Site)&quot;</span>, <span class="at">se.fit =</span> <span class="cn">TRUE</span>, <span class="at">type =</span> <span class="st">&quot;link&quot;</span>) </span>
+<span id="cb243-30"><a href="app.html#cb243-30" tabindex="-1"></a>cycl_pred_P<span class="sc">$</span>low <span class="ot">&lt;-</span> cycl_pred_P<span class="sc">$</span>fit <span class="sc">-</span> (<span class="fl">1.96</span> <span class="sc">*</span> cycl_pred_P<span class="sc">$</span>se.fit)</span>
+<span id="cb243-31"><a href="app.html#cb243-31" tabindex="-1"></a>cycl_pred_P<span class="sc">$</span>upp <span class="ot">&lt;-</span> cycl_pred_P<span class="sc">$</span>fit <span class="sc">+</span> (<span class="fl">1.96</span> <span class="sc">*</span> cycl_pred_P<span class="sc">$</span>se.fit)</span>
+<span id="cb243-32"><a href="app.html#cb243-32" tabindex="-1"></a>cycl_pred_P<span class="sc">$</span>Time <span class="ot">&lt;-</span> newdat<span class="sc">$</span>Time</span>
+<span id="cb243-33"><a href="app.html#cb243-33" tabindex="-1"></a>cycl_pred_P <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(cycl_pred_P)</span></code></pre></div>
+<p>Now, we can plot the activity predictions from both models.</p>
+<div class="sourceCode" id="cb244"><pre class="sourceCode r fold-hide"><code class="sourceCode r"><span id="cb244-1"><a href="app.html#cb244-1" tabindex="-1"></a><span class="co"># plot 1</span></span>
+<span id="cb244-2"><a href="app.html#cb244-2" tabindex="-1"></a>pl_cycle1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(cycl_pred, <span class="fu">aes</span>(Time, <span class="fu">plogis</span>(fit))) <span class="sc">+</span></span>
+<span id="cb244-3"><a href="app.html#cb244-3" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> <span class="fu">plogis</span>(low), <span class="at">ymax =</span> <span class="fu">plogis</span>(upp)), <span class="at">alpha =</span> <span class="fl">0.1</span>, <span class="at">linewidth =</span> <span class="fl">0.25</span>) <span class="sc">+</span></span>
+<span id="cb244-4"><a href="app.html#cb244-4" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(), <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb244-5"><a href="app.html#cb244-5" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;Time of Day (Hour)&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Predicted Activity Pattern </span><span class="sc">\n</span><span class="st"> (probability)&quot;</span>, <span class="at">title =</span> <span class="st">&quot;A: Hierarhical GAM - Binomial&quot;</span>)<span class="sc">+</span></span>
+<span id="cb244-6"><a href="app.html#cb244-6" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()<span class="sc">+</span></span>
+<span id="cb244-7"><a href="app.html#cb244-7" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;bottom&quot;</span>,</span>
+<span id="cb244-8"><a href="app.html#cb244-8" tabindex="-1"></a>        <span class="at">legend.title =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb244-9"><a href="app.html#cb244-9" tabindex="-1"></a>        <span class="at">legend.text =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">10</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb244-10"><a href="app.html#cb244-10" tabindex="-1"></a>        <span class="at">legend.margin=</span><span class="fu">margin</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>),</span>
+<span id="cb244-11"><a href="app.html#cb244-11" tabindex="-1"></a>        <span class="at">legend.box.margin=</span><span class="fu">margin</span>(<span class="sc">-</span><span class="dv">5</span>,<span class="sc">-</span><span class="dv">10</span>,<span class="sc">-</span><span class="dv">10</span>,<span class="sc">-</span><span class="dv">10</span>),</span>
+<span id="cb244-12"><a href="app.html#cb244-12" tabindex="-1"></a>        <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">10</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb244-13"><a href="app.html#cb244-13" tabindex="-1"></a>        <span class="at">axis.line =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb244-14"><a href="app.html#cb244-14" tabindex="-1"></a>        <span class="at">axis.ticks =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb244-15"><a href="app.html#cb244-15" tabindex="-1"></a>        <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">9</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb244-16"><a href="app.html#cb244-16" tabindex="-1"></a>        <span class="at">panel.grid.minor.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb244-17"><a href="app.html#cb244-17" tabindex="-1"></a>        <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb244-18"><a href="app.html#cb244-18" tabindex="-1"></a>        <span class="at">panel.grid.major.x =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;lightgrey&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;dashed&#39;</span>, <span class="at">linewidth=</span><span class="fl">0.5</span>),</span>
+<span id="cb244-19"><a href="app.html#cb244-19" tabindex="-1"></a>        <span class="at">panel.grid.minor.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb244-20"><a href="app.html#cb244-20" tabindex="-1"></a>        <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">9</span>, <span class="at">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="at">face =</span> <span class="st">&quot;bold&quot;</span>, <span class="at">hjust =</span> <span class="dv">0</span>))<span class="sc">+</span></span>
+<span id="cb244-21"><a href="app.html#cb244-21" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">23</span>,<span class="at">length.out=</span><span class="dv">7</span>), <span class="at">labels=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">24</span>,<span class="dv">4</span>))</span>
+<span id="cb244-22"><a href="app.html#cb244-22" tabindex="-1"></a></span>
+<span id="cb244-23"><a href="app.html#cb244-23" tabindex="-1"></a><span class="co">#plot 2</span></span>
+<span id="cb244-24"><a href="app.html#cb244-24" tabindex="-1"></a>pl_cycle1_P <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(cycl_pred, <span class="fu">aes</span>(Time, <span class="fu">plogis</span>(fit))) <span class="sc">+</span></span>
+<span id="cb244-25"><a href="app.html#cb244-25" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> <span class="fu">plogis</span>(low), <span class="at">ymax =</span> <span class="fu">plogis</span>(upp)), <span class="at">alpha =</span> <span class="fl">0.1</span>, <span class="at">linewidth =</span> <span class="fl">0.25</span>) <span class="sc">+</span></span>
+<span id="cb244-26"><a href="app.html#cb244-26" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(), <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb244-27"><a href="app.html#cb244-27" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;Time of Day (Hour)&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Predicted Activity Pattern </span><span class="sc">\n</span><span class="st"> (probability)&quot;</span>, <span class="at">title =</span> <span class="st">&quot;B: Hierarhical GAM - Poisson&quot;</span>)<span class="sc">+</span></span>
+<span id="cb244-28"><a href="app.html#cb244-28" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()<span class="sc">+</span></span>
+<span id="cb244-29"><a href="app.html#cb244-29" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;bottom&quot;</span>,</span>
+<span id="cb244-30"><a href="app.html#cb244-30" tabindex="-1"></a>        <span class="at">legend.title =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb244-31"><a href="app.html#cb244-31" tabindex="-1"></a>        <span class="at">legend.text =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">10</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb244-32"><a href="app.html#cb244-32" tabindex="-1"></a>        <span class="at">legend.margin=</span><span class="fu">margin</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>),</span>
+<span id="cb244-33"><a href="app.html#cb244-33" tabindex="-1"></a>        <span class="at">legend.box.margin=</span><span class="fu">margin</span>(<span class="sc">-</span><span class="dv">5</span>,<span class="sc">-</span><span class="dv">10</span>,<span class="sc">-</span><span class="dv">10</span>,<span class="sc">-</span><span class="dv">10</span>),</span>
+<span id="cb244-34"><a href="app.html#cb244-34" tabindex="-1"></a>        <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">10</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb244-35"><a href="app.html#cb244-35" tabindex="-1"></a>        <span class="at">axis.line =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb244-36"><a href="app.html#cb244-36" tabindex="-1"></a>        <span class="at">axis.ticks =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb244-37"><a href="app.html#cb244-37" tabindex="-1"></a>        <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">9</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb244-38"><a href="app.html#cb244-38" tabindex="-1"></a>        <span class="at">panel.grid.minor.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb244-39"><a href="app.html#cb244-39" tabindex="-1"></a>        <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb244-40"><a href="app.html#cb244-40" tabindex="-1"></a>        <span class="at">panel.grid.major.x =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;lightgrey&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;dashed&#39;</span>, <span class="at">linewidth=</span><span class="fl">0.5</span>),</span>
+<span id="cb244-41"><a href="app.html#cb244-41" tabindex="-1"></a>        <span class="at">panel.grid.minor.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb244-42"><a href="app.html#cb244-42" tabindex="-1"></a>        <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">9</span>, <span class="at">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="at">face =</span> <span class="st">&quot;bold&quot;</span>, <span class="at">hjust =</span> <span class="dv">0</span>))<span class="sc">+</span></span>
+<span id="cb244-43"><a href="app.html#cb244-43" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">23</span>,<span class="at">length.out=</span><span class="dv">7</span>), <span class="at">labels=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">24</span>,<span class="dv">4</span>)) </span>
+<span id="cb244-44"><a href="app.html#cb244-44" tabindex="-1"></a><span class="fu">ggarrange</span>(pl_cycle1_P, pl_cycle1)</span></code></pre></div>
+<p><img src="HMsActivity_files/figure-html/pdf6-1.png" width="672" /></p>
+<p>Again, we can see that the predictions are equivalent.</p>
+</div>
+<div id="not-controlling-for-sampling-effort" class="section level3 hasAnchor" number="10.2.4">
+<h3><span class="header-section-number">10.2.4</span> Not Controlling for Sampling Effort<a href="app.html#not-controlling-for-sampling-effort" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Let’s see what happens when we don’t control for sampling effort using the Poisson PDF.</p>
+<div class="sourceCode" id="cb245"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb245-1"><a href="app.html#cb245-1" tabindex="-1"></a><span class="co">#Fit Poisson model</span></span>
+<span id="cb245-2"><a href="app.html#cb245-2" tabindex="-1"></a>mod_cycl_P2 <span class="ot">&lt;-</span> <span class="fu">bam</span>(success <span class="sc">~</span> </span>
+<span id="cb245-3"><a href="app.html#cb245-3" tabindex="-1"></a>                     <span class="fu">s</span>(Time, <span class="at">bs =</span> <span class="st">&quot;cc&quot;</span>, <span class="at">k =</span> <span class="dv">12</span>) <span class="sc">+</span> </span>
+<span id="cb245-4"><a href="app.html#cb245-4" tabindex="-1"></a>                     <span class="fu">s</span>(Site, <span class="at">bs=</span><span class="st">&quot;re&quot;</span>), </span>
+<span id="cb245-5"><a href="app.html#cb245-5" tabindex="-1"></a>                   <span class="at">knots =</span> <span class="fu">list</span>(<span class="at">Time=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">23</span>)),</span>
+<span id="cb245-6"><a href="app.html#cb245-6" tabindex="-1"></a>                   <span class="at">family =</span> <span class="st">&quot;poisson&quot;</span>, </span>
+<span id="cb245-7"><a href="app.html#cb245-7" tabindex="-1"></a>                   <span class="at">data =</span> y_fall)</span>
+<span id="cb245-8"><a href="app.html#cb245-8" tabindex="-1"></a></span>
+<span id="cb245-9"><a href="app.html#cb245-9" tabindex="-1"></a><span class="co"># Create predictions and confidence intervals</span></span>
+<span id="cb245-10"><a href="app.html#cb245-10" tabindex="-1"></a>newdat <span class="ot">&lt;-</span> <span class="fu">with</span>(occasions_cbind, <span class="fu">expand.grid</span>(<span class="at">Time =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">24</span>, <span class="at">length.out=</span><span class="dv">24</span>),</span>
+<span id="cb245-11"><a href="app.html#cb245-11" tabindex="-1"></a>                                            <span class="at">Site =</span> <span class="st">&quot;7B&quot;</span>)) <span class="co">#Station doesn&#39;t matter</span></span>
+<span id="cb245-12"><a href="app.html#cb245-12" tabindex="-1"></a>cycl_pred_P2 <span class="ot">&lt;-</span> <span class="fu">predict.bam</span>(mod_cycl_P2, <span class="at">newdata =</span> newdat,  <span class="at">exclude =</span> <span class="st">&quot;s(Site)&quot;</span>, <span class="at">se.fit =</span> <span class="cn">TRUE</span>, <span class="at">type =</span> <span class="st">&quot;link&quot;</span>) </span>
+<span id="cb245-13"><a href="app.html#cb245-13" tabindex="-1"></a>cycl_pred_P2<span class="sc">$</span>low <span class="ot">&lt;-</span> cycl_pred_P2<span class="sc">$</span>fit <span class="sc">-</span> (<span class="fl">1.96</span> <span class="sc">*</span> cycl_pred_P2<span class="sc">$</span>se.fit)</span>
+<span id="cb245-14"><a href="app.html#cb245-14" tabindex="-1"></a>cycl_pred_P2<span class="sc">$</span>upp <span class="ot">&lt;-</span> cycl_pred_P2<span class="sc">$</span>fit <span class="sc">+</span> (<span class="fl">1.96</span> <span class="sc">*</span> cycl_pred_P2<span class="sc">$</span>se.fit)</span>
+<span id="cb245-15"><a href="app.html#cb245-15" tabindex="-1"></a>cycl_pred_P2<span class="sc">$</span>Time <span class="ot">&lt;-</span> newdat<span class="sc">$</span>Time</span>
+<span id="cb245-16"><a href="app.html#cb245-16" tabindex="-1"></a>cycl_pred_P2 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(cycl_pred_P2)</span></code></pre></div>
+<p>Let’s plot this model output compared to the above Poisson model where we do control for sampling effort.</p>
+<div class="sourceCode" id="cb246"><pre class="sourceCode r fold-hide"><code class="sourceCode r"><span id="cb246-1"><a href="app.html#cb246-1" tabindex="-1"></a>pl_cycle1_P2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(cycl_pred_P2, <span class="fu">aes</span>(Time, <span class="fu">plogis</span>(fit))) <span class="sc">+</span></span>
+<span id="cb246-2"><a href="app.html#cb246-2" tabindex="-1"></a>  <span class="fu">geom_ribbon</span>(<span class="fu">aes</span>(<span class="at">ymin =</span> <span class="fu">plogis</span>(low), <span class="at">ymax =</span> <span class="fu">plogis</span>(upp)), <span class="at">alpha =</span> <span class="fl">0.1</span>, <span class="at">linewidth =</span> <span class="fl">0.25</span>) <span class="sc">+</span></span>
+<span id="cb246-3"><a href="app.html#cb246-3" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="fu">aes</span>(), <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb246-4"><a href="app.html#cb246-4" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">&quot;Time of Day (Hour)&quot;</span>, <span class="at">y =</span> <span class="st">&quot;Predicted Activity Pattern </span><span class="sc">\n</span><span class="st"> (probability)&quot;</span>, <span class="at">title =</span> <span class="st">&quot;C: Hierarhical GAM - Poisson NO OFFSET&quot;</span>)<span class="sc">+</span></span>
+<span id="cb246-5"><a href="app.html#cb246-5" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()<span class="sc">+</span></span>
+<span id="cb246-6"><a href="app.html#cb246-6" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;bottom&quot;</span>,</span>
+<span id="cb246-7"><a href="app.html#cb246-7" tabindex="-1"></a>        <span class="at">legend.title =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb246-8"><a href="app.html#cb246-8" tabindex="-1"></a>        <span class="at">legend.text =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">10</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb246-9"><a href="app.html#cb246-9" tabindex="-1"></a>        <span class="at">legend.margin=</span><span class="fu">margin</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>),</span>
+<span id="cb246-10"><a href="app.html#cb246-10" tabindex="-1"></a>        <span class="at">legend.box.margin=</span><span class="fu">margin</span>(<span class="sc">-</span><span class="dv">5</span>,<span class="sc">-</span><span class="dv">10</span>,<span class="sc">-</span><span class="dv">10</span>,<span class="sc">-</span><span class="dv">10</span>),</span>
+<span id="cb246-11"><a href="app.html#cb246-11" tabindex="-1"></a>        <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">10</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb246-12"><a href="app.html#cb246-12" tabindex="-1"></a>        <span class="at">axis.line =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb246-13"><a href="app.html#cb246-13" tabindex="-1"></a>        <span class="at">axis.ticks =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;black&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;solid&#39;</span>),</span>
+<span id="cb246-14"><a href="app.html#cb246-14" tabindex="-1"></a>        <span class="at">axis.title =</span> <span class="fu">element_text</span>(<span class="at">size=</span><span class="dv">9</span>,<span class="at">face=</span><span class="st">&quot;bold&quot;</span>),</span>
+<span id="cb246-15"><a href="app.html#cb246-15" tabindex="-1"></a>        <span class="at">panel.grid.minor.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb246-16"><a href="app.html#cb246-16" tabindex="-1"></a>        <span class="at">panel.grid.major.y =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb246-17"><a href="app.html#cb246-17" tabindex="-1"></a>        <span class="at">panel.grid.major.x =</span> <span class="fu">element_line</span>(<span class="at">colour =</span> <span class="st">&#39;lightgrey&#39;</span>, <span class="at">linetype =</span> <span class="st">&#39;dashed&#39;</span>, <span class="at">linewidth=</span><span class="fl">0.5</span>),</span>
+<span id="cb246-18"><a href="app.html#cb246-18" tabindex="-1"></a>        <span class="at">panel.grid.minor.x =</span> <span class="fu">element_blank</span>(),</span>
+<span id="cb246-19"><a href="app.html#cb246-19" tabindex="-1"></a>        <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">9</span>, <span class="at">colour =</span> <span class="st">&quot;black&quot;</span>, <span class="at">face =</span> <span class="st">&quot;bold&quot;</span>, <span class="at">hjust =</span> <span class="dv">0</span>))<span class="sc">+</span></span>
+<span id="cb246-20"><a href="app.html#cb246-20" tabindex="-1"></a>  <span class="fu">scale_x_continuous</span>(<span class="at">breaks=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">23</span>,<span class="at">length.out=</span><span class="dv">7</span>), <span class="at">labels=</span><span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">24</span>,<span class="dv">4</span>)) </span>
+<span id="cb246-21"><a href="app.html#cb246-21" tabindex="-1"></a></span>
+<span id="cb246-22"><a href="app.html#cb246-22" tabindex="-1"></a><span class="fu">ggarrange</span>(pl_cycle1_P, pl_cycle1_P2)</span></code></pre></div>
+<p><img src="HMsActivity_files/figure-html/pdf8-1.png" width="672" /></p>
+<p>We can see that the activity curves have the same shape, but the magnitude on the y-axis is different. Using the offset allows us to better represent animal activity in terms of when they are active and not active.</p>
+</div>
+</div>
+<div id="bay" class="section level2 hasAnchor" number="10.3">
+<h2><span class="header-section-number">10.3</span> Activity patterns in the Bayesian framework<a href="app.html#bay" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Here, we use simulated data to illustrate how to fit Bayesian versions of the cyclic cubic spline hierarchical models. In particular, we briefly demonstrate how the <code>brms</code> package <span class="citation">(<a href="references.html#ref-brms">Bürkner 2021a</a>)</span> can be used to fit an HGAM with random-intercepts.</p>
+<div id="data-preparation-2" class="section level3 hasAnchor" number="10.3.1">
+<h3><span class="header-section-number">10.3.1</span> Data Preparation<a href="app.html#data-preparation-2" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>We simulate data using the same approach and the same parameters presented in Tutorial <a href="est.html#est">3</a>. As such, the simulated data are generated from the same ‘true’ activity patterns.</p>
+<div class="sourceCode" id="cb247"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb247-1"><a href="app.html#cb247-1" tabindex="-1"></a><span class="co"># Load libraries and function to simulate activity patterns</span></span>
+<span id="cb247-2"><a href="app.html#cb247-2" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">ls</span>())</span>
+<span id="cb247-3"><a href="app.html#cb247-3" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">129</span>)</span>
+<span id="cb247-4"><a href="app.html#cb247-4" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb247-5"><a href="app.html#cb247-5" tabindex="-1"></a><span class="fu">library</span>(nimble)</span>
+<span id="cb247-6"><a href="app.html#cb247-6" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb247-7"><a href="app.html#cb247-7" tabindex="-1"></a><span class="fu">library</span>(brms)</span></code></pre></div>
+<pre><code>## Warning: package &#39;brms&#39; was built under R version 4.2.3</code></pre>
+<pre><code>## Warning: package &#39;Rcpp&#39; was built under R version 4.2.3</code></pre>
+<div class="sourceCode" id="cb250"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb250-1"><a href="app.html#cb250-1" tabindex="-1"></a><span class="fu">source</span>(<span class="st">&quot;source_functions/sim_activity.R&quot;</span>)</span>
+<span id="cb250-2"><a href="app.html#cb250-2" tabindex="-1"></a><span class="fu">source</span>(<span class="st">&quot;source_functions/sim_to_minute.R&quot;</span>)</span>
+<span id="cb250-3"><a href="app.html#cb250-3" tabindex="-1"></a></span>
+<span id="cb250-4"><a href="app.html#cb250-4" tabindex="-1"></a><span class="co"># Set equations&#39; parameters</span></span>
+<span id="cb250-5"><a href="app.html#cb250-5" tabindex="-1"></a>M <span class="ot">=</span> <span class="dv">100</span> <span class="co"># The number of sites</span></span>
+<span id="cb250-6"><a href="app.html#cb250-6" tabindex="-1"></a>J <span class="ot">=</span> <span class="dv">30</span> <span class="co"># the number of binomial trials</span></span>
+<span id="cb250-7"><a href="app.html#cb250-7" tabindex="-1"></a>wavelength <span class="ot">=</span> <span class="dv">24</span> <span class="co"># 24 hour period</span></span>
+<span id="cb250-8"><a href="app.html#cb250-8" tabindex="-1"></a>n_peak <span class="ot">=</span> <span class="dv">2</span> <span class="co"># number of activity peaks</span></span>
+<span id="cb250-9"><a href="app.html#cb250-9" tabindex="-1"></a>b0 <span class="ot">=</span> <span class="sc">-</span><span class="dv">3</span></span>
+<span id="cb250-10"><a href="app.html#cb250-10" tabindex="-1"></a>b1 <span class="ot">=</span> <span class="dv">1</span> </span>
+<span id="cb250-11"><a href="app.html#cb250-11" tabindex="-1"></a>b2 <span class="ot">=</span> <span class="fl">0.7</span></span>
+<span id="cb250-12"><a href="app.html#cb250-12" tabindex="-1"></a>theta0 <span class="ot">=</span> <span class="dv">3</span></span>
+<span id="cb250-13"><a href="app.html#cb250-13" tabindex="-1"></a>theta1 <span class="ot">=</span> <span class="dv">2</span> </span>
+<span id="cb250-14"><a href="app.html#cb250-14" tabindex="-1"></a>sd_tau <span class="ot">=</span> <span class="dv">1</span></span>
+<span id="cb250-15"><a href="app.html#cb250-15" tabindex="-1"></a>sd_gamma <span class="ot">=</span> <span class="fl">0.3</span></span>
+<span id="cb250-16"><a href="app.html#cb250-16" tabindex="-1"></a>time <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, wavelength, wavelength<span class="sc">/</span><span class="dv">512</span>)</span>
+<span id="cb250-17"><a href="app.html#cb250-17" tabindex="-1"></a></span>
+<span id="cb250-18"><a href="app.html#cb250-18" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">sim_activity</span>(<span class="at">M =</span> M, </span>
+<span id="cb250-19"><a href="app.html#cb250-19" tabindex="-1"></a>                   <span class="at">J =</span> J,  </span>
+<span id="cb250-20"><a href="app.html#cb250-20" tabindex="-1"></a>                   <span class="at">wavelength =</span> wavelength, </span>
+<span id="cb250-21"><a href="app.html#cb250-21" tabindex="-1"></a>                   <span class="at">n_peak =</span> n_peak, </span>
+<span id="cb250-22"><a href="app.html#cb250-22" tabindex="-1"></a>                   <span class="at">n_sim =</span> <span class="dv">1</span>,  <span class="co">#number of simulated datasets</span></span>
+<span id="cb250-23"><a href="app.html#cb250-23" tabindex="-1"></a>                   <span class="at">b0 =</span> <span class="sc">-</span><span class="dv">3</span>, </span>
+<span id="cb250-24"><a href="app.html#cb250-24" tabindex="-1"></a>                   <span class="at">b0_constant =</span> <span class="cn">TRUE</span>, <span class="co"># common intercept</span></span>
+<span id="cb250-25"><a href="app.html#cb250-25" tabindex="-1"></a>                   <span class="at">tau_constant =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb250-26"><a href="app.html#cb250-26" tabindex="-1"></a>                   <span class="at">sdtau =</span> sd_tau, <span class="co"># ~site-specific intercept</span></span>
+<span id="cb250-27"><a href="app.html#cb250-27" tabindex="-1"></a>                   <span class="at">b1 =</span> b1, </span>
+<span id="cb250-28"><a href="app.html#cb250-28" tabindex="-1"></a>                   <span class="at">b2 =</span> b2, <span class="co"># amplitude of the cosine terms </span></span>
+<span id="cb250-29"><a href="app.html#cb250-29" tabindex="-1"></a>                   <span class="at">theta0 =</span> theta0, </span>
+<span id="cb250-30"><a href="app.html#cb250-30" tabindex="-1"></a>                   <span class="at">theta1 =</span> theta1, <span class="co"># common phaseshifts for the cosine terms</span></span>
+<span id="cb250-31"><a href="app.html#cb250-31" tabindex="-1"></a>                   <span class="at">phaseshift_constant =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb250-32"><a href="app.html#cb250-32" tabindex="-1"></a>                   <span class="at">sd_phaseshift =</span> sd_gamma, <span class="co"># site-specific phaseshift (equal for both cosine terms)</span></span>
+<span id="cb250-33"><a href="app.html#cb250-33" tabindex="-1"></a>                   <span class="at">plot_true_act =</span> <span class="cn">TRUE</span></span>
+<span id="cb250-34"><a href="app.html#cb250-34" tabindex="-1"></a>                   )</span></code></pre></div>
+<p><img src="HMsActivity_files/figure-html/bay1-1.png" width="672" /></p>
+<div class="sourceCode" id="cb251"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb251-1"><a href="app.html#cb251-1" tabindex="-1"></a><span class="co"># The data</span></span>
+<span id="cb251-2"><a href="app.html#cb251-2" tabindex="-1"></a>sim_data <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(dat<span class="sc">$</span>sim_data)</span>
+<span id="cb251-3"><a href="app.html#cb251-3" tabindex="-1"></a><span class="fu">dim</span>(sim_data)</span></code></pre></div>
+<pre><code>## [1] 100 720</code></pre>
+<p>The first step is to rearrange the specific format of the data created by the <code>sim_activity</code> function (see also Tutorial <a href="est.html#est">3</a>). <!-- We access the encounter data and store them in an object called `y`, which has a number of rows equal to the number of simulated sites and a number of columns equal to 24 (hours) times the length (in days) of the simulated sampling period (e.g. 24 hour * 30 days = 720 encounter occasions). We add a column which contains a unique identifier for each site (e.g. `id = A1`) and assign a name to each column that represents the time occasion (e.g. from 1 to 720), then convert the data in long format using the `id` column as reference. --></p>
+<div class="sourceCode" id="cb253"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb253-1"><a href="app.html#cb253-1" tabindex="-1"></a><span class="co"># The data</span></span>
+<span id="cb253-2"><a href="app.html#cb253-2" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(dat<span class="sc">$</span>sim_data)</span>
+<span id="cb253-3"><a href="app.html#cb253-3" tabindex="-1"></a><span class="fu">dim</span>(y)</span></code></pre></div>
+<pre><code>## [1] 100 720</code></pre>
+<div class="sourceCode" id="cb255"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb255-1"><a href="app.html#cb255-1" tabindex="-1"></a><span class="co"># summarize aggregated data</span></span>
+<span id="cb255-2"><a href="app.html#cb255-2" tabindex="-1"></a>y <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">id=</span><span class="fu">paste</span>(<span class="st">&quot;A&quot;</span>, <span class="fu">seq</span>(<span class="dv">1</span>,M,<span class="dv">1</span>), <span class="at">sep=</span><span class="st">&quot;&quot;</span>), </span>
+<span id="cb255-3"><a href="app.html#cb255-3" tabindex="-1"></a>                <span class="at">y=</span><span class="fu">as.data.frame</span>(y)</span>
+<span id="cb255-4"><a href="app.html#cb255-4" tabindex="-1"></a>                )</span>
+<span id="cb255-5"><a href="app.html#cb255-5" tabindex="-1"></a><span class="fu">colnames</span>(y) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;id&quot;</span>, </span>
+<span id="cb255-6"><a href="app.html#cb255-6" tabindex="-1"></a>                 <span class="fu">paste0</span>(<span class="st">&quot;S&quot;</span>, <span class="fu">seq</span>(<span class="dv">1</span>, <span class="fu">ncol</span>(y)<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>), <span class="at">sep=</span><span class="st">&quot;&quot;</span>)</span>
+<span id="cb255-7"><a href="app.html#cb255-7" tabindex="-1"></a>                 )</span>
+<span id="cb255-8"><a href="app.html#cb255-8" tabindex="-1"></a></span>
+<span id="cb255-9"><a href="app.html#cb255-9" tabindex="-1"></a><span class="co"># Format data in long format</span></span>
+<span id="cb255-10"><a href="app.html#cb255-10" tabindex="-1"></a>y_long <span class="ot">&lt;-</span> <span class="fu">pivot_longer</span>(<span class="at">data =</span> y, <span class="at">cols =</span> <span class="sc">-</span>id, <span class="at">names_to =</span> <span class="st">&quot;time&quot;</span>, <span class="at">values_to =</span> <span class="st">&quot;y&quot;</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb255-11"><a href="app.html#cb255-11" tabindex="-1"></a>                <span class="fu">mutate</span>(<span class="at">time=</span><span class="fu">as.numeric</span>(<span class="fu">substr</span>(time,<span class="dv">2</span>,<span class="dv">10</span>)),</span>
+<span id="cb255-12"><a href="app.html#cb255-12" tabindex="-1"></a>                       <span class="at">id =</span> <span class="fu">factor</span>(id)</span>
+<span id="cb255-13"><a href="app.html#cb255-13" tabindex="-1"></a>                       )</span>
+<span id="cb255-14"><a href="app.html#cb255-14" tabindex="-1"></a></span>
+<span id="cb255-15"><a href="app.html#cb255-15" tabindex="-1"></a><span class="co"># create variable to describe time as hour (between 0 and 23)</span></span>
+<span id="cb255-16"><a href="app.html#cb255-16" tabindex="-1"></a>y_long<span class="sc">$</span>hour <span class="ot">&lt;-</span> <span class="fu">sim_to_minute</span>(y_long<span class="sc">$</span>time, <span class="at">group =</span> wavelength)</span></code></pre></div>
+<!-- We obtain a data set in which each row specifies the outcome (i.e. encounter or non-encounter of the target species) at a certain site during a specific hour of a certain day of sampling.
+
+To optimize computational time, we can reduce the number of rows in the dataset by counting the number of hour-long occasions in which the species was observed (i.e. successes) and the number of occasion in which the species was not observed (i.e. failures) for each hourly time interval and camera site (see also \@ref(est)). -->
+<div class="sourceCode" id="cb256"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb256-1"><a href="app.html#cb256-1" tabindex="-1"></a><span class="co"># count successes and failures at each site-occasion</span></span>
+<span id="cb256-2"><a href="app.html#cb256-2" tabindex="-1"></a>  occasions_cbind <span class="ot">&lt;-</span> y_long <span class="sc">%&gt;%</span> </span>
+<span id="cb256-3"><a href="app.html#cb256-3" tabindex="-1"></a>    <span class="fu">group_by</span>(id, hour) <span class="sc">%&gt;%</span> </span>
+<span id="cb256-4"><a href="app.html#cb256-4" tabindex="-1"></a>    <span class="fu">summarise</span>(<span class="at">success =</span> <span class="fu">sum</span>(y),</span>
+<span id="cb256-5"><a href="app.html#cb256-5" tabindex="-1"></a>              <span class="at">n_events =</span> <span class="fu">n</span>(),</span>
+<span id="cb256-6"><a href="app.html#cb256-6" tabindex="-1"></a>              <span class="at">failure =</span> n_events <span class="sc">-</span> success</span>
+<span id="cb256-7"><a href="app.html#cb256-7" tabindex="-1"></a>              ) <span class="sc">%&gt;%</span> </span>
+<span id="cb256-8"><a href="app.html#cb256-8" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">rename</span>(<span class="at">Site =</span> id,</span>
+<span id="cb256-9"><a href="app.html#cb256-9" tabindex="-1"></a>                 <span class="at">Time =</span> hour</span>
+<span id="cb256-10"><a href="app.html#cb256-10" tabindex="-1"></a>                 )</span>
+<span id="cb256-11"><a href="app.html#cb256-11" tabindex="-1"></a></span>
+<span id="cb256-12"><a href="app.html#cb256-12" tabindex="-1"></a><span class="co"># show first few rows of the dataset created</span></span>
+<span id="cb256-13"><a href="app.html#cb256-13" tabindex="-1"></a>  knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">head</span>(occasions_cbind))</span></code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Site</th>
+<th align="right">Time</th>
+<th align="right">success</th>
+<th align="right">n_events</th>
+<th align="right">failure</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">A1</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">30</td>
+<td align="right">30</td>
+</tr>
+<tr class="even">
+<td align="left">A1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">30</td>
+<td align="right">29</td>
+</tr>
+<tr class="odd">
+<td align="left">A1</td>
+<td align="right">2</td>
+<td align="right">0</td>
+<td align="right">30</td>
+<td align="right">30</td>
+</tr>
+<tr class="even">
+<td align="left">A1</td>
+<td align="right">3</td>
+<td align="right">1</td>
+<td align="right">30</td>
+<td align="right">29</td>
+</tr>
+<tr class="odd">
+<td align="left">A1</td>
+<td align="right">4</td>
+<td align="right">1</td>
+<td align="right">30</td>
+<td align="right">29</td>
+</tr>
+<tr class="even">
+<td align="left">A1</td>
+<td align="right">5</td>
+<td align="right">0</td>
+<td align="right">30</td>
+<td align="right">30</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="model-setup-and-fitting" class="section level3 hasAnchor" number="10.3.2">
+<h3><span class="header-section-number">10.3.2</span> Model Setup and Fitting<a href="app.html#model-setup-and-fitting" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>We are now ready to setup the Bayesian cyclic cubic spline model using code similar to that shown in Tutorial <a href="est.html#est">3</a>. However, here we wrap our code in the <code>brm</code> function from the package <code>brms</code> <span class="citation">(<a href="references.html#ref-brms">Bürkner 2021a</a>)</span>. We also need to change our notation slightly to specify the number of successes and the number of trials using <code>success| trials(n_events)</code>. <!---From the `brms` R package vignette, "cbind() syntax does not work in `brms` in the expected way because this syntax is reserved for other purposes."---> Note that below, we only consider random intercepts, but we could also include random slopes by adding <code>s(Time, Site, bs="re")</code>.</p>
+<p>The random intercept can be specified in one of two ways, <code>s(Site, bs="re")</code> or <code>(1 | Site)</code>. Note that <code>brms</code> functions do not allow excluding smooth terms, such as <code>s(Site, bs="re")</code> when making predictions (<a href="https://discourse.mc-stan.org/t/excluding-a-smooth-term-in-brms-using-posterior-linpred/10960/4">see here</a>), so the latter approach is necessary if we want to estimate the conditional mean for a typical site. We compare these two approaches, below.</p>
+<div class="sourceCode" id="cb257"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb257-1"><a href="app.html#cb257-1" tabindex="-1"></a><span class="co"># Setup the model but do not fit it (i.e., chains = 0)</span></span>
+<span id="cb257-2"><a href="app.html#cb257-2" tabindex="-1"></a>cycl_rand_int_setup <span class="ot">&lt;-</span> brms<span class="sc">::</span><span class="fu">brm</span>(<span class="fu">bf</span>(success<span class="sc">|</span> <span class="fu">trials</span>(n_events)  <span class="sc">~</span> <span class="fu">s</span>(Time, <span class="at">bs =</span> <span class="st">&quot;cc&quot;</span>, <span class="at">k =</span> wavelength) <span class="sc">+</span></span>
+<span id="cb257-3"><a href="app.html#cb257-3" tabindex="-1"></a>                                          <span class="fu">s</span>(Site, <span class="at">bs=</span><span class="st">&quot;re&quot;</span>)</span>
+<span id="cb257-4"><a href="app.html#cb257-4" tabindex="-1"></a>                                   ),</span>
+<span id="cb257-5"><a href="app.html#cb257-5" tabindex="-1"></a>                                   <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>, </span>
+<span id="cb257-6"><a href="app.html#cb257-6" tabindex="-1"></a>                                   <span class="at">data =</span> occasions_cbind, </span>
+<span id="cb257-7"><a href="app.html#cb257-7" tabindex="-1"></a>                                   <span class="at">knots =</span> <span class="fu">list</span>(<span class="at">Time =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">23</span>)),</span>
+<span id="cb257-8"><a href="app.html#cb257-8" tabindex="-1"></a>                                   <span class="at">cores =</span> <span class="dv">1</span>, </span>
+<span id="cb257-9"><a href="app.html#cb257-9" tabindex="-1"></a>                                   <span class="at">seed =</span> <span class="dv">17</span>,</span>
+<span id="cb257-10"><a href="app.html#cb257-10" tabindex="-1"></a>                                   <span class="at">chains=</span><span class="dv">0</span></span>
+<span id="cb257-11"><a href="app.html#cb257-11" tabindex="-1"></a>                                 )</span></code></pre></div>
+<pre><code>## Compiling Stan program...</code></pre>
+<pre><code>## Start sampling</code></pre>
+<pre><code>## the number of chains is less than 1; sampling not done</code></pre>
+<div class="sourceCode" id="cb261"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb261-1"><a href="app.html#cb261-1" tabindex="-1"></a>cycl_rand_int_setup_alt <span class="ot">&lt;-</span> brms<span class="sc">::</span><span class="fu">brm</span>(<span class="fu">bf</span>(success<span class="sc">|</span> <span class="fu">trials</span>(n_events)  <span class="sc">~</span> <span class="fu">s</span>(Time, <span class="at">bs =</span> <span class="st">&quot;cc&quot;</span>, <span class="at">k =</span> wavelength) <span class="sc">+</span></span>
+<span id="cb261-2"><a href="app.html#cb261-2" tabindex="-1"></a>                                          (<span class="dv">1</span><span class="sc">|</span>Site)</span>
+<span id="cb261-3"><a href="app.html#cb261-3" tabindex="-1"></a>                                       ),</span>
+<span id="cb261-4"><a href="app.html#cb261-4" tabindex="-1"></a>                                       <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>, </span>
+<span id="cb261-5"><a href="app.html#cb261-5" tabindex="-1"></a>                                       <span class="at">data =</span> occasions_cbind, </span>
+<span id="cb261-6"><a href="app.html#cb261-6" tabindex="-1"></a>                                       <span class="at">knots =</span> <span class="fu">list</span>(<span class="at">Time =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">23</span>)),</span>
+<span id="cb261-7"><a href="app.html#cb261-7" tabindex="-1"></a>                                       <span class="at">cores =</span> <span class="dv">1</span>, </span>
+<span id="cb261-8"><a href="app.html#cb261-8" tabindex="-1"></a>                                       <span class="at">seed =</span> <span class="dv">17</span>,</span>
+<span id="cb261-9"><a href="app.html#cb261-9" tabindex="-1"></a>                                       <span class="at">chains=</span><span class="dv">0</span></span>
+<span id="cb261-10"><a href="app.html#cb261-10" tabindex="-1"></a>                                       )</span></code></pre></div>
+<pre><code>## Compiling Stan program...</code></pre>
+<pre><code>## Start sampling</code></pre>
+<pre><code>## the number of chains is less than 1; sampling not done</code></pre>
+<div class="sourceCode" id="cb265"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb265-1"><a href="app.html#cb265-1" tabindex="-1"></a><span class="co"># Now fit the model</span></span>
+<span id="cb265-2"><a href="app.html#cb265-2" tabindex="-1"></a>cycl_rand_int <span class="ot">&lt;-</span> <span class="fu">update</span>(cycl_rand_int_setup, </span>
+<span id="cb265-3"><a href="app.html#cb265-3" tabindex="-1"></a>                        <span class="at">recompile =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb265-4"><a href="app.html#cb265-4" tabindex="-1"></a>                        <span class="at">newdata =</span> occasions_cbind,</span>
+<span id="cb265-5"><a href="app.html#cb265-5" tabindex="-1"></a>                        <span class="at">chains =</span> <span class="dv">3</span></span>
+<span id="cb265-6"><a href="app.html#cb265-6" tabindex="-1"></a>                        )</span></code></pre></div>
+<pre><code>## Start sampling</code></pre>
+<pre><code>## 
+## SAMPLING FOR MODEL &#39;anon_model&#39; NOW (CHAIN 1).
+## Chain 1: 
+## Chain 1: Gradient evaluation took 0.002284 seconds
+## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 22.84 seconds.
+## Chain 1: Adjust your expectations accordingly!
+## Chain 1: 
+## Chain 1: 
+## Chain 1: Iteration:    1 / 2000 [  0%]  (Warmup)
+## Chain 1: Iteration:  200 / 2000 [ 10%]  (Warmup)
+## Chain 1: Iteration:  400 / 2000 [ 20%]  (Warmup)
+## Chain 1: Iteration:  600 / 2000 [ 30%]  (Warmup)
+## Chain 1: Iteration:  800 / 2000 [ 40%]  (Warmup)
+## Chain 1: Iteration: 1000 / 2000 [ 50%]  (Warmup)
+## Chain 1: Iteration: 1001 / 2000 [ 50%]  (Sampling)
+## Chain 1: Iteration: 1200 / 2000 [ 60%]  (Sampling)
+## Chain 1: Iteration: 1400 / 2000 [ 70%]  (Sampling)
+## Chain 1: Iteration: 1600 / 2000 [ 80%]  (Sampling)
+## Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)
+## Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
+## Chain 1: 
+## Chain 1:  Elapsed Time: 95.6 seconds (Warm-up)
+## Chain 1:                68.467 seconds (Sampling)
+## Chain 1:                164.067 seconds (Total)
+## Chain 1: 
+## 
+## SAMPLING FOR MODEL &#39;anon_model&#39; NOW (CHAIN 2).
+## Chain 2: 
+## Chain 2: Gradient evaluation took 0.00133 seconds
+## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 13.3 seconds.
+## Chain 2: Adjust your expectations accordingly!
+## Chain 2: 
+## Chain 2: 
+## Chain 2: Iteration:    1 / 2000 [  0%]  (Warmup)
+## Chain 2: Iteration:  200 / 2000 [ 10%]  (Warmup)
+## Chain 2: Iteration:  400 / 2000 [ 20%]  (Warmup)
+## Chain 2: Iteration:  600 / 2000 [ 30%]  (Warmup)
+## Chain 2: Iteration:  800 / 2000 [ 40%]  (Warmup)
+## Chain 2: Iteration: 1000 / 2000 [ 50%]  (Warmup)
+## Chain 2: Iteration: 1001 / 2000 [ 50%]  (Sampling)
+## Chain 2: Iteration: 1200 / 2000 [ 60%]  (Sampling)
+## Chain 2: Iteration: 1400 / 2000 [ 70%]  (Sampling)
+## Chain 2: Iteration: 1600 / 2000 [ 80%]  (Sampling)
+## Chain 2: Iteration: 1800 / 2000 [ 90%]  (Sampling)
+## Chain 2: Iteration: 2000 / 2000 [100%]  (Sampling)
+## Chain 2: 
+## Chain 2:  Elapsed Time: 85.18 seconds (Warm-up)
+## Chain 2:                78.689 seconds (Sampling)
+## Chain 2:                163.869 seconds (Total)
+## Chain 2: 
+## 
+## SAMPLING FOR MODEL &#39;anon_model&#39; NOW (CHAIN 3).
+## Chain 3: 
+## Chain 3: Gradient evaluation took 0.001127 seconds
+## Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 11.27 seconds.
+## Chain 3: Adjust your expectations accordingly!
+## Chain 3: 
+## Chain 3: 
+## Chain 3: Iteration:    1 / 2000 [  0%]  (Warmup)
+## Chain 3: Iteration:  200 / 2000 [ 10%]  (Warmup)
+## Chain 3: Iteration:  400 / 2000 [ 20%]  (Warmup)
+## Chain 3: Iteration:  600 / 2000 [ 30%]  (Warmup)
+## Chain 3: Iteration:  800 / 2000 [ 40%]  (Warmup)
+## Chain 3: Iteration: 1000 / 2000 [ 50%]  (Warmup)
+## Chain 3: Iteration: 1001 / 2000 [ 50%]  (Sampling)
+## Chain 3: Iteration: 1200 / 2000 [ 60%]  (Sampling)
+## Chain 3: Iteration: 1400 / 2000 [ 70%]  (Sampling)
+## Chain 3: Iteration: 1600 / 2000 [ 80%]  (Sampling)
+## Chain 3: Iteration: 1800 / 2000 [ 90%]  (Sampling)
+## Chain 3: Iteration: 2000 / 2000 [100%]  (Sampling)
+## Chain 3: 
+## Chain 3:  Elapsed Time: 85.406 seconds (Warm-up)
+## Chain 3:                77.766 seconds (Sampling)
+## Chain 3:                163.172 seconds (Total)
+## Chain 3:</code></pre>
+<pre><code>## Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
+## Running the chains for more iterations may help. See
+## https://mc-stan.org/misc/warnings.html#bulk-ess</code></pre>
+<div class="sourceCode" id="cb269"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb269-1"><a href="app.html#cb269-1" tabindex="-1"></a>cycl_rand_int_alt <span class="ot">&lt;-</span> <span class="fu">update</span>(cycl_rand_int_setup_alt, </span>
+<span id="cb269-2"><a href="app.html#cb269-2" tabindex="-1"></a>                            <span class="at">recompile =</span> <span class="cn">FALSE</span>, </span>
+<span id="cb269-3"><a href="app.html#cb269-3" tabindex="-1"></a>                            <span class="at">newdata =</span> occasions_cbind,</span>
+<span id="cb269-4"><a href="app.html#cb269-4" tabindex="-1"></a>                            <span class="at">chains =</span> <span class="dv">3</span></span>
+<span id="cb269-5"><a href="app.html#cb269-5" tabindex="-1"></a>                            )</span></code></pre></div>
+<pre><code>## Start sampling</code></pre>
+<pre><code>## 
+## SAMPLING FOR MODEL &#39;anon_model&#39; NOW (CHAIN 1).
+## Chain 1: 
+## Chain 1: Gradient evaluation took 0.001459 seconds
+## Chain 1: 1000 transitions using 10 leapfrog steps per transition would take 14.59 seconds.
+## Chain 1: Adjust your expectations accordingly!
+## Chain 1: 
+## Chain 1: 
+## Chain 1: Iteration:    1 / 2000 [  0%]  (Warmup)
+## Chain 1: Iteration:  200 / 2000 [ 10%]  (Warmup)
+## Chain 1: Iteration:  400 / 2000 [ 20%]  (Warmup)
+## Chain 1: Iteration:  600 / 2000 [ 30%]  (Warmup)
+## Chain 1: Iteration:  800 / 2000 [ 40%]  (Warmup)
+## Chain 1: Iteration: 1000 / 2000 [ 50%]  (Warmup)
+## Chain 1: Iteration: 1001 / 2000 [ 50%]  (Sampling)
+## Chain 1: Iteration: 1200 / 2000 [ 60%]  (Sampling)
+## Chain 1: Iteration: 1400 / 2000 [ 70%]  (Sampling)
+## Chain 1: Iteration: 1600 / 2000 [ 80%]  (Sampling)
+## Chain 1: Iteration: 1800 / 2000 [ 90%]  (Sampling)
+## Chain 1: Iteration: 2000 / 2000 [100%]  (Sampling)
+## Chain 1: 
+## Chain 1:  Elapsed Time: 87.589 seconds (Warm-up)
+## Chain 1:                70.046 seconds (Sampling)
+## Chain 1:                157.635 seconds (Total)
+## Chain 1: 
+## 
+## SAMPLING FOR MODEL &#39;anon_model&#39; NOW (CHAIN 2).
+## Chain 2: 
+## Chain 2: Gradient evaluation took 0.001179 seconds
+## Chain 2: 1000 transitions using 10 leapfrog steps per transition would take 11.79 seconds.
+## Chain 2: Adjust your expectations accordingly!
+## Chain 2: 
+## Chain 2: 
+## Chain 2: Iteration:    1 / 2000 [  0%]  (Warmup)
+## Chain 2: Iteration:  200 / 2000 [ 10%]  (Warmup)
+## Chain 2: Iteration:  400 / 2000 [ 20%]  (Warmup)
+## Chain 2: Iteration:  600 / 2000 [ 30%]  (Warmup)
+## Chain 2: Iteration:  800 / 2000 [ 40%]  (Warmup)
+## Chain 2: Iteration: 1000 / 2000 [ 50%]  (Warmup)
+## Chain 2: Iteration: 1001 / 2000 [ 50%]  (Sampling)
+## Chain 2: Iteration: 1200 / 2000 [ 60%]  (Sampling)
+## Chain 2: Iteration: 1400 / 2000 [ 70%]  (Sampling)
+## Chain 2: Iteration: 1600 / 2000 [ 80%]  (Sampling)
+## Chain 2: Iteration: 1800 / 2000 [ 90%]  (Sampling)
+## Chain 2: Iteration: 2000 / 2000 [100%]  (Sampling)
+## Chain 2: 
+## Chain 2:  Elapsed Time: 84.638 seconds (Warm-up)
+## Chain 2:                72.39 seconds (Sampling)
+## Chain 2:                157.028 seconds (Total)
+## Chain 2: 
+## 
+## SAMPLING FOR MODEL &#39;anon_model&#39; NOW (CHAIN 3).
+## Chain 3: 
+## Chain 3: Gradient evaluation took 0.001337 seconds
+## Chain 3: 1000 transitions using 10 leapfrog steps per transition would take 13.37 seconds.
+## Chain 3: Adjust your expectations accordingly!
+## Chain 3: 
+## Chain 3: 
+## Chain 3: Iteration:    1 / 2000 [  0%]  (Warmup)
+## Chain 3: Iteration:  200 / 2000 [ 10%]  (Warmup)
+## Chain 3: Iteration:  400 / 2000 [ 20%]  (Warmup)
+## Chain 3: Iteration:  600 / 2000 [ 30%]  (Warmup)
+## Chain 3: Iteration:  800 / 2000 [ 40%]  (Warmup)
+## Chain 3: Iteration: 1000 / 2000 [ 50%]  (Warmup)
+## Chain 3: Iteration: 1001 / 2000 [ 50%]  (Sampling)
+## Chain 3: Iteration: 1200 / 2000 [ 60%]  (Sampling)
+## Chain 3: Iteration: 1400 / 2000 [ 70%]  (Sampling)
+## Chain 3: Iteration: 1600 / 2000 [ 80%]  (Sampling)
+## Chain 3: Iteration: 1800 / 2000 [ 90%]  (Sampling)
+## Chain 3: Iteration: 2000 / 2000 [100%]  (Sampling)
+## Chain 3: 
+## Chain 3:  Elapsed Time: 76.929 seconds (Warm-up)
+## Chain 3:                61.079 seconds (Sampling)
+## Chain 3:                138.008 seconds (Total)
+## Chain 3:</code></pre>
+<pre><code>## Warning: Bulk Effective Samples Size (ESS) is too low, indicating posterior means and medians may be unreliable.
+## Running the chains for more iterations may help. See
+## https://mc-stan.org/misc/warnings.html#bulk-ess</code></pre>
+</div>
+<div id="model-assessment" class="section level3 hasAnchor" number="10.3.3">
+<h3><span class="header-section-number">10.3.3</span> Model Assessment<a href="app.html#model-assessment" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>For Bayesian models, we need to investigate parameter posterior distributions to evaluate whether there is evidence they have converged and thus are reliable to be used for inference. There are plenty of ways to conduct MCMC diagnostics (e.g., <span class="citation">Roy (<a href="references.html#ref-roy2020convergence">2019</a>)</span>). A good first step, is to simply visualize the posterior distributions as ‘traceplots’ and ‘density plots’ for each chain (independent model fit) to evaluate whether 1) different chains for each parameter are largely the same (plotted on top of each other), and 2) there is good ‘mixing’ within chain for each parameter. Mixing refers to the process of how the MCMC explores the parameter space to ‘fill out’ the full posterior distribution; good mixing can generally be assessed visually where the traceplot looks like a ‘hairy caterpillar’ and density plots look smooth. For a simple introduction see Denis Valle’s <a href="https://drvalle1.github.io/20_MCMC_convergence.html">How do I tell if my MCMC has converged?</a> and for additional details, see <a href="https://sbfnk.github.io/mfiidd/mcmc_diagnostics.html">MCMC diagnostics</a>.</p>
+<div class="sourceCode" id="cb273"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb273-1"><a href="app.html#cb273-1" tabindex="-1"></a><span class="co">#Traceplots to check convergence</span></span>
+<span id="cb273-2"><a href="app.html#cb273-2" tabindex="-1"></a><span class="fu">mcmc_plot</span>(cycl_rand_int, <span class="at">type =</span> <span class="st">&quot;trace&quot;</span>)</span></code></pre></div>
+<pre><code>## No divergences to plot.</code></pre>
+<p><img src="HMsActivity_files/figure-html/fit.bayes.cc.4-1.png" width="672" /></p>
+<div class="sourceCode" id="cb275"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb275-1"><a href="app.html#cb275-1" tabindex="-1"></a><span class="fu">mcmc_plot</span>(cycl_rand_int_alt, <span class="at">type =</span> <span class="st">&quot;trace&quot;</span>)</span></code></pre></div>
+<pre><code>## No divergences to plot.</code></pre>
+<p><img src="HMsActivity_files/figure-html/fit.bayes.cc.4-2.png" width="672" /></p>
+<div class="sourceCode" id="cb277"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb277-1"><a href="app.html#cb277-1" tabindex="-1"></a><span class="co"># Look at the coefficients for the two models and note their equivalence (parameters displayed in different orders)</span></span>
+<span id="cb277-2"><a href="app.html#cb277-2" tabindex="-1"></a><span class="fu">mcmc_plot</span>(cycl_rand_int, </span>
+<span id="cb277-3"><a href="app.html#cb277-3" tabindex="-1"></a>         <span class="at">type =</span> <span class="st">&quot;areas&quot;</span>,</span>
+<span id="cb277-4"><a href="app.html#cb277-4" tabindex="-1"></a>         <span class="at">prob =</span> <span class="fl">0.95</span></span>
+<span id="cb277-5"><a href="app.html#cb277-5" tabindex="-1"></a>         )</span></code></pre></div>
+<p><img src="HMsActivity_files/figure-html/fit.bayes.cc.4-3.png" width="672" /></p>
+<div class="sourceCode" id="cb278"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb278-1"><a href="app.html#cb278-1" tabindex="-1"></a><span class="fu">mcmc_plot</span>(cycl_rand_int_alt, </span>
+<span id="cb278-2"><a href="app.html#cb278-2" tabindex="-1"></a>         <span class="at">type =</span> <span class="st">&quot;areas&quot;</span>,</span>
+<span id="cb278-3"><a href="app.html#cb278-3" tabindex="-1"></a>         <span class="at">prob =</span> <span class="fl">0.95</span></span>
+<span id="cb278-4"><a href="app.html#cb278-4" tabindex="-1"></a>         )</span></code></pre></div>
+<p><img src="HMsActivity_files/figure-html/fit.bayes.cc.4-4.png" width="672" /></p>
+<div class="sourceCode" id="cb279"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb279-1"><a href="app.html#cb279-1" tabindex="-1"></a><span class="co">#Summary of outputs - coefficients are the same</span></span>
+<span id="cb279-2"><a href="app.html#cb279-2" tabindex="-1"></a><span class="fu">summary</span>(cycl_rand_int)</span></code></pre></div>
+<pre><code>##  Family: binomial 
+##   Links: mu = logit 
+## Formula: success | trials(n_events) ~ s(Time, bs = &quot;cc&quot;, k = wavelength) + s(Site, bs = &quot;re&quot;) 
+##    Data: occasions_cbind (Number of observations: 2400) 
+##   Draws: 3 chains, each with iter = 2000; warmup = 1000; thin = 1;
+##          total post-warmup draws = 3000
+## 
+## Smoothing Spline Hyperparameters:
+##              Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## sds(sTime_1)     0.04      0.01     0.02     0.05 1.00      559      925
+## sds(sSite_1)     0.99      0.08     0.86     1.15 1.01      370      636
+## 
+## Regression Coefficients:
+##           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## Intercept    -3.06      0.10    -3.25    -2.86 1.03      125      467
+## 
+## Draws were sampled using sampling(NUTS). For each parameter, Bulk_ESS
+## and Tail_ESS are effective sample size measures, and Rhat is the potential
+## scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
+<div class="sourceCode" id="cb281"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb281-1"><a href="app.html#cb281-1" tabindex="-1"></a><span class="fu">summary</span>(cycl_rand_int_alt)</span></code></pre></div>
+<pre><code>##  Family: binomial 
+##   Links: mu = logit 
+## Formula: success | trials(n_events) ~ s(Time, bs = &quot;cc&quot;, k = wavelength) + (1 | Site) 
+##    Data: occasions_cbind (Number of observations: 2400) 
+##   Draws: 3 chains, each with iter = 2000; warmup = 1000; thin = 1;
+##          total post-warmup draws = 3000
+## 
+## Smoothing Spline Hyperparameters:
+##              Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## sds(sTime_1)     0.03      0.01     0.02     0.05 1.00      631     1161
+## 
+## Multilevel Hyperparameters:
+## ~Site (Number of levels: 100) 
+##               Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## sd(Intercept)     0.99      0.07     0.85     1.14 1.01      382      625
+## 
+## Regression Coefficients:
+##           Estimate Est.Error l-95% CI u-95% CI Rhat Bulk_ESS Tail_ESS
+## Intercept    -3.06      0.10    -3.25    -2.86 1.03      110      433
+## 
+## Draws were sampled using sampling(NUTS). For each parameter, Bulk_ESS
+## and Tail_ESS are effective sample size measures, and Rhat is the potential
+## scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
+</div>
+<div id="model-predictions" class="section level3 hasAnchor" number="10.3.4">
+<h3><span class="header-section-number">10.3.4</span> Model Predictions<a href="app.html#model-predictions" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>We use the first parameterization (with <code>s(Site, bs="re")</code>) to explore site-level variability in the activity patterns:</p>
+<div class="sourceCode" id="cb283"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb283-1"><a href="app.html#cb283-1" tabindex="-1"></a><span class="co"># Predict the mean site-level activity pattern</span></span>
+<span id="cb283-2"><a href="app.html#cb283-2" tabindex="-1"></a>newdata <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">Time=</span><span class="dv">0</span><span class="sc">:</span><span class="dv">23</span>,</span>
+<span id="cb283-3"><a href="app.html#cb283-3" tabindex="-1"></a>                      <span class="at">Site =</span> occasions_cbind<span class="sc">$</span>Site, </span>
+<span id="cb283-4"><a href="app.html#cb283-4" tabindex="-1"></a>                      <span class="at">n_events=</span><span class="dv">1</span></span>
+<span id="cb283-5"><a href="app.html#cb283-5" tabindex="-1"></a>                      )</span>
+<span id="cb283-6"><a href="app.html#cb283-6" tabindex="-1"></a>preds <span class="ot">&lt;-</span> <span class="fu">fitted</span>(cycl_rand_int,<span class="at">scale=</span><span class="st">&quot;response&quot;</span>,<span class="at">newdata=</span>newdata)</span>
+<span id="cb283-7"><a href="app.html#cb283-7" tabindex="-1"></a>preds <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(newdata,preds)</span>
+<span id="cb283-8"><a href="app.html#cb283-8" tabindex="-1"></a><span class="fu">head</span>(preds)</span></code></pre></div>
+<pre><code>##   Time Site n_events    Estimate   Est.Error        Q2.5       Q97.5
+## 1    0   A1        1 0.005892358 0.001505928 0.003362585 0.009176446
+## 2    1   A1        1 0.004425826 0.001169577 0.002492922 0.007027831
+## 3    2   A1        1 0.003774225 0.001005591 0.002106514 0.006022182
+## 4    3   A1        1 0.004325475 0.001148243 0.002442596 0.006882073
+## 5    4   A1        1 0.006203072 0.001630072 0.003541543 0.009727854
+## 6    5   A1        1 0.010500089 0.002700026 0.006058918 0.016462475</code></pre>
+<div class="sourceCode" id="cb285"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb285-1"><a href="app.html#cb285-1" tabindex="-1"></a><span class="co"># Plot site level mean activity</span></span>
+<span id="cb285-2"><a href="app.html#cb285-2" tabindex="-1"></a><span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>Time, <span class="at">y=</span>Estimate, <span class="at">group=</span>Site, <span class="at">color=</span>Site), <span class="at">data=</span>preds) <span class="sc">+</span></span>
+<span id="cb285-3"><a href="app.html#cb285-3" tabindex="-1"></a>      <span class="fu">geom_line</span>() <span class="sc">+</span> </span>
+<span id="cb285-4"><a href="app.html#cb285-4" tabindex="-1"></a>      <span class="fu">theme_minimal</span>() <span class="sc">+</span> </span>
+<span id="cb285-5"><a href="app.html#cb285-5" tabindex="-1"></a>      <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">&quot;none&quot;</span>)</span></code></pre></div>
+<p><img src="HMsActivity_files/figure-html/fit.bayes.cc.pred1-1.png" width="672" /></p>
+<p>We can then approximate the marginal mean activity curve by averaging across the site-level variation.</p>
+<div class="sourceCode" id="cb286"><pre class="sourceCode r fold-hide"><code class="sourceCode r"><span id="cb286-1"><a href="app.html#cb286-1" tabindex="-1"></a><span class="co">#Average across sites to get the marginal mean</span></span>
+<span id="cb286-2"><a href="app.html#cb286-2" tabindex="-1"></a>marginal.mean <span class="ot">=</span> <span class="fu">aggregate</span>(preds<span class="sc">$</span>Estimate, <span class="fu">list</span>(preds<span class="sc">$</span>Time), <span class="at">FUN=</span>mean)</span>
+<span id="cb286-3"><a href="app.html#cb286-3" tabindex="-1"></a>marginal.lower <span class="ot">=</span> <span class="fu">aggregate</span>(preds<span class="sc">$</span>Q2<span class="fl">.5</span>, <span class="fu">list</span>(preds<span class="sc">$</span>Time), <span class="at">FUN=</span>mean)</span>
+<span id="cb286-4"><a href="app.html#cb286-4" tabindex="-1"></a>marginal.upper <span class="ot">=</span> <span class="fu">aggregate</span>(preds<span class="sc">$</span>Q97<span class="fl">.5</span>, <span class="fu">list</span>(preds<span class="sc">$</span>Time), <span class="at">FUN=</span>mean) </span>
+<span id="cb286-5"><a href="app.html#cb286-5" tabindex="-1"></a></span>
+<span id="cb286-6"><a href="app.html#cb286-6" tabindex="-1"></a><span class="co"># Plot the marginal mean and compare it to the simulated true mean</span></span>
+<span id="cb286-7"><a href="app.html#cb286-7" tabindex="-1"></a><span class="fu">plot</span>(marginal.mean<span class="sc">$</span>Group<span class="fl">.1</span>,marginal.mean<span class="sc">$</span>x,<span class="at">type=</span><span class="st">&quot;l&quot;</span>,<span class="at">lwd=</span><span class="dv">3</span>,<span class="at">col=</span><span class="dv">1</span>,</span>
+<span id="cb286-8"><a href="app.html#cb286-8" tabindex="-1"></a>       <span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.25</span>),<span class="at">xlab=</span><span class="st">&quot;Time&quot;</span>,<span class="at">ylab=</span><span class="st">&quot;Probability of Activity&quot;</span></span>
+<span id="cb286-9"><a href="app.html#cb286-9" tabindex="-1"></a>     )</span>
+<span id="cb286-10"><a href="app.html#cb286-10" tabindex="-1"></a><span class="fu">lines</span>(marginal.lower<span class="sc">$</span>Group<span class="fl">.1</span>,marginal.lower<span class="sc">$</span>x)</span>
+<span id="cb286-11"><a href="app.html#cb286-11" tabindex="-1"></a><span class="fu">lines</span>(marginal.upper<span class="sc">$</span>Group<span class="fl">.1</span>,marginal.upper<span class="sc">$</span>x)</span>
+<span id="cb286-12"><a href="app.html#cb286-12" tabindex="-1"></a><span class="fu">lines</span>(dat<span class="sc">$</span>Marginal[,<span class="dv">2</span>],dat<span class="sc">$</span>Marginal[,<span class="dv">1</span>],<span class="at">lwd=</span><span class="dv">3</span>,<span class="at">col=</span><span class="dv">2</span>)</span>
+<span id="cb286-13"><a href="app.html#cb286-13" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">&quot;topright&quot;</span>,<span class="at">lwd=</span><span class="fu">c</span>(<span class="dv">3</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">3</span>),<span class="at">col=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">2</span>),</span>
+<span id="cb286-14"><a href="app.html#cb286-14" tabindex="-1"></a>         <span class="at">legend=</span><span class="fu">c</span>(<span class="st">&quot;Marginal Mean&quot;</span>, <span class="st">&quot;Lower Marginal Mean&quot;</span>,<span class="st">&quot;Upper Marginal Mean&quot;</span>, <span class="st">&quot;True Marginal Mean&quot;</span>)</span>
+<span id="cb286-15"><a href="app.html#cb286-15" tabindex="-1"></a>       )</span></code></pre></div>
+<div class="figure">
+<img src="HMsActivity_files/figure-html/fit.bayes.cc.pred2-1.png" alt="Predicted probability of the marginal mean activity." width="672" />
+<p class="caption">
+(#fig:fit.bayes.cc.pred2)Predicted probability of the marginal mean activity.
+</p>
+</div>
+<p>Next, we predict the conditional mean activity using the second parameterization (with <code>(1 | Site)</code>). <!---Note, the first model structure with a random effect spline has no random effects according to `brms`. However, the second model structure does..
+
+
+``` r
+ranef(cycl_rand_int)
+```
+
+```
+## Error: The model does not contain group-level effects.
+```
+
+``` r
+ranef(cycl_rand_int_alt)$Site[1:5,,]
+```
+
+```
+##        Estimate Est.Error       Q2.5       Q97.5
+## A1   -1.0788966 0.2720536 -1.6230674 -0.55197710
+## A10  -0.6428917 0.2329572 -1.1103057 -0.21095750
+## A100  1.6600348 0.1356952  1.3891022  1.92664399
+## A11   1.2324815 0.1415421  0.9471264  1.51361576
+## A12  -0.3712144 0.2119569 -0.8013839  0.01532364
+```
+ 
+Because `brms` does not allow smooth terms, such as `s(Site, bs="re")`, to be omitted when predicting, we use the second model to predict the conditional mean activity curve. ---></p>
+<div class="sourceCode" id="cb287"><pre class="sourceCode r fold-hide"><code class="sourceCode r"><span id="cb287-1"><a href="app.html#cb287-1" tabindex="-1"></a><span class="co"># Predict the conditional mean activity</span></span>
+<span id="cb287-2"><a href="app.html#cb287-2" tabindex="-1"></a>newdata2 <span class="ot">=</span> <span class="fu">data.frame</span>(<span class="at">Time=</span><span class="dv">0</span><span class="sc">:</span><span class="dv">23</span>,</span>
+<span id="cb287-3"><a href="app.html#cb287-3" tabindex="-1"></a>                      <span class="at">n_events=</span><span class="dv">1</span></span>
+<span id="cb287-4"><a href="app.html#cb287-4" tabindex="-1"></a>                      )</span>
+<span id="cb287-5"><a href="app.html#cb287-5" tabindex="-1"></a>preds2<span class="ot">=</span><span class="fu">fitted</span>(cycl_rand_int_alt,<span class="at">scale=</span><span class="st">&quot;response&quot;</span>, </span>
+<span id="cb287-6"><a href="app.html#cb287-6" tabindex="-1"></a>              <span class="at">newdata=</span>newdata2,</span>
+<span id="cb287-7"><a href="app.html#cb287-7" tabindex="-1"></a>              <span class="at">re_formula =</span> <span class="cn">NA</span></span>
+<span id="cb287-8"><a href="app.html#cb287-8" tabindex="-1"></a>              )</span>
+<span id="cb287-9"><a href="app.html#cb287-9" tabindex="-1"></a>  </span>
+<span id="cb287-10"><a href="app.html#cb287-10" tabindex="-1"></a>preds2<span class="ot">=</span><span class="fu">data.frame</span>(newdata2,preds2)</span>
+<span id="cb287-11"><a href="app.html#cb287-11" tabindex="-1"></a><span class="fu">head</span>(preds2)</span></code></pre></div>
+<pre><code>##   Time n_events   Estimate   Est.Error        Q2.5      Q97.5
+## 1    0        1 0.01675945 0.001930674 0.013285795 0.02077941
+## 2    1        1 0.01263057 0.001630243 0.009751392 0.01610666
+## 3    2        1 0.01076266 0.001473304 0.008214943 0.01396013
+## 4    3        1 0.01231741 0.001659573 0.009414299 0.01584803
+## 5    4        1 0.01760722 0.002216415 0.013695462 0.02226960
+## 6    5        1 0.02954183 0.003439949 0.023322471 0.03640814</code></pre>
+<div class="sourceCode" id="cb289"><pre class="sourceCode r fold-hide"><code class="sourceCode r"><span id="cb289-1"><a href="app.html#cb289-1" tabindex="-1"></a><span class="co"># Plot the conditional mean and compare it to the simulated true mean</span></span>
+<span id="cb289-2"><a href="app.html#cb289-2" tabindex="-1"></a><span class="fu">plot</span>(preds2<span class="sc">$</span>Time, preds2<span class="sc">$</span>Estimate,<span class="at">type=</span><span class="st">&quot;l&quot;</span>,<span class="at">lwd=</span><span class="dv">3</span>,<span class="at">col=</span><span class="dv">1</span>,<span class="at">ylim=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="fl">0.25</span>),</span>
+<span id="cb289-3"><a href="app.html#cb289-3" tabindex="-1"></a>       <span class="at">xlab=</span><span class="st">&quot;Time&quot;</span>,<span class="at">ylab=</span><span class="st">&quot;Probability of Activity&quot;</span></span>
+<span id="cb289-4"><a href="app.html#cb289-4" tabindex="-1"></a>     )</span>
+<span id="cb289-5"><a href="app.html#cb289-5" tabindex="-1"></a><span class="fu">lines</span>(preds2<span class="sc">$</span>Time,preds2<span class="sc">$</span>Q2<span class="fl">.5</span>)</span>
+<span id="cb289-6"><a href="app.html#cb289-6" tabindex="-1"></a><span class="fu">lines</span>(preds2<span class="sc">$</span>Time,preds2<span class="sc">$</span>Q97<span class="fl">.5</span>)</span>
+<span id="cb289-7"><a href="app.html#cb289-7" tabindex="-1"></a><span class="fu">lines</span>(dat<span class="sc">$</span>Conditional[,<span class="dv">2</span>],dat<span class="sc">$</span>Conditional[,<span class="dv">1</span>],<span class="at">lwd=</span><span class="dv">3</span>,<span class="at">col=</span><span class="dv">2</span>)</span>
+<span id="cb289-8"><a href="app.html#cb289-8" tabindex="-1"></a><span class="fu">legend</span>(<span class="st">&quot;topright&quot;</span>,<span class="at">lwd=</span><span class="fu">c</span>(<span class="dv">3</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">3</span>),<span class="at">col=</span><span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">2</span>),</span>
+<span id="cb289-9"><a href="app.html#cb289-9" tabindex="-1"></a>         <span class="at">legend=</span><span class="fu">c</span>(<span class="st">&quot;Conditional Mean&quot;</span>, <span class="st">&quot;Lower Conditional Mean&quot;</span>,<span class="st">&quot;Upper Conditional Mean&quot;</span>, <span class="st">&quot;True Conditional Mean&quot;</span>)</span>
+<span id="cb289-10"><a href="app.html#cb289-10" tabindex="-1"></a>       )</span></code></pre></div>
+<div class="figure">
+<img src="HMsActivity_files/figure-html/fit.bayes.cc.predict3-1.png" alt="Predicted probability of the conditional mean activity." width="672" />
+<p class="caption">
+(#fig:fit.bayes.cc.predict3)Predicted probability of the conditional mean activity.
+</p>
+</div>
+</div>
+</div>
+<div id="DielNiche" class="section level2 hasAnchor" number="10.4">
+<h2><span class="header-section-number">10.4</span> Link to the Diel.Niche package<a href="app.html#DielNiche" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>In the ecology and evolution literature, animal activity is often discussed in terms of diel classifications or phenotypes, such as diurnal, nocturnal, crepuscular, or cathemeral. But, how much activity in what time period does it mean to be diurnal, nocturnal, etc.? To make comparable inference across studies, we should define these diel phenotypes mathematically so that we can make inference based on consistent definitions and thus make appropriate comparisons across species or projects. We can use the <a href="https://github.com/diel-project/Diel-Niche-Modeling/"><code>Diel.Niche</code> R package</a> to do exactly this. First, we use our data to estimate animal diel activity across the 24-hour period and then second, we can classify predicted activity patterns into the corresponding diel phenotype. Here, we demonstrate this approach using a hierarchical cyclic cubic spline model, but the process is the same for any model predicting 24-hour temporal activity.</p>
+<div id="data" class="section level3 hasAnchor" number="10.4.1">
+<h3><span class="header-section-number">10.4.1</span> Data<a href="app.html#data" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>We use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA <span class="citation">(<a href="references.html#ref-Iannarilliea2021">Iannarilli et al. 2021</a>)</span>. We use the same data records of American black bear (<em>Ursus americanus</em>) as done in other Tutorials and in section <a href="app.html#poisson">10.2</a>. However, we ignore examining a season covariate for simplicity and focus on modeling the spring data. As before, we first load the <code>occasions_cbind</code> object that we saved in section <a href="cov.html#cat">6.1</a>, then subset the data to only include records related to the season of interest, which is now Spring.</p>
+<div class="sourceCode" id="cb290"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb290-1"><a href="app.html#cb290-1" tabindex="-1"></a><span class="co"># load packages</span></span>
+<span id="cb290-2"><a href="app.html#cb290-2" tabindex="-1"></a><span class="fu">library</span>(mgcv)</span>
+<span id="cb290-3"><a href="app.html#cb290-3" tabindex="-1"></a><span class="fu">library</span>(brms)</span>
+<span id="cb290-4"><a href="app.html#cb290-4" tabindex="-1"></a><span class="fu">library</span>(suncalc)</span></code></pre></div>
+<pre><code>## Warning: package &#39;suncalc&#39; was built under R version 4.2.2</code></pre>
+<div class="sourceCode" id="cb292"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb292-1"><a href="app.html#cb292-1" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span>
+<span id="cb292-2"><a href="app.html#cb292-2" tabindex="-1"></a><span class="fu">library</span>(Diel.Niche)</span>
+<span id="cb292-3"><a href="app.html#cb292-3" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb292-4"><a href="app.html#cb292-4" tabindex="-1"></a></span>
+<span id="cb292-5"><a href="app.html#cb292-5" tabindex="-1"></a><span class="co"># Load data</span></span>
+<span id="cb292-6"><a href="app.html#cb292-6" tabindex="-1"></a>occasions_cbind <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">&quot;data_output/occasions_cbind_Ursus_americanus_seasons.csv&quot;</span>)<span class="sc">%&gt;%</span> </span>
+<span id="cb292-7"><a href="app.html#cb292-7" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Site =</span> <span class="fu">as.factor</span>(Site))</span>
+<span id="cb292-8"><a href="app.html#cb292-8" tabindex="-1"></a></span>
+<span id="cb292-9"><a href="app.html#cb292-9" tabindex="-1"></a><span class="co">#Subset the data to the Spring data only, thus removing Fall data.</span></span>
+<span id="cb292-10"><a href="app.html#cb292-10" tabindex="-1"></a>y_spring <span class="ot">&lt;-</span>  occasions_cbind[<span class="fu">which</span>(occasions_cbind<span class="sc">$</span>Season <span class="sc">==</span> <span class="st">&quot;S&quot;</span>),]</span>
+<span id="cb292-11"><a href="app.html#cb292-11" tabindex="-1"></a><span class="fu">head</span>(y_spring)</span></code></pre></div>
+<pre><code>##     X Site Time Season success failure
+## 2   2  10A    0      S       0     159
+## 4   4  10A    1      S       0     159
+## 6   6  10A    2      S       0     159
+## 8   8  10A    3      S       0     159
+## 10 10  10A    4      S       0     159
+## 12 12  10A    5      S       0     159</code></pre>
+</div>
+<div id="model-fitting" class="section level3 hasAnchor" number="10.4.2">
+<h3><span class="header-section-number">10.4.2</span> Model Fitting<a href="app.html#model-fitting" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Using the spring data for black bears, we can now fit a hierarchical cyclic cubic spline model.</p>
+<div class="sourceCode" id="cb294"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb294-1"><a href="app.html#cb294-1" tabindex="-1"></a>cycl_rand_int_ML <span class="ot">&lt;-</span> <span class="fu">bam</span>(<span class="fu">cbind</span>(success, failure) <span class="sc">~</span> </span>
+<span id="cb294-2"><a href="app.html#cb294-2" tabindex="-1"></a>                                                 <span class="fu">s</span>(Time, <span class="at">bs =</span> <span class="st">&quot;cc&quot;</span>, <span class="at">k =</span> <span class="dv">12</span>) <span class="sc">+</span> </span>
+<span id="cb294-3"><a href="app.html#cb294-3" tabindex="-1"></a>                                                 <span class="fu">s</span>(Site, <span class="at">bs=</span><span class="st">&quot;re&quot;</span>), </span>
+<span id="cb294-4"><a href="app.html#cb294-4" tabindex="-1"></a>                                                 <span class="at">knots =</span> <span class="fu">list</span>(<span class="at">Time=</span><span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">23</span>)),</span>
+<span id="cb294-5"><a href="app.html#cb294-5" tabindex="-1"></a>                                                 <span class="at">family =</span> <span class="st">&quot;binomial&quot;</span>, </span>
+<span id="cb294-6"><a href="app.html#cb294-6" tabindex="-1"></a>                                                 <span class="at">data =</span> y_spring</span>
+<span id="cb294-7"><a href="app.html#cb294-7" tabindex="-1"></a>                          )</span></code></pre></div>
+</div>
+<div id="model-predictions-1" class="section level3 hasAnchor" number="10.4.3">
+<h3><span class="header-section-number">10.4.3</span> Model Predictions<a href="app.html#model-predictions-1" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Let’s now use our model to predict the conditional mean activity curve across all sites. We then use those predictions to define the diel phenotype. Below, we classify each predicted time period into twilight, daytime, and nighttime. To make sure we capture enough predictions to summarize each of these periods, we predict the probability of activity at a smaller interval than how we modeled the data (e.g., 100 intervals instead of 24).</p>
+<div class="sourceCode" id="cb295"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb295-1"><a href="app.html#cb295-1" tabindex="-1"></a>newdat <span class="ot">&lt;-</span> <span class="fu">with</span>(occasions_cbind, <span class="fu">expand.grid</span>(<span class="at">Time =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">24</span>, <span class="at">length.out=</span><span class="dv">100</span>),<span class="at">total=</span><span class="dv">1</span>, </span>
+<span id="cb295-2"><a href="app.html#cb295-2" tabindex="-1"></a>                                            <span class="at">Site =</span> <span class="st">&quot;7B&quot;</span>)) <span class="co">#Station doesn&#39;t matter, as &#39;site&#39; is excluded below</span></span>
+<span id="cb295-3"><a href="app.html#cb295-3" tabindex="-1"></a></span>
+<span id="cb295-4"><a href="app.html#cb295-4" tabindex="-1"></a><span class="co"># Get predictions and of the conditional mean</span></span>
+<span id="cb295-5"><a href="app.html#cb295-5" tabindex="-1"></a>cycl_pred <span class="ot">&lt;-</span> <span class="fu">predict.bam</span>(cycl_rand_int_ML, <span class="at">newdata =</span> newdat,  <span class="at">exclude =</span> <span class="st">&quot;s(Site)&quot;</span>, <span class="at">type =</span> <span class="st">&quot;response&quot;</span>) </span>
+<span id="cb295-6"><a href="app.html#cb295-6" tabindex="-1"></a>cycl_pred <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(cycl_pred)</span>
+<span id="cb295-7"><a href="app.html#cb295-7" tabindex="-1"></a>cycl_pred<span class="sc">$</span>Time <span class="ot">&lt;-</span> newdat<span class="sc">$</span>Time</span>
+<span id="cb295-8"><a href="app.html#cb295-8" tabindex="-1"></a><span class="fu">head</span>(cycl_pred)</span></code></pre></div>
+<pre><code>##      cycl_pred      Time
+## 1 0.0006813909 0.0000000
+## 2 0.0005470650 0.2424242
+## 3 0.0004427939 0.4848485
+## 4 0.0003636476 0.7272727
+## 5 0.0003049808 0.9696970
+## 6 0.0002628894 1.2121212</code></pre>
+<p>These predictions are absolute probabilities of activity, which incorporates sampling effort. We need to turn these into relative activity probabilities; therefore, assuming the species is active, these are the relative probabilities of activity during each time period.</p>
+<div class="sourceCode" id="cb297"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb297-1"><a href="app.html#cb297-1" tabindex="-1"></a>cycl_pred<span class="sc">$</span>cycl_pred.st <span class="ot">=</span> cycl_pred<span class="sc">$</span>cycl_pred<span class="sc">/</span><span class="fu">sum</span>(cycl_pred<span class="sc">$</span>cycl_pred)</span></code></pre></div>
+</div>
+<div id="twilight-daytime-and-nighttime" class="section level3 hasAnchor" number="10.4.4">
+<h3><span class="header-section-number">10.4.4</span> Twilight, daytime, and nighttime<a href="app.html#twilight-daytime-and-nighttime" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Next, we need to determine the time periods that correspond to twilight, daytime, and nighttime. To do so, we need to get the relevant astronomical periods that define these periods.</p>
+<div class="sourceCode" id="cb298"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb298-1"><a href="app.html#cb298-1" tabindex="-1"></a><span class="co"># Extract sunrise and sunset times for the general study area and period. </span></span>
+<span id="cb298-2"><a href="app.html#cb298-2" tabindex="-1"></a>sun.times <span class="ot">&lt;-</span> <span class="fu">getSunlightTimes</span>( <span class="at">date =</span> <span class="fu">as.Date</span>(<span class="st">&quot;2016-04-15&quot;</span>), </span>
+<span id="cb298-3"><a href="app.html#cb298-3" tabindex="-1"></a>                    <span class="at">lat =</span> <span class="fl">47.73</span> , <span class="at">lon =</span> <span class="sc">-</span><span class="fl">94.55</span>, <span class="at">data =</span> <span class="cn">NULL</span>, </span>
+<span id="cb298-4"><a href="app.html#cb298-4" tabindex="-1"></a>                    <span class="at">keep =</span> <span class="fu">c</span>( <span class="st">&quot;dawn&quot;</span>, <span class="st">&quot;dusk&quot;</span>, <span class="st">&quot;nightEnd&quot;</span>, <span class="st">&quot;night&quot;</span>), </span>
+<span id="cb298-5"><a href="app.html#cb298-5" tabindex="-1"></a>                    <span class="at">tz =</span> <span class="st">&quot;America/Chicago&quot;</span>)</span>
+<span id="cb298-6"><a href="app.html#cb298-6" tabindex="-1"></a></span>
+<span id="cb298-7"><a href="app.html#cb298-7" tabindex="-1"></a><span class="co"># Use the extracted sun times to define dawn and dusk</span></span>
+<span id="cb298-8"><a href="app.html#cb298-8" tabindex="-1"></a>dawn <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">hour</span>(sun.times<span class="sc">$</span>nightEnd)<span class="sc">+</span><span class="fu">minute</span>(sun.times<span class="sc">$</span>nightEnd)<span class="sc">/</span><span class="dv">60</span>,</span>
+<span id="cb298-9"><a href="app.html#cb298-9" tabindex="-1"></a>         <span class="fu">hour</span>(sun.times<span class="sc">$</span>dawn)<span class="sc">+</span><span class="fu">minute</span>(sun.times<span class="sc">$</span>dawn)<span class="sc">/</span><span class="dv">60</span>)</span>
+<span id="cb298-10"><a href="app.html#cb298-10" tabindex="-1"></a>  </span>
+<span id="cb298-11"><a href="app.html#cb298-11" tabindex="-1"></a>dusk <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">hour</span>(sun.times<span class="sc">$</span>dusk)<span class="sc">+</span><span class="fu">minute</span>(sun.times<span class="sc">$</span>dusk)<span class="sc">/</span><span class="dv">60</span>,</span>
+<span id="cb298-12"><a href="app.html#cb298-12" tabindex="-1"></a>         <span class="fu">hour</span>(sun.times<span class="sc">$</span>night)<span class="sc">+</span><span class="fu">minute</span>(sun.times<span class="sc">$</span>night)<span class="sc">/</span><span class="dv">60</span>)</span>
+<span id="cb298-13"><a href="app.html#cb298-13" tabindex="-1"></a>  </span>
+<span id="cb298-14"><a href="app.html#cb298-14" tabindex="-1"></a><span class="co"># Create a vector that defines each time period of cycl_pred$Time into twilight (combination of dawn and dusk)</span></span>
+<span id="cb298-15"><a href="app.html#cb298-15" tabindex="-1"></a><span class="co"># daytime, and nighttime  </span></span>
+<span id="cb298-16"><a href="app.html#cb298-16" tabindex="-1"></a>diel.class <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="cn">NA</span>,<span class="fu">nrow</span>(cycl_pred))</span>
+<span id="cb298-17"><a href="app.html#cb298-17" tabindex="-1"></a>diel.class[cycl_pred<span class="sc">$</span>Time<span class="sc">&gt;=</span>dawn[<span class="dv">1</span>] <span class="sc">&amp;</span> cycl_pred<span class="sc">$</span>Time<span class="sc">&lt;=</span>dawn[<span class="dv">2</span>]] <span class="ot">&lt;-</span> <span class="st">&quot;Twilight&quot;</span></span>
+<span id="cb298-18"><a href="app.html#cb298-18" tabindex="-1"></a>diel.class[cycl_pred<span class="sc">$</span>Time<span class="sc">&gt;=</span>dusk[<span class="dv">1</span>] <span class="sc">&amp;</span> cycl_pred<span class="sc">$</span>Time<span class="sc">&lt;=</span>dusk[<span class="dv">2</span>]] <span class="ot">&lt;-</span> <span class="st">&quot;Twilight&quot;</span></span>
+<span id="cb298-19"><a href="app.html#cb298-19" tabindex="-1"></a>diel.class[cycl_pred<span class="sc">$</span>Time<span class="sc">&gt;=</span>dawn[<span class="dv">2</span>] <span class="sc">&amp;</span> cycl_pred<span class="sc">$</span>Time<span class="sc">&lt;=</span>dusk[<span class="dv">1</span>]] <span class="ot">&lt;-</span> <span class="st">&quot;Day&quot;</span></span>
+<span id="cb298-20"><a href="app.html#cb298-20" tabindex="-1"></a><span class="co"># the undefined time periods are then the night  </span></span>
+<span id="cb298-21"><a href="app.html#cb298-21" tabindex="-1"></a>diel.class[<span class="fu">is.na</span>(diel.class)] <span class="ot">&lt;-</span> <span class="st">&quot;Night&quot;</span></span>
+<span id="cb298-22"><a href="app.html#cb298-22" tabindex="-1"></a>cycl_pred<span class="sc">$</span>diel.class <span class="ot">&lt;-</span> diel.class</span>
+<span id="cb298-23"><a href="app.html#cb298-23" tabindex="-1"></a></span>
+<span id="cb298-24"><a href="app.html#cb298-24" tabindex="-1"></a><span class="co"># Sum the standardized predictions of activity by diel period</span></span>
+<span id="cb298-25"><a href="app.html#cb298-25" tabindex="-1"></a><span class="co"># These are the relative probabilities of activity  </span></span>
+<span id="cb298-26"><a href="app.html#cb298-26" tabindex="-1"></a>diel.summary <span class="ot">&lt;-</span> <span class="fu">aggregate</span>(cycl_pred<span class="sc">$</span>cycl_pred.st, <span class="at">by=</span><span class="fu">list</span>(<span class="at">diel.class=</span>cycl_pred<span class="sc">$</span>diel.class), <span class="at">FUN=</span>sum)</span>
+<span id="cb298-27"><a href="app.html#cb298-27" tabindex="-1"></a>diel.summary</span></code></pre></div>
+<pre><code>##   diel.class         x
+## 1        Day 0.7640512
+## 2      Night 0.0784899
+## 3   Twilight 0.1574589</code></pre>
+</div>
+<div id="diel.niche" class="section level3 hasAnchor" number="10.4.5">
+<h3><span class="header-section-number">10.4.5</span> Diel.Niche<a href="app.html#diel.niche" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Next, we reorganize the probabilities of activity in the order used by the <code>Diel.Niche</code> package: twilight, daytime, nighttime. For details about the <code>Diel.Niche</code> package, see the <a href="https://github.com/diel-project/Diel-Niche-Modeling/">Github repository</a> and the associated <a href="https://doi.org/10.1111/1365-2656.14035">manuscript</a>.</p>
+<div class="sourceCode" id="cb300"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb300-1"><a href="app.html#cb300-1" tabindex="-1"></a>y <span class="ot">=</span> <span class="fu">t</span>(<span class="fu">matrix</span>(<span class="fu">c</span>(diel.summary<span class="sc">$</span>x[<span class="dv">3</span>],</span>
+<span id="cb300-2"><a href="app.html#cb300-2" tabindex="-1"></a>                 diel.summary<span class="sc">$</span>x[<span class="dv">1</span>], </span>
+<span id="cb300-3"><a href="app.html#cb300-3" tabindex="-1"></a>                 diel.summary<span class="sc">$</span>x[<span class="dv">2</span>]</span>
+<span id="cb300-4"><a href="app.html#cb300-4" tabindex="-1"></a>                 )</span>
+<span id="cb300-5"><a href="app.html#cb300-5" tabindex="-1"></a>               )</span>
+<span id="cb300-6"><a href="app.html#cb300-6" tabindex="-1"></a>        )</span>
+<span id="cb300-7"><a href="app.html#cb300-7" tabindex="-1"></a><span class="fu">colnames</span>(y)<span class="ot">=</span><span class="fu">c</span>(<span class="st">&quot;P_twilight&quot;</span>,<span class="st">&quot;P_daytime&quot;</span>,<span class="st">&quot;P_nightime&quot;</span>)</span>
+<span id="cb300-8"><a href="app.html#cb300-8" tabindex="-1"></a>  </span>
+<span id="cb300-9"><a href="app.html#cb300-9" tabindex="-1"></a><span class="co"># Use the diel niche package to extract the associated diel phenotype within the Traditional hypothesis set  </span></span>
+<span id="cb300-10"><a href="app.html#cb300-10" tabindex="-1"></a>diel.out <span class="ot">&lt;-</span> Diel.Niche<span class="sc">::</span><span class="fu">posthoc.niche</span>(y, <span class="at">hyp=</span> <span class="fu">hyp.sets</span>(<span class="st">&quot;Traditional&quot;</span>))</span>
+<span id="cb300-11"><a href="app.html#cb300-11" tabindex="-1"></a>diel.out</span></code></pre></div>
+<pre><code>##       p.twi     p.day   p.night             Hypothesis
+## 1 0.1574589 0.7640512 0.0784899 Cathemeral Traditional</code></pre>
+<p>The corresponding diel phenotype for the conditional mean activity is the <strong>Cathemeral</strong> phenotype.</p>
+<p>Lastly, lets plot the conditional mean activity with the supported diel phenotype for these results.</p>
+<div class="sourceCode" id="cb302"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb302-1"><a href="app.html#cb302-1" tabindex="-1"></a><span class="fu">plot</span>(cycl_pred<span class="sc">$</span>Time,cycl_pred<span class="sc">$</span>cycl_pred,<span class="at">type=</span><span class="st">&quot;l&quot;</span>,<span class="at">col=</span><span class="dv">2</span>,<span class="at">lwd=</span><span class="dv">3</span>, </span>
+<span id="cb302-2"><a href="app.html#cb302-2" tabindex="-1"></a>       <span class="at">main=</span><span class="fu">paste</span>(<span class="st">&quot;Spring Black Bear Activity </span><span class="sc">\n</span><span class="st">&quot;</span>,diel.out<span class="sc">$</span>Hypothesis),</span>
+<span id="cb302-3"><a href="app.html#cb302-3" tabindex="-1"></a>       <span class="at">ylab=</span><span class="st">&quot;Probability of Activity&quot;</span>,<span class="at">xlab=</span><span class="st">&quot;Time&quot;</span>)</span>
+<span id="cb302-4"><a href="app.html#cb302-4" tabindex="-1"></a>  <span class="fu">abline</span>(<span class="at">v=</span><span class="fu">c</span>(dawn[<span class="dv">1</span>],dawn[<span class="dv">2</span>]),<span class="at">lty=</span><span class="dv">3</span>)</span>
+<span id="cb302-5"><a href="app.html#cb302-5" tabindex="-1"></a>  <span class="fu">abline</span>(<span class="at">v=</span><span class="fu">c</span>(dusk[<span class="dv">1</span>],dusk[<span class="dv">2</span>]),<span class="at">lty=</span><span class="dv">3</span>)</span></code></pre></div>
+<p><img src="HMsActivity_files/figure-html/fit.ml.pred3-1.png" width="672" /></p>
+<p>The vertical dotted lines indicate the periods of dawn and dusk for this sampling period. As we can see, black bears are mostly active during the day with a relative probability activity of 0.76. They are also have a high relative activity during twilight with a probability of 0.16.</p>
+<p>Interestingly, if we use a set of diel phenotype hypotheses that are more specific in separating bimodal and trimodal activity (i.e., General hypothesis set; see definitions at <a href="https://github.com/diel-project/Diel-Niche-Modeling/">Github repository</a>) we would find the correspondent diel phenotype to be better described as <strong>Diurnal-Crepuscular</strong>.</p>
+<div class="sourceCode" id="cb303"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb303-1"><a href="app.html#cb303-1" tabindex="-1"></a>Diel.Niche<span class="sc">::</span><span class="fu">posthoc.niche</span>(y, <span class="at">hyp=</span> <span class="fu">hyp.sets</span>(<span class="st">&quot;General&quot;</span>))</span></code></pre></div>
+<pre><code>##       p.twi     p.day   p.night          Hypothesis
+## 1 0.1574589 0.7640512 0.0784899 Diurnal-Crepuscular</code></pre>
+<p>This difference in classification is because of the low amount of activity during the nighttime. It is hard to describe this activity pattern as Cathemeral, given that all three time periods (twilight, daytime, and nighttime) are not used. More specifically, black bears are concentrating their activity during twilight and daytime, thus the more accurate description would be <strong>Diurnal-Crepuscular</strong>.</p>
+</div>
+<div id="conclusion" class="section level3 hasAnchor" number="10.4.6">
+<h3><span class="header-section-number">10.4.6</span> Conclusion<a href="app.html#conclusion" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Modeling animal activity patterns continuously throughout the 24-hour period provides important fine scale inference that is not achieved when aggregating data into blocks of time (e.g., daytime vs nighttime). However, it is important to then still be able to translate findings in relevant terminology based on diel phenotypes. The <a href="https://github.com/diel-project/Diel-Niche-Modeling/"><code>Diel.Niche</code> R package</a> provides an efficient way of summarizing findings from hierarchical trigonometric and cyclic cubic spline models.</p>
+<p>Here, we provided a simple example to demonstrate the process of using the <code>Diel.Niche</code> R package](<a href="https://github.com/diel-project/Diel-Niche-Modeling/" class="uri">https://github.com/diel-project/Diel-Niche-Modeling/</a>). However, there are a number of options we could also consider. For example, we could predict the diel phenotype for each site. This is most useful when we have site to site variation in terms of a random intercept and slope. We could also use covariates in our model and predict the supported diel phenotype across covariate values. Furthermore, we only predicted the corresponding diel phenotype using the estimated conditional mean activity. There is of course uncertainty associated with this mean activity level. To explore how supported the diel phenotype is when considering uncertainty from the conditional mean, we could predict activity curves at different levels of uncertainty or at certain confidence intervals to investigate uncertainty in the associated diel phenotype.</p>
+</div>
+</div>
+<div id="info-session" class="section level2 hasAnchor" number="10.5">
+<h2><span class="header-section-number">10.5</span> Info session<a href="app.html#info-session" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>To facilitate reproducibility, we report information on packages and package versions used to create this tutorial.</p>
+<div class="sourceCode" id="cb305"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb305-1"><a href="app.html#cb305-1" tabindex="-1"></a><span class="fu">library</span>(grateful)</span></code></pre></div>
+<pre><code>## Warning: package &#39;grateful&#39; was built under R version 4.2.3</code></pre>
+<div class="sourceCode" id="cb307"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb307-1"><a href="app.html#cb307-1" tabindex="-1"></a>pkgs <span class="ot">&lt;-</span> <span class="fu">cite_packages</span>(<span class="at">output =</span> <span class="st">&quot;table&quot;</span>, <span class="at">out.dir =</span> <span class="st">&quot;.&quot;</span>)</span>
+<span id="cb307-2"><a href="app.html#cb307-2" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(pkgs)</span></code></pre></div>
+<table>
+<colgroup>
+<col width="17%" />
+<col width="10%" />
+<col width="72%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Package</th>
+<th align="left">Version</th>
+<th align="left">Citation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">activity</td>
+<td align="left">1.3.4</td>
+<td align="left"><span class="citation">Marcus Rowcliffe (<a href="references.html#ref-activity">2023</a>)</span></td>
+</tr>
+<tr class="even">
+<td align="left">base</td>
+<td align="left">4.2.1</td>
+<td align="left"><span class="citation">R Core Team (<a href="references.html#ref-base">2022</a>)</span></td>
+</tr>
+<tr class="odd">
+<td align="left">bookdown</td>
+<td align="left">0.39</td>
+<td align="left"><span class="citation">Xie (<a href="references.html#ref-bookdown2016">2016b</a>)</span>; <span class="citation">Xie (<a href="references.html#ref-bookdown2024">2024b</a>)</span></td>
+</tr>
+<tr class="even">
+<td align="left">brms</td>
+<td align="left">2.21.0</td>
+<td align="left"><span class="citation">Bürkner (<a href="references.html#ref-brms2017">2017</a>)</span>; <span class="citation">Bürkner (<a href="references.html#ref-brms2018">2018</a>)</span>; <span class="citation">Bürkner (<a href="references.html#ref-brms2021">2021b</a>)</span></td>
+</tr>
+<tr class="odd">
+<td align="left">circular</td>
+<td align="left">0.4.95</td>
+<td align="left"><span class="citation">Agostinelli and Lund (<a href="references.html#ref-circular">2022b</a>)</span></td>
+</tr>
+<tr class="even">
+<td align="left">Diel.Niche</td>
+<td align="left">0.0.1.0</td>
+<td align="left"><span class="citation">Gerber et al. (<a href="references.html#ref-DielNiche">2023</a>)</span></td>
+</tr>
+<tr class="odd">
+<td align="left">distill</td>
+<td align="left">1.6</td>
+<td align="left"><span class="citation">Dervieux et al. (<a href="references.html#ref-distill">2023</a>)</span></td>
+</tr>
+<tr class="even">
+<td align="left">ggpubr</td>
+<td align="left">0.6.0</td>
+<td align="left"><span class="citation">Kassambara (<a href="references.html#ref-ggpubr">2023</a>)</span></td>
+</tr>
+<tr class="odd">
+<td align="left">GLMMadaptive</td>
+<td align="left">0.9.1</td>
+<td align="left"><span class="citation">Rizopoulos (<a href="references.html#ref-GLMMadaptive">2023</a>)</span></td>
+</tr>
+<tr class="even">
+<td align="left">gridExtra</td>
+<td align="left">2.3</td>
+<td align="left"><span class="citation">Auguie (<a href="references.html#ref-gridExtra">2017</a>)</span></td>
+</tr>
+<tr class="odd">
+<td align="left">knitr</td>
+<td align="left">1.46</td>
+<td align="left"><span class="citation">Xie (<a href="references.html#ref-knitr2014">2014</a>)</span>; <span class="citation">Xie (<a href="references.html#ref-knitr2015">2015</a>)</span>; <span class="citation">Xie (<a href="references.html#ref-knitr2024">2024c</a>)</span></td>
+</tr>
+<tr class="even">
+<td align="left">lmtest</td>
+<td align="left">0.9.40</td>
+<td align="left"><span class="citation">Zeileis and Hothorn (<a href="references.html#ref-lmtest">2002</a>)</span></td>
+</tr>
+<tr class="odd">
+<td align="left">MESS</td>
+<td align="left">0.5.9</td>
+<td align="left"><span class="citation">Ekstrøm (<a href="references.html#ref-MESS">2022</a>)</span></td>
+</tr>
+<tr class="even">
+<td align="left">mgcv</td>
+<td align="left">1.8.40</td>
+<td align="left"><span class="citation">S. N. Wood (<a href="references.html#ref-mgcv2003">2003</a>)</span>; <span class="citation">S. N. Wood (<a href="references.html#ref-mgcv2004">2004</a>)</span>; <span class="citation">S. N. Wood (<a href="references.html#ref-mgcv2011">2011</a>)</span>; <span class="citation">S. N. Wood et al. (<a href="references.html#ref-mgcv2016">2016</a>)</span>; <span class="citation">S. N. Wood (<a href="references.html#ref-mgcv2017">2017b</a>)</span></td>
+</tr>
+<tr class="odd">
+<td align="left">nimble</td>
+<td align="left">0.12.2</td>
+<td align="left"><span class="citation">de Valpine et al. (<a href="references.html#ref-nimble2017a">2017</a>)</span>; <span class="citation">de Valpine et al. (<a href="references.html#ref-nimble2022b">2022b</a>)</span>; <span class="citation">de Valpine et al. (<a href="references.html#ref-nimble2022c">2022a</a>)</span></td>
+</tr>
+<tr class="even">
+<td align="left">overlap</td>
+<td align="left">0.3.9</td>
+<td align="left"><span class="citation">Meredith, Ridout, and Campbell (<a href="references.html#ref-overlap">2024</a>)</span></td>
+</tr>
+<tr class="odd">
+<td align="left">rmarkdown</td>
+<td align="left">2.27</td>
+<td align="left"><span class="citation">Xie, Allaire, and Grolemund (<a href="references.html#ref-rmarkdown2018">2018</a>)</span>; <span class="citation">Xie, Dervieux, and Riederer (<a href="references.html#ref-rmarkdown2020">2020</a>)</span>; <span class="citation">Allaire et al. (<a href="references.html#ref-rmarkdown2024">2024</a>)</span></td>
+</tr>
+<tr class="even">
+<td align="left">suncalc</td>
+<td align="left">0.5.1</td>
+<td align="left"><span class="citation">Thieurmel and Elmarhraoui (<a href="references.html#ref-suncalc">2022</a>)</span></td>
+</tr>
+<tr class="odd">
+<td align="left">tidyverse</td>
+<td align="left">1.3.1</td>
+<td align="left"><span class="citation">Wickham et al. (<a href="references.html#ref-tidyverse">2019</a>)</span></td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb308"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb308-1"><a href="app.html#cb308-1" tabindex="-1"></a><span class="fu">sessionInfo</span>()</span></code></pre></div>
+<pre><code>## R version 4.2.1 (2022-06-23 ucrt)
+## Platform: x86_64-w64-mingw32/x64 (64-bit)
+## Running under: Windows 10 x64 (build 19045)
+## 
+## Matrix products: default
+## 
+## locale:
+## [1] LC_COLLATE=English_United States.utf8  LC_CTYPE=English_United States.utf8   
+## [3] LC_MONETARY=English_United States.utf8 LC_NUMERIC=C                          
+## [5] LC_TIME=English_United States.utf8    
+## 
+## attached base packages:
+## [1] grid      stats     graphics  grDevices utils     datasets  methods   base     
+## 
+## other attached packages:
+##  [1] grateful_0.2.4     Diel.Niche_0.0.1.0 suncalc_0.5.1      brms_2.21.0        Rcpp_1.0.10       
+##  [6] nimble_0.12.2      circular_0.4-95    overlap_0.3.9      suntools_1.0.0     activity_1.3.4    
+## [11] stringr_1.5.1      purrr_1.0.2        readr_2.1.2        tibble_3.2.1       tidyverse_1.3.1   
+## [16] forcats_0.5.1      lmtest_0.9-40      zoo_1.8-10         lubridate_1.9.3    tidyr_1.3.1       
+## [21] mgcv_1.8-40        nlme_3.1-157       ggpubr_0.6.0       GLMMadaptive_0.9-1 ggplot2_3.5.1     
+## [26] gridExtra_2.3      dplyr_1.1.4        bookdown_0.39     
+## 
+## loaded via a namespace (and not attached):
+##   [1] readxl_1.4.0         backports_1.4.1      systemfonts_1.0.6    plyr_1.8.7           igraph_1.3.4        
+##   [6] lazyeval_0.2.2       splines_4.2.1        rstantools_2.3.1     inline_0.3.19        digest_0.6.29       
+##  [11] htmltools_0.5.8.1    fansi_1.0.3          magrittr_2.0.3       checkmate_2.3.1      sfsmisc_1.1-18      
+##  [16] tzdb_0.3.0           mosaicCore_0.9.2.1   modelr_0.1.8         RcppParallel_5.1.5   matrixStats_1.3.0   
+##  [21] timechange_0.3.0     colorspace_2.0-3     rvest_1.0.3          textshaping_0.3.7    haven_2.5.0         
+##  [26] xfun_0.44            crayon_1.5.2         MESS_0.5.9           jsonlite_1.8.8       Rglpk_0.6-5.1       
+##  [31] glue_1.6.2           geepack_1.3.9        polyclip_1.10-4      gtable_0.3.5         V8_4.2.1            
+##  [36] distributional_0.4.0 car_3.1-2            ggformula_0.10.2     pkgbuild_1.4.4       rstan_2.32.6        
+##  [41] multinomineq_0.2.6   abind_1.4-5          scales_1.3.0         mvtnorm_1.2-4        DBI_1.2.2           
+##  [46] geeM_0.10.1          rstatix_0.7.2        viridisLite_0.4.2    units_0.8-5          ggstance_0.3.6      
+##  [51] proxy_0.4-27         stats4_4.2.1         StanHeaders_2.32.6   htmlwidgets_1.6.4    httr_1.4.7          
+##  [56] posterior_1.5.0      ellipsis_0.3.2       pkgconfig_2.0.3      loo_2.5.1            farver_2.1.2        
+##  [61] sass_0.4.9           dbplyr_2.2.1         utf8_1.2.2           reshape2_1.4.4       tidyselect_1.2.1    
+##  [66] labeling_0.4.3       rlang_1.1.3          munsell_0.5.1        cellranger_1.1.0     tools_4.2.1         
+##  [71] cachem_1.0.6         cli_3.6.1            generics_0.1.3       broom_1.0.5          ggridges_0.5.6      
+##  [76] evaluate_0.23        fastmap_1.2.0        yaml_2.3.8           ragg_1.3.2           knitr_1.46          
+##  [81] fs_1.5.2             slam_0.1-50          xml2_1.3.6           compiler_4.2.1       bayesplot_1.11.1    
+##  [86] rstudioapi_0.16.0    plotly_4.10.4        curl_4.3.2           e1071_1.7-14         ggsignif_0.6.4      
+##  [91] reprex_2.0.1         tweenr_2.0.2         bslib_0.7.0          stringi_1.7.8        highr_0.10          
+##  [96] Brobdingnag_1.2-9    lattice_0.20-45      Matrix_1.6-5         classInt_0.4-10      tensorA_0.36.2.1    
+## [101] vctrs_0.6.5          pillar_1.9.0         lifecycle_1.0.4      jquerylib_0.1.4      bridgesampling_1.1-2
+## [106] data.table_1.15.4    cowplot_1.1.3        QuickJSR_1.1.3       R6_2.5.1             renv_1.0.3          
+## [111] KernSmooth_2.23-20   codetools_0.2-18     boot_1.3-28          MASS_7.3-57          assertthat_0.2.1    
+## [116] withr_3.0.0          parallel_4.2.1       hms_1.1.1            terra_1.7-71         quadprog_1.5-8      
+## [121] labelled_2.10.0      class_7.3-20         coda_0.19-4.1        rmarkdown_2.27       carData_3.0-5       
+## [126] sf_1.0-16            ggforce_0.4.1</code></pre>
+
+<p>`r if (knitr:::is_html_output()) ’</p>
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="kdes.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="references.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"whatsapp": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": null,
+"search": {
+"engine": "fuse",
+"options": null
+},
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>

@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Tutorial 4 Data preparation | A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models</title>
+  <meta name="description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript HMsActivity 2024." />
+  <meta name="generator" content="bookdown 0.39 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="Tutorial 4 Data preparation | A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models" />
+  <meta property="og:type" content="book" />
+  
+  <meta property="og:description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript HMsActivity 2024." />
+  <meta name="github-repo" content="rstudio/bookdown-demo" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Tutorial 4 Data preparation | A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models" />
+  
+  <meta name="twitter:description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript HMsActivity 2024." />
+  
+
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="est.html"/>
+<link rel="next" href="unibim.html"/>
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<style type="text/css">
+  
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+</style>
+<style type="text/css">
+/* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Preface</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#requirements"><i class="fa fa-check"></i><b>1.1</b> Requirements</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="var.html"><a href="var.html"><i class="fa fa-check"></i><b>2</b> Variability in activity patterns</a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="var.html"><a href="var.html#variability-in-frequency-of-site-use"><i class="fa fa-check"></i><b>2.1</b> Variability in frequency of site-use</a></li>
+<li class="chapter" data-level="2.2" data-path="var.html"><a href="var.html#variability-in-timing-of-activity"><i class="fa fa-check"></i><b>2.2</b> Variability in timing of activity</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="est.html"><a href="est.html"><i class="fa fa-check"></i><b>3</b> Estimating activity patterns from time-stamped data</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="est.html"><a href="est.html#simulating-activity-patterns"><i class="fa fa-check"></i><b>3.1</b> Simulating activity patterns</a></li>
+<li class="chapter" data-level="3.2" data-path="est.html"><a href="est.html#data-preparation"><i class="fa fa-check"></i><b>3.2</b> Data preparation</a></li>
+<li class="chapter" data-level="3.3" data-path="est.html"><a href="est.html#trigonometric-glmms"><i class="fa fa-check"></i><b>3.3</b> Trigonometric GLMMs</a></li>
+<li class="chapter" data-level="3.4" data-path="est.html"><a href="est.html#cyclic-cubic-spline-hgams"><i class="fa fa-check"></i><b>3.4</b> Cyclic cubic spline HGAMs</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="dataprep.html"><a href="dataprep.html"><i class="fa fa-check"></i><b>4</b> Data preparation</a></li>
+<li class="chapter" data-level="5" data-path="unibim.html"><a href="unibim.html"><i class="fa fa-check"></i><b>5</b> Evaluating Hypotheses Regarding the Shape of Activity Curves</a></li>
+<li class="chapter" data-level="6" data-path="cov.html"><a href="cov.html"><i class="fa fa-check"></i><b>6</b> Modeling activity patterns with covariates</a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="cov.html"><a href="cov.html#cat"><i class="fa fa-check"></i><b>6.1</b> Categorical covariates</a>
+<ul>
+<li class="chapter" data-level="6.1.1" data-path="cov.html"><a href="cov.html#trigonometric-glmms-1"><i class="fa fa-check"></i><b>6.1.1</b> Trigonometric GLMMs</a></li>
+<li class="chapter" data-level="6.1.2" data-path="cov.html"><a href="cov.html#cyclic-cubic-spline-hgams-1"><i class="fa fa-check"></i><b>6.1.2</b> Cyclic cubic spline HGAMs</a></li>
+</ul></li>
+<li class="chapter" data-level="6.2" data-path="cov.html"><a href="cov.html#cont"><i class="fa fa-check"></i><b>6.2</b> Continuous covariates</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="temppart.html"><a href="temppart.html"><i class="fa fa-check"></i><b>7</b> Temporal partitioning</a></li>
+<li class="chapter" data-level="8" data-path="condvsmarg.html"><a href="condvsmarg.html"><i class="fa fa-check"></i><b>8</b> Conditional and Marginal Mean Activity Patterns</a>
+<ul>
+<li class="chapter" data-level="8.1" data-path="condvsmarg.html"><a href="condvsmarg.html#estimating-conditional-and-marginal-mean-activity-patterns"><i class="fa fa-check"></i><b>8.1</b> Estimating Conditional and Marginal Mean Activity Patterns</a></li>
+<li class="chapter" data-level="8.2" data-path="condvsmarg.html"><a href="condvsmarg.html#the-frequentist-framework"><i class="fa fa-check"></i><b>8.2</b> The frequentist framework</a></li>
+</ul></li>
+<li class="chapter" data-level="9" data-path="kdes.html"><a href="kdes.html"><i class="fa fa-check"></i><b>9</b> Kernel Density Estimators</a>
+<ul>
+<li class="chapter" data-level="9.1" data-path="kdes.html"><a href="kdes.html#dataprepkdes"><i class="fa fa-check"></i><b>9.1</b> Data preparation for KDEs</a></li>
+<li class="chapter" data-level="9.2" data-path="kdes.html"><a href="kdes.html#kdespkg"><i class="fa fa-check"></i><b>9.2</b> Comparison of KDE estimators</a>
+<ul>
+<li class="chapter" data-level="9.2.1" data-path="kdes.html"><a href="kdes.html#using-the-overlap-package"><i class="fa fa-check"></i><b>9.2.1</b> Using the overlap package</a></li>
+<li class="chapter" data-level="9.2.2" data-path="kdes.html"><a href="kdes.html#using-the-activity-package"><i class="fa fa-check"></i><b>9.2.2</b> Using the activity package</a></li>
+<li class="chapter" data-level="9.2.3" data-path="kdes.html"><a href="kdes.html#using-the-circular-package"><i class="fa fa-check"></i><b>9.2.3</b> Using the circular package</a></li>
+<li class="chapter" data-level="9.2.4" data-path="kdes.html"><a href="kdes.html#comparing-the-results-and-plotting"><i class="fa fa-check"></i><b>9.2.4</b> Comparing the results and plotting</a></li>
+</ul></li>
+<li class="chapter" data-level="9.3" data-path="kdes.html"><a href="kdes.html#kdedataaggr"><i class="fa fa-check"></i><b>9.3</b> Aggregating <em>versus</em> non-aggregating data in KDEs</a></li>
+<li class="chapter" data-level="9.4" data-path="kdes.html"><a href="kdes.html#compkde"><i class="fa fa-check"></i><b>9.4</b> KDEs <em>versus</em> hierarchical models approaches</a></li>
+</ul></li>
+<li class="chapter" data-level="10" data-path="app.html"><a href="app.html"><i class="fa fa-check"></i><b>10</b> Appendix</a>
+<ul>
+<li class="chapter" data-level="10.1" data-path="app.html"><a href="app.html#simfunction"><i class="fa fa-check"></i><b>10.1</b> The <em>sim_activity</em> function</a></li>
+<li class="chapter" data-level="10.2" data-path="app.html"><a href="app.html#poisson"><i class="fa fa-check"></i><b>10.2</b> Binomial versus Other Distributions</a>
+<ul>
+<li class="chapter" data-level="10.2.1" data-path="app.html"><a href="app.html#data-preparation-1"><i class="fa fa-check"></i><b>10.2.1</b> Data preparation</a></li>
+<li class="chapter" data-level="10.2.2" data-path="app.html"><a href="app.html#trigonometric-pdf-comparison"><i class="fa fa-check"></i><b>10.2.2</b> Trigonometric PDF Comparison</a></li>
+<li class="chapter" data-level="10.2.3" data-path="app.html"><a href="app.html#cyclic-cubic-pdf-comparison"><i class="fa fa-check"></i><b>10.2.3</b> Cyclic cubic PDF Comparison</a></li>
+<li class="chapter" data-level="10.2.4" data-path="app.html"><a href="app.html#not-controlling-for-sampling-effort"><i class="fa fa-check"></i><b>10.2.4</b> Not Controlling for Sampling Effort</a></li>
+</ul></li>
+<li class="chapter" data-level="10.3" data-path="app.html"><a href="app.html#bay"><i class="fa fa-check"></i><b>10.3</b> Activity patterns in the Bayesian framework</a>
+<ul>
+<li class="chapter" data-level="10.3.1" data-path="app.html"><a href="app.html#data-preparation-2"><i class="fa fa-check"></i><b>10.3.1</b> Data Preparation</a></li>
+<li class="chapter" data-level="10.3.2" data-path="app.html"><a href="app.html#model-setup-and-fitting"><i class="fa fa-check"></i><b>10.3.2</b> Model Setup and Fitting</a></li>
+<li class="chapter" data-level="10.3.3" data-path="app.html"><a href="app.html#model-assessment"><i class="fa fa-check"></i><b>10.3.3</b> Model Assessment</a></li>
+<li class="chapter" data-level="10.3.4" data-path="app.html"><a href="app.html#model-predictions"><i class="fa fa-check"></i><b>10.3.4</b> Model Predictions</a></li>
+</ul></li>
+<li class="chapter" data-level="10.4" data-path="app.html"><a href="app.html#DielNiche"><i class="fa fa-check"></i><b>10.4</b> Link to the Diel.Niche package</a>
+<ul>
+<li class="chapter" data-level="10.4.1" data-path="app.html"><a href="app.html#data"><i class="fa fa-check"></i><b>10.4.1</b> Data</a></li>
+<li class="chapter" data-level="10.4.2" data-path="app.html"><a href="app.html#model-fitting"><i class="fa fa-check"></i><b>10.4.2</b> Model Fitting</a></li>
+<li class="chapter" data-level="10.4.3" data-path="app.html"><a href="app.html#model-predictions-1"><i class="fa fa-check"></i><b>10.4.3</b> Model Predictions</a></li>
+<li class="chapter" data-level="10.4.4" data-path="app.html"><a href="app.html#twilight-daytime-and-nighttime"><i class="fa fa-check"></i><b>10.4.4</b> Twilight, daytime, and nighttime</a></li>
+<li class="chapter" data-level="10.4.5" data-path="app.html"><a href="app.html#diel.niche"><i class="fa fa-check"></i><b>10.4.5</b> Diel.Niche</a></li>
+<li class="chapter" data-level="10.4.6" data-path="app.html"><a href="app.html#conclusion"><i class="fa fa-check"></i><b>10.4.6</b> Conclusion</a></li>
+</ul></li>
+<li class="chapter" data-level="10.5" data-path="app.html"><a href="app.html#info-session"><i class="fa fa-check"></i><b>10.5</b> Info session</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="dataprep" class="section level1 hasAnchor" number="4">
+<h1><span class="header-section-number">Tutorial 4</span> Data preparation<a href="dataprep.html#dataprep" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<p>In the previous Tutorials, we use simulated data to introduce the concept of variability in activity patterns (Tutorial <a href="var.html#var">2</a>) and to illustrate the use of hierarchical models for estimating activity patterns (Tutorial <a href="est.html#est">3</a>). We now switch gears. In this and the following three Tutorials, we fit trigonometric and cyclic cubic spline hierarchical models to empirical camera-trap data to address common ecological questions related to the study of activity patterns.</p>
+<p>In this Tutorial, we explain how to prepare data to analyze activity patterns from camera-trap datasets using hierarchical models. This procedure is applied throughout the tutorial every time we use a new set of real data. To minimize redundancy, we illustrate the procedure in detail here only once, and then refer to the code (and possibly extend it), when necessary.</p>
+<p>We start by loading the data and showing a preview of what it looks like. Here, we select camera-trap records of coyotes (<em>Canis latrans</em>). We also load some libraries to wrangle the data and get it in the desired format.</p>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="dataprep.html#cb43-1" tabindex="-1"></a><span class="co"># Load libraries</span></span>
+<span id="cb43-2"><a href="dataprep.html#cb43-2" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">ls</span>())</span>
+<span id="cb43-3"><a href="dataprep.html#cb43-3" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">129</span>)</span>
+<span id="cb43-4"><a href="dataprep.html#cb43-4" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb43-5"><a href="dataprep.html#cb43-5" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span>
+<span id="cb43-6"><a href="dataprep.html#cb43-6" tabindex="-1"></a></span>
+<span id="cb43-7"><a href="dataprep.html#cb43-7" tabindex="-1"></a><span class="co"># Load data</span></span>
+<span id="cb43-8"><a href="dataprep.html#cb43-8" tabindex="-1"></a>coy <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">&quot;data_input/species_records.csv&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb43-9"><a href="dataprep.html#cb43-9" tabindex="-1"></a>  <span class="fu">filter</span>(Species <span class="sc">==</span> <span class="st">&quot;Coyote&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb43-10"><a href="dataprep.html#cb43-10" tabindex="-1"></a>  droplevels <span class="sc">%&gt;%</span> </span>
+<span id="cb43-11"><a href="dataprep.html#cb43-11" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>X) <span class="sc">%&gt;%</span> </span>
+<span id="cb43-12"><a href="dataprep.html#cb43-12" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">DateTimeOriginal =</span> <span class="fu">ymd_hm</span>(DateTimeOriginal))</span>
+<span id="cb43-13"><a href="dataprep.html#cb43-13" tabindex="-1"></a></span>
+<span id="cb43-14"><a href="dataprep.html#cb43-14" tabindex="-1"></a><span class="fu">head</span>(coy)</span></code></pre></div>
+<pre><code>##   Station Species    DateTimeOriginal       Date     Time    Session
+## 1     10E  Coyote 2016-05-20 20:30:00 2016-05-20 20:30:51 Spring2016
+## 2     10E  Coyote 2016-05-20 20:30:00 2016-05-20 20:30:51 Spring2016
+## 3     10E  Coyote 2016-05-20 20:30:00 2016-05-20 20:30:52 Spring2016
+## 4     10E  Coyote 2016-05-20 20:30:00 2016-05-20 20:30:58 Spring2016
+## 5     10E  Coyote 2016-05-20 20:30:00 2016-05-20 20:30:59 Spring2016
+## 6     10E  Coyote 2016-05-20 20:30:00 2016-05-20 20:30:59 Spring2016</code></pre>
+<p>To estimate activity patterns while accounting for site-to-site variability, at a minimum, we need information on the location id (or geographic coordinates) of the spatial sampling site (e.g., camera-trap site) and the time of day in which the different encounter events for a certain species occurred. In this dataset, each row corresponds to one image. We are interested in the location id and the time of day in which each event has been recorded. These values are stored in the columns named <code>Station</code> and <code>Time</code>, respectively. Because we set up our cameras to collect a burst of three pictures every time a camera was triggered, some images have the exact same time and location (see for example the first and second rows above).</p>
+<p>Individual or groups of animals often spend several minutes in front of a camera, triggering the sensor several times in a short period of time. This leads to highly autocorrelated camera-trap encounter events (once a camera has been triggered, it is likely that it will be triggered again in the following few minutes). When using KDEs, the resulting short-term autocorrelation will impact the choice of smoothing parameter, which is typically chosen to minimize the mean integrated squared error under the assumption that all observations are independent. To reduce the level of autocorrelation, camera-trap data are often aggregated based on some time threshold (often between 1 and 60 minutes, commonly 30; <span class="citation">Burton et al. (<a href="references.html#ref-Burtonea2015">2015</a>)</span> and <span class="citation">Iannarilli et al. (<a href="references.html#ref-Iannarilliea2021">2021</a>)</span>); images collected at the same site and within this time threshold are combined into a single unique encounter event. This process, often referred to as <em>data aggregation</em>, is often highly recommended (although not strictly required, see discussion in <span class="citation">Peral, Landman, and Kerley (<a href="references.html#ref-Peral2022">2022</a>)</span>) as a preparatory step before applying KDEs. We compare KDEs with and without data aggregation in Tutorial <a href="kdes.html#kdedataaggr">9.3</a>.</p>
+<p>Data aggregation is <strong>not necessary</strong> when using trigonometric and cyclic cubic spline hierarchical models. Thus, we use the raw (non-aggregated) dataset in all the empirical-case studies presented in this Tutorial, except Tutorial <a href="kdes.html#compkde">9.4</a>, where we apply data aggregation to facilitate comparison of estimated activity patterns using hierarchical models and KDEs.</p>
+<p>Unlike KDEs, trigonometric and cyclic hierarchical models allow us to leverage not only the times an encounter was recorded but also the times in which cameras were active at a location and no encounter occurred. This, in turn, allows us to estimate activity while accounting for variable sampling effort and makes comparisons of relative probabilities of activity across sites (or e.g., environmental and anthropogenic conditions) possible.</p>
+<p>To account for sampling effort, we have to build a matrix that stores information about when a camera was active at each site, and in how many of these days (or shorter occasions, see later) we recorded the target species.</p>
+<p>We load a new dataframe that contains information on the start and the end of the sampling period at each site. The start of this period usually corresponds to the deployment date, while the end of the period is the date of retrieval or the last day the camera was working at each location, if failure or malfunctioning occurred (e.g., empty batteries, SD card full, or cameras displaced by an animal).</p>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb45-1"><a href="dataprep.html#cb45-1" tabindex="-1"></a>cov <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">&quot;data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv&quot;</span>, <span class="at">as.is =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-2"><a href="dataprep.html#cb45-2" tabindex="-1"></a>  <span class="fu">select</span>(Session, Site, Date_setup, Date_retr, Problem1_from, Problem1_to) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-3"><a href="dataprep.html#cb45-3" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Date_setup =</span> <span class="fu">mdy</span>(Date_setup),</span>
+<span id="cb45-4"><a href="dataprep.html#cb45-4" tabindex="-1"></a>         <span class="at">Date_retr =</span> <span class="fu">mdy</span>(Date_retr),</span>
+<span id="cb45-5"><a href="dataprep.html#cb45-5" tabindex="-1"></a>         <span class="at">Problem1_from =</span> <span class="fu">mdy</span>(Problem1_from),</span>
+<span id="cb45-6"><a href="dataprep.html#cb45-6" tabindex="-1"></a>         <span class="at">Problem1_to =</span> <span class="fu">mdy</span>(Problem1_to)) </span>
+<span id="cb45-7"><a href="dataprep.html#cb45-7" tabindex="-1"></a><span class="fu">head</span>(cov)</span></code></pre></div>
+<pre><code>##      Session Site Date_setup  Date_retr Problem1_from Problem1_to
+## 1 Spring2016   1A 2016-05-12 2016-06-22          &lt;NA&gt;        &lt;NA&gt;
+## 2 Spring2016   1B 2016-05-03 2016-06-22          &lt;NA&gt;        &lt;NA&gt;
+## 3 Spring2016   1C 2016-05-03 2016-07-08          &lt;NA&gt;        &lt;NA&gt;
+## 4 Spring2016   1D 2016-05-03 2016-06-24          &lt;NA&gt;        &lt;NA&gt;
+## 5 Spring2016   1E 2016-05-03 2016-06-22          &lt;NA&gt;        &lt;NA&gt;
+## 6 Spring2016   2A 2016-05-12 2016-06-23          &lt;NA&gt;        &lt;NA&gt;</code></pre>
+<p>This dataframe contains identifiers for the sampling session (<code>Session</code>), the camera-trap site (<code>Site</code>), the date a camera was deployed (<code>Date_setup</code>) and retrieved (<code>Date_retr</code>) from the corresponding site. For cameras that were not functioning at the time of retrieval, we also have information regarding the period the camera was inactive (<code>Problem1_from</code> and <code>Problem1_to</code>). This structure follows the one accepted in the <code>camtrapR</code> package <span class="citation">(<a href="references.html#ref-camtrapR">Niedballa et al. 2016</a>)</span>.</p>
+<p>In this format, the information about the last day a camera was active is spread across two columns, <code>Date_retr</code> (for cameras that did not fail) and <code>Problem1_from</code> (for cameras that did fail). We bring this information together in one column called <code>end</code>.</p>
+<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="dataprep.html#cb47-1" tabindex="-1"></a><span class="co"># Merge time of deployment and retrieval + problems</span></span>
+<span id="cb47-2"><a href="dataprep.html#cb47-2" tabindex="-1"></a>site <span class="ot">&lt;-</span> cov</span>
+<span id="cb47-3"><a href="dataprep.html#cb47-3" tabindex="-1"></a>site<span class="sc">$</span>end <span class="ot">&lt;-</span> <span class="fu">ymd</span>(<span class="st">&quot;2000-01-01&quot;</span>)</span>
+<span id="cb47-4"><a href="dataprep.html#cb47-4" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(site)){</span>
+<span id="cb47-5"><a href="dataprep.html#cb47-5" tabindex="-1"></a>  site<span class="sc">$</span>end[i] <span class="ot">&lt;-</span>  <span class="fu">min</span>(site<span class="sc">$</span>Date_retr[i], </span>
+<span id="cb47-6"><a href="dataprep.html#cb47-6" tabindex="-1"></a>                      site<span class="sc">$</span>Problem1_from[i], </span>
+<span id="cb47-7"><a href="dataprep.html#cb47-7" tabindex="-1"></a>                      <span class="at">na.rm =</span> <span class="cn">TRUE</span></span>
+<span id="cb47-8"><a href="dataprep.html#cb47-8" tabindex="-1"></a>                      )</span>
+<span id="cb47-9"><a href="dataprep.html#cb47-9" tabindex="-1"></a>}</span></code></pre></div>
+<p>Then, we create a dataframe to store the information about when the target species was and was not encountered at the different locations within each temporal observation window. Here, we use 60 minutes to define the temporal sampling units, but different duration (from seconds to several hours) can be used. Shorter lengths will increase model fitting computation time and could potentially lead to parameter convergence problems if data are too sparse. In the code below, the argument <code>by = '60 min'</code> can be changed to accommodate other observation intervals (e.g., <code>by = '30 min'</code> leads to 30-min intervals).</p>
+<p>For each site, we create a list of all the hourly occasions from the start to the end of the deployment of the active camera at the site. We then pre-populate the column <code>capt</code> (which will track the encounter/non-encounter information) with zeros.</p>
+<div class="sourceCode" id="cb48"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb48-1"><a href="dataprep.html#cb48-1" tabindex="-1"></a><span class="co"># Create dataframe to store captures </span></span>
+<span id="cb48-2"><a href="dataprep.html#cb48-2" tabindex="-1"></a><span class="co"># (model does not converge if using 30 minutes)</span></span>
+<span id="cb48-3"><a href="dataprep.html#cb48-3" tabindex="-1"></a>occasions <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">&quot;list&quot;</span>, <span class="at">length =</span> <span class="fu">nrow</span>(site))</span>
+<span id="cb48-4"><a href="dataprep.html#cb48-4" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(site)){</span>
+<span id="cb48-5"><a href="dataprep.html#cb48-5" tabindex="-1"></a>  occasions[[i]] <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">Session =</span> site<span class="sc">$</span>Session[i],</span>
+<span id="cb48-6"><a href="dataprep.html#cb48-6" tabindex="-1"></a>                               <span class="at">Site =</span> site<span class="sc">$</span>Site[i],</span>
+<span id="cb48-7"><a href="dataprep.html#cb48-7" tabindex="-1"></a>                               <span class="at">start =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="fu">ymd_hms</span>(<span class="fu">paste</span>(site<span class="sc">$</span>Date_setup[i], <span class="st">&quot;00:00:00&quot;</span>, <span class="at">sep =</span> <span class="st">&quot; &quot;</span>)), </span>
+<span id="cb48-8"><a href="dataprep.html#cb48-8" tabindex="-1"></a>                                           <span class="at">to =</span> <span class="fu">ymd_hms</span>(<span class="fu">paste</span>(site<span class="sc">$</span>end[i], <span class="st">&quot;23:59:59&quot;</span>, <span class="at">sep =</span> <span class="st">&quot; &quot;</span>)), </span>
+<span id="cb48-9"><a href="dataprep.html#cb48-9" tabindex="-1"></a>                                           <span class="at">by =</span> <span class="st">&#39;60 min&#39;</span></span>
+<span id="cb48-10"><a href="dataprep.html#cb48-10" tabindex="-1"></a>                                           )</span>
+<span id="cb48-11"><a href="dataprep.html#cb48-11" tabindex="-1"></a>                               ) <span class="sc">%&gt;%</span> </span>
+<span id="cb48-12"><a href="dataprep.html#cb48-12" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">end =</span> <span class="fu">c</span>(start[<span class="dv">2</span><span class="sc">:</span><span class="fu">length</span>(start)], </span>
+<span id="cb48-13"><a href="dataprep.html#cb48-13" tabindex="-1"></a>                   start[<span class="fu">length</span>(start)]<span class="sc">+</span><span class="fu">minutes</span>(<span class="dv">60</span>)</span>
+<span id="cb48-14"><a href="dataprep.html#cb48-14" tabindex="-1"></a>                   )</span>
+<span id="cb48-15"><a href="dataprep.html#cb48-15" tabindex="-1"></a>           ) </span>
+<span id="cb48-16"><a href="dataprep.html#cb48-16" tabindex="-1"></a>}</span>
+<span id="cb48-17"><a href="dataprep.html#cb48-17" tabindex="-1"></a>occasions <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind.data.frame, occasions)</span>
+<span id="cb48-18"><a href="dataprep.html#cb48-18" tabindex="-1"></a>occasions<span class="sc">$</span>capt <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb48-19"><a href="dataprep.html#cb48-19" tabindex="-1"></a><span class="fu">head</span>(occasions)</span></code></pre></div>
+<pre><code>##      Session Site               start                 end capt
+## 1 Spring2016   1A 2016-05-12 00:00:00 2016-05-12 01:00:00    0
+## 2 Spring2016   1A 2016-05-12 01:00:00 2016-05-12 02:00:00    0
+## 3 Spring2016   1A 2016-05-12 02:00:00 2016-05-12 03:00:00    0
+## 4 Spring2016   1A 2016-05-12 03:00:00 2016-05-12 04:00:00    0
+## 5 Spring2016   1A 2016-05-12 04:00:00 2016-05-12 05:00:00    0
+## 6 Spring2016   1A 2016-05-12 05:00:00 2016-05-12 06:00:00    0</code></pre>
+<p>For each coyote observation collected during the study, we assign the value 1 to the column <code>capt</code> for the row corresponding to the site and time interval of the encounter event.</p>
+<div class="sourceCode" id="cb50"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb50-1"><a href="dataprep.html#cb50-1" tabindex="-1"></a><span class="co">#&#39; Store captures</span></span>
+<span id="cb50-2"><a href="dataprep.html#cb50-2" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(coy)){</span>
+<span id="cb50-3"><a href="dataprep.html#cb50-3" tabindex="-1"></a>  occasions[occasions<span class="sc">$</span>Session <span class="sc">==</span> <span class="fu">as.character</span>(coy<span class="sc">$</span>Session[i]) </span>
+<span id="cb50-4"><a href="dataprep.html#cb50-4" tabindex="-1"></a>            <span class="sc">&amp;</span> occasions<span class="sc">$</span>Site <span class="sc">==</span> <span class="fu">as.character</span>(coy<span class="sc">$</span>Station[i]) </span>
+<span id="cb50-5"><a href="dataprep.html#cb50-5" tabindex="-1"></a>            <span class="sc">&amp;</span> occasions<span class="sc">$</span>start <span class="sc">&lt;=</span> coy<span class="sc">$</span>DateTimeOriginal[i] </span>
+<span id="cb50-6"><a href="dataprep.html#cb50-6" tabindex="-1"></a>            <span class="sc">&amp;</span> occasions<span class="sc">$</span>end <span class="sc">&gt;</span> coy<span class="sc">$</span>DateTimeOriginal[i], <span class="st">&quot;capt&quot;</span>] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb50-7"><a href="dataprep.html#cb50-7" tabindex="-1"></a>}</span>
+<span id="cb50-8"><a href="dataprep.html#cb50-8" tabindex="-1"></a><span class="fu">table</span>(occasions<span class="sc">$</span>capt)</span></code></pre></div>
+<pre><code>## 
+##      0      1 
+## 570925    251</code></pre>
+<p>We have 251 and 570 925 1-hour long occasions with and without encounters of coyotes, respectively.</p>
+<p>Because we chose to use hourly occasions, we can extract the information about the hour of each interval and use it as the <em>Time</em> variable in the models that we will run in the following Tutorials. If a different time length is used (e.g., 1-minute long), this step needs to be adjusted accordingly. We also code <code>Site</code> as a factor variable.</p>
+<div class="sourceCode" id="cb52"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb52-1"><a href="dataprep.html#cb52-1" tabindex="-1"></a><span class="co"># Format data </span></span>
+<span id="cb52-2"><a href="dataprep.html#cb52-2" tabindex="-1"></a>occasions<span class="sc">$</span>Time <span class="ot">&lt;-</span> <span class="fu">hour</span>(occasions<span class="sc">$</span>start)</span>
+<span id="cb52-3"><a href="dataprep.html#cb52-3" tabindex="-1"></a>occasions<span class="sc">$</span>Site <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(occasions<span class="sc">$</span>Site)</span>
+<span id="cb52-4"><a href="dataprep.html#cb52-4" tabindex="-1"></a><span class="fu">nrow</span>(occasions)</span></code></pre></div>
+<pre><code>## [1] 571176</code></pre>
+<p>Our dataset, <code>occasions</code>, now contains more than 570,000 rows. Running an hierarchical model on such a large dataset might take a long time or require using a computing cluster. We can speed up model fitting by first summarizing the encounter/non-encounter records across the sampling period, counting the number of successes (i.e. intervals with encounters) and failures (i.e. intervals without encounters) at each site and hourly temporal occasion. We can then run the hierarchical models using the <code>cbind(success, failure)</code> approach (see next Tutorial for examples). However, this approach will not work in cases where we want to model variation in activity as a function of additional temporally-varying covariates (e.g., Julian day). In those situations, we may be forced to work with the <code>occassions</code> data set and its binary encounter records. Below, we provide code for creating a dataset containing the number of successes and failures for each observation window.</p>
+<div class="sourceCode" id="cb54"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb54-1"><a href="dataprep.html#cb54-1" tabindex="-1"></a><span class="co"># format data for cbind(success, failure)</span></span>
+<span id="cb54-2"><a href="dataprep.html#cb54-2" tabindex="-1"></a>occasions_cbind <span class="ot">&lt;-</span> occasions <span class="sc">%&gt;%</span> </span>
+<span id="cb54-3"><a href="dataprep.html#cb54-3" tabindex="-1"></a>  <span class="fu">group_by</span>(Site, Time) <span class="sc">%&gt;%</span> </span>
+<span id="cb54-4"><a href="dataprep.html#cb54-4" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">success =</span> <span class="fu">sum</span>(capt),</span>
+<span id="cb54-5"><a href="dataprep.html#cb54-5" tabindex="-1"></a>            <span class="at">failure =</span> <span class="fu">n</span>() <span class="sc">-</span> success</span>
+<span id="cb54-6"><a href="dataprep.html#cb54-6" tabindex="-1"></a>            )</span></code></pre></div>
+<pre><code>## `summarise()` has grouped output by &#39;Site&#39;. You can override using the `.groups` argument.</code></pre>
+<div class="sourceCode" id="cb56"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb56-1"><a href="dataprep.html#cb56-1" tabindex="-1"></a><span class="fu">head</span>(occasions_cbind)</span></code></pre></div>
+<pre><code>## # A tibble: 6 × 4
+## # Groups:   Site [1]
+##   Site   Time success failure
+##   &lt;fct&gt; &lt;int&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+## 1 10A       0       0     259
+## 2 10A       1       0     259
+## 3 10A       2       0     259
+## 4 10A       3       0     259
+## 5 10A       4       0     259
+## 6 10A       5       0     259</code></pre>
+<p>The first row indicates that for <code>Site</code> 10A and <code>Time</code> interval 0 (i.e. from 00:00:00 to 00:59:59) we had 259 occasions (i.e. days in this case) without detecting a coyote and 0 occasions where we encountered a coyote. In the next Tutorial (Tutorial <a href="unibim.html#unibim">5</a>), we see how to use this dataset to test hypotheses about coyotes’ diel activity patterns.</p>
+
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="est.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="unibim.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+"sharing": {
+"github": false,
+"facebook": true,
+"twitter": true,
+"linkedin": false,
+"weibo": false,
+"instapaper": false,
+"vk": false,
+"whatsapp": false,
+"all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+},
+"fontsettings": {
+"theme": "white",
+"family": "sans",
+"size": 2
+},
+"edit": {
+"link": null,
+"text": null
+},
+"history": {
+"link": null,
+"text": null
+},
+"view": {
+"link": null,
+"text": null
+},
+"download": null,
+"search": {
+"engine": "fuse",
+"options": null
+},
+"toc": {
+"collapse": "subsection"
+}
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>
