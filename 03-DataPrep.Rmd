@@ -18,7 +18,7 @@ coy <- read.csv("data_input/species_records.csv") %>%
   filter(Species == "Coyote") %>% 
   droplevels %>% 
   select(-X) %>% 
-  mutate(DateTimeOriginal = ymd_hms(DateTimeOriginal))
+  mutate(DateTimeOriginal = ymd_hm(DateTimeOriginal))
 
 head(coy)
 

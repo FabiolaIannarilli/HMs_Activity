@@ -21,7 +21,7 @@ library(forcats)
 # Load data: Coyote/Wolf Species interactions
 dat <- read.csv("data_input/species_records.csv", as.is = TRUE) %>% 
   filter(c(Species == "Coyote" | Species == "Wolf")) %>% droplevels() %>%  
-  mutate(DateTimeOriginal = ymd_hms(DateTimeOriginal))
+  mutate(DateTimeOriginal = ymd_hm(DateTimeOriginal))
 cov <- read.csv("data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv", as.is = TRUE) %>% 
   select(c(Session, Site, Date_setup, Date_retr, Problem1_from, Problem1_to)) %>% 
   mutate(Date_setup = mdy(Date_setup),

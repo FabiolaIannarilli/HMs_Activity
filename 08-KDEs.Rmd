@@ -45,7 +45,7 @@ independence_interval <- 30 #minutes
 
 # Aggregate data to reduce short-term temporal dependence
 dat_event <- dat %>% 
-  mutate(DateTimeOriginal = ymd_hms(DateTimeOriginal)) %>% 
+  mutate(DateTimeOriginal = ymd_hm(DateTimeOriginal)) %>% 
   group_by(Species, Station) %>%      # group by species and location
   arrange(DateTimeOriginal, .by_group = TRUE) %>% # arrange record temporally within each group
   mutate(timediff = as.numeric(difftime(DateTimeOriginal, lag(DateTimeOriginal), units="mins")), # calculate time difference (in minutes) between consecutive events
@@ -492,7 +492,7 @@ library(tidyr)
 # Load data
 dat <- read.csv("data_input/species_records.csv") %>% 
   filter(Species == "BlackBear") %>% droplevels() %>% 
-  mutate(DateTimeOriginal = ymd_hms(DateTimeOriginal))
+  mutate(DateTimeOriginal = ymd_hm(DateTimeOriginal))
 cov <- read.csv("data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv", as.is = TRUE) %>% 
   select(c(Session, Site, Date_setup, Date_retr, Problem1_from, Problem1_to)) %>% 
   mutate(Date_setup = mdy(Date_setup),
@@ -507,7 +507,6 @@ dat$Season <- as.factor(substr(dat$Session, 1, 1))
 # Aggregate data to reduce short-term temporal dependence
 independence_interval <- 30 # minutes
 dat <- dat %>% 
-  #mutate(DateTimeOriginal = ymd_hms(DateTimeOriginal)) %>% 
   group_by(Species, Station, Season) %>%      # group by species, location, and season (to retain information in the dataset)
   arrange(DateTimeOriginal, .by_group = TRUE) %>% # arrange record temporally within each group
   mutate(timediff = as.numeric(difftime(DateTimeOriginal, lag(DateTimeOriginal), units="mins")), # calculate time difference (in minutes) between consecutive events
