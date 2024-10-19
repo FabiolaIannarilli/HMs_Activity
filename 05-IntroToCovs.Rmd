@@ -6,7 +6,7 @@ Many researchers exploring activity patterns from camera-trap data sooner or lat
 
 The task of comparing activity patterns among different levels of a categorical variable can be achieved using KDE approaches. However, the process can be particularly cumbersome, especially when comparing more than two levels. It requires splitting the dataset of the independent records depending on the levels of the variable of interest, run a KDE for each group of records, and then comparing the results using an ad-hoc test. Conversely, the same task can be accomplished by fitting a hierarchical model to the whole dataset, as we describe here. In Tutorial \@ref(compkde), we repeat this same analyses using the KDE approach, and compare results to those obtained using the trigonometric and cyclic cubic spline hierarchical models.
 
-Again, we use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA [@Iannarilliea2021]. This time, we use records of American black bear (*Ursus americanus*) and explore differences in activity patterns of this species between spring and fall. We again format the data using a `cbind(success, failure)` structure as described in Tutorial \@ref(dataprep), but this time we also create an additional column (*Season*) that contains the information about the season (i.e. Spring or Fall) in which the records were collected and use it as an additional grouping criterion.
+Again, we use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA [@Iannarilliea2021]. This time, we use records of American black bear (*Ursus americanus*) and explore differences in activity patterns of this species between spring and fall. 
 
 ```{r cat1, message = FALSE, warnings = FALSE}
 # Load Libraries
@@ -72,6 +72,13 @@ for(i in 1:nrow(dat)){
 occasions$Time <- hour(occasions$start)
 occasions$Season <- as.factor(substr(occasions$Session, 1, 1))
 table(occasions$Season, occasions$capt)
+```
+
+We obtained 773 (out of 348 696) and 244 (out of 222 480) hourly occasions with at least 1 positive record of a bear in the Spring and Fall sessions, respectively.
+
+We again format the data using a `cbind(success, failure)` structure as described in Tutorial \@ref(dataprep), but this time we also create an additional column (*Season*) that contains the information about the season (i.e. Spring or Fall) in which the records were collected and use it as an additional grouping criterion.
+
+```{r cat1c, message = TRUE, warnings = TRUE}
 occasions$Site <- as.factor(occasions$Site)
 
 # format data for cbind(success, failure)
@@ -79,17 +86,21 @@ occasions_cbind <- occasions %>%
   group_by(Site, Time, Season) %>% 
   summarize(success = sum(capt),
             failure = n() - success)
+head(occasions_cbind)
+```
 
-# we save this dataset for applications in other part of the tutorial
+We save this dataset for applications in other parts of the tutorial.
+
+```{r cat1d, message = TRUE, warnings = TRUE}
 write.csv(occasions_cbind, file = "data_output/occasions_cbind_Ursus_americanus_seasons.csv")
 
 ```
 
-We obtained 773 (out of 348 696) and 244 (out of 222 480) hourly occasions with at least 1 positive record of a bear in the Spring and Fall sessions, respectively.
+
 
 ### Trigonometric GLMMs
 
-Extending the trigonometric hierarchical models to explore the effect of a covariate on activity patterns only requires the inclusion of interactions between the trigonometric terms and the covariate. The interactions allow the coefficients of the trigonometric terms to vary by treatment group, that is, the two levels of the covariate, e.g., *Season*. We start by fitting and visualizing  estimated activity curves for the two seasons based on a random intercept-only model in which the random intercept for *Site* accounts for repeated measures and varying levels of activity at each site:
+Extending the trigonometric hierarchical models to explore the effect of a covariate on activity patterns only requires the inclusion of interactions between the trigonometric terms and the covariate. The interactions allow the coefficients of the trigonometric terms to vary by treatment group, in this case, the two levels of the covariate *Season*. We start by fitting and visualizing  estimated activity curves for the two seasons based on a random intercept-only model in which the random intercept for *Site* accounts for repeated measures and varying levels of activity at each site:
 
 ```{r cat2}
 # run model
@@ -114,7 +125,7 @@ newdat <- with(occasions_cbind,
 pred_rand_int <- effectPlotData(trig_rand_int, newdat, marginal = FALSE) 
 ```
 
-```{r cat2b, class.source = "fold-hide", fig.cap="Predicted probability of activity of black bears in the spring (S) and fall (F) using a random intercept-only trigonemetric hierarchical model; shading corresponds to 95% confidence intervals."}
+```{r cat2b, class.source = "fold-hide", fig.cap="Predicted probability of activity of black bears in the spring (S) and fall (F) using a random intercept-only trigonometric hierarchical model; shading corresponds to 95% confidence intervals."}
 # plot
 (pl_trig <- ggplot(pred_rand_int, aes(Time, plogis(pred))) +
   geom_ribbon(aes(ymin = plogis(low), ymax = plogis(upp), color = Season, fill = Season), alpha = 0.3, linewidth = 0.25) +
@@ -261,7 +272,7 @@ pl_cycl1 <- ggplot(cycl_pred1, aes(Time, fit)) +
 
 The patterns estimated by the cyclic cubic spline model closely matches that returned by the random intercept-only trigonometric model, though the curve is slightly more irregular. 
 
-**Model selection:** As done for the trigonometric models, we can use AIC to test the importance of the variable `Season` by comparing  models with and without terms involving `season`.   
+**Model selection:** As done for the trigonometric models, we can use AIC to test the importance of the variable `Season` by comparing  models with and without terms involving the covariate of interest.   
 
 ```{r cat6}
 # Without general smoother for Time, no covariate effect
@@ -281,7 +292,7 @@ Importantly, (generalized) LRTs should be viewed with some caution. For example,
 Thus, whenever possible, we recommend careful *a priori* choice of modeling structures based on the desired inference and the characteristics of the data.
 
 
-We can extend the previous model structure to accommodate site-to-site variability in timing of activity by adding a smoother for `Time` that depends on `Site`. We also add a global smoother for `Time` that shrinks the site-specific estimates towards a common curve. This structure mimics a random intercept and random slope model and allows the site-specific activity curves to vary not only in their intercept but also in their shape.
+We can extend the previous model structure to accommodate site-to-site variability in timing of activity by adding a smoother for `Time` that depends on `Site`. We also add a global smoother for `Time` that shrinks the site-specific estimates towards a common curve. This structure mimics a trigonometric random intercept and random slope model and allows the site-specific activity curves to vary not only in their intercept but also in their shape.
 
 ```{r cat7}
 # 'Random intercept and slope'
@@ -340,7 +351,7 @@ cycl_pred2 <- cbind(newdat,
 cycl_pred <- rbind(cycl_pred1, cycl_pred2)
 ```
 
-```{r cat8b, class.source = "fold-hide", fig.cap="Predicted probability of activity of black bears across a select group of sites using a cyclic cubic spline model with a random intercept-only (left column) and random intercept and slope (right column)."}
+```{r cat8b, class.source = "fold-hide", fig.cap="Predicted probability of activity of black bears across a select group of sites using a cyclic cubic spline model with a structured resembling a trigonometric random intercept-only (left column) and random intercept and slope (right column) model."}
 selected_sites <- c("2A", "2B", "3B", "4D","7B", "14B", "14C", "15A", "15E", "18C")
 pl_cycl <- cycl_pred %>% filter(Site %in% selected_sites) %>% 
   mutate(Season2 = ifelse(Season == "F", "Fall", "Spring")) %>% 
@@ -382,7 +393,7 @@ We use the same data to illustrate how hierarchical models can be used to quanti
 hist(cov$ghm)
 ```
 
-We link the GHM values available in the *cov* object to the *occasion* data frame created at the beginning of this tutorial, and then proceed with arranging the data in the format required to run the hierarchical model as we have done in other examples. This time though, we also add GHM as an additional grouping level.
+We link the GHM values available in the *cov* object to the *occasion* dataframe created at the beginning of this tutorial, and then proceed with arranging the data in the format required to run the hierarchical model as we have done in other examples. This time though, we also add GHM as an additional grouping level.
 
 ```{r cont2}
 # Add ghm info

@@ -1,4 +1,4 @@
-# Conditional and Marginal Mean Activity Patterns {#condvsmarg}
+# Conditional and marginal mean activity patterns {#condvsmarg}
 
 GLMMs allow users to estimate both site-specific diel activity patterns and population-level activity patterns formed by averaging activity levels across sites in the population (see Box 1 in @HMsActivity2024). Site-specific estimates are frequently referred to as *conditional means* since they are formed by conditioning on a set of site-specific parameters; population-level means are often referred to as *marginal means*. Although one can estimate the conditional mean associated with any of the sampled sites, it is also common to plot the conditional mean for a ‘typical site’ (i.e. a site with average characteristics), formed by setting all of the random coefficients to their mean values [@Fieberg_ea_2009]. 
 
@@ -21,8 +21,8 @@ If we plot the estimated conditional and marginal mean activity curves (Figure \
 
  
 ```{r condvsmarg1, message = FALSE, warnings = FALSE, fig.cap="Conditional activity pattern for a typical site (one with random effects equal to zero) and marginal mean activity pattern formed by averaging site-specific activity patterns across a population of sites."}
-#' Load libraries and function to simulate activity patterns
-library(tidyverse)
+# Load libraries and function to simulate activity patterns
+library(dplyr)
 library(GLMMadaptive)
 library(mgcv)
 library(tidyr)
@@ -66,7 +66,7 @@ dat <- sim_activity(M = M,
 
 
 
-## Estimating Conditional and Marginal Mean Activity Patterns
+## Estimating conditional and marginal mean activity patterns
 
 
 Before fitting models, we need to prepare the data. We use the code from Tutorial \@ref(est) to aggregate the data by site, resulting in a data set with the following variables:
@@ -118,7 +118,7 @@ We are now ready to estimate conditional and marginal mean activity in the frequ
 
 When using **trigonometric GLMMs**, we can quantify the conditional mean by setting all the random effects in the GLMM as equal to 0 and the marginal mean by integrating over the distribution of the random effects [@Fieberg_ea_2009]. Among the many packages available in R to model GLMMs, GLMMadaptive [@Rizopoulos2022] has the advantage of providing estimates of parameters describing both conditional and marginal mean response curves. 
 
-We start by fitting the model, similar to how we have done it in previous Tutorials of this tutorial.
+We start by fitting the model, similar to how we have done it in previous sections of these tutorials.
 
 ```{r condvsmarg3, cache=TRUE, cache.path="cache/"}
 # Modelling activity pattern using trigonometric GLMMs in the parametric modelling framework
@@ -135,7 +135,7 @@ trig_rand_slope <- mixed_model(fixed = cbind(success, failure) ~
 summary(trig_rand_slope)
 ```      
 
-In most of the applications so far (except Tutorial \@ref(temppart)), we explored the model results using the predicted conditional mean activity patterns. We calculated these patterns using the function `effectPlotData`, which is included in the `GLMMadaptive` package, and setting the argument `marginal` as equal `FALSE`. We do the same here. The conditional mean can be easily estimated using other packages available in R to fit GLMMs by setting the random effect equal to 0 and then predict the activity pattern over the 24-hour cycle. For example, we can use the `predict` function with the argument `re.form = NA` to obtain conditional means when models are fit using the `glmer` function in the `lme4` package [@lme4].
+In most of the applications so far (except Tutorial \@ref(temppart)), we explored the model results using the predicted conditional mean activity patterns. We calculated these patterns using the function `effectPlotData`, which is included in the `GLMMadaptive` package, by setting the argument `marginal` as equal `FALSE`. We do the same here. The conditional mean can be easily estimated using other packages available in R to fit GLMMs by setting the random effect equal to 0 and then predict the activity pattern over the 24-hour cycle. For example, we can use the `predict` function with the argument `re.form = NA` to obtain conditional means when models are fit using the `glmer` function in the `lme4` package [@lme4].
 
 We can estimate marginal means using numerical integration (as done in Tutorial \@ref(var)), simulation, or using various approximation methods [see e.g., section 19.2 of @fieberg2024]. The primary reason we explore `mixed_model` in the `GLMMadaptive` package  is because it does the hard work for us. To calculate the predicted marginal mean activity pattern, we only need to change the argument `marginal` from `FALSE` to `TRUE` in the `effectPlotData` function. 
 
@@ -160,7 +160,7 @@ marg_eff <- effectPlotData(trig_rand_slope, newdat, marginal = TRUE) %>%
          )
 ```
 
-It is also possible to calculate both means using the estimated coefficients extracted directly from the fitted model. In this case, we can obtain estimates of the marginal coefficients that approximate the curve formed by integrating over the random effects using the `marginal_coefs` function in the GLMMadaptive packages, which uses a numerical approximation based on an adaptive Gauss-Hermite quadrature rule [@Hedeker_ea_2018] to calculate these values. From the parameter estimates, we can calculate the predicted conditional and marginal activity curves using the appropriate coefficient values along with the following equation:
+It is also possible to calculate both means using the estimated coefficients extracted directly from the fitted model. In this case, we can obtain estimates of the marginal coefficients that approximate the curve formed by integrating over the random effects using the `marginal_coefs` function in the `GLMMadaptive` package, which uses a numerical approximation based on an adaptive Gauss-Hermite quadrature rule [@Hedeker_ea_2018] to calculate these values. From the parameter estimates, we can calculate the predicted conditional and marginal activity curves using the appropriate coefficient values along with the following equation:
 
 $$
 \text{logit}(p_t) = \hat{\beta_0} + \hat{\alpha_1}*\text{cos}(\frac{2\pi t}{24}) + \hat{\alpha_2}*\text{sin}(\frac{2\pi t}{24}) + \hat{\alpha_3}*\text{cos}(\frac{2\pi t}{12}) + \hat{\alpha_4}*\text{sin}(\frac{2\pi t}{12})

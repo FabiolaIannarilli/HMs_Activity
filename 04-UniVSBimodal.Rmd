@@ -1,4 +1,4 @@
-# Evaluating Hypotheses Regarding the Shape of Activity Curves {#unibim}
+# Evaluating hypotheses regarding the shape of activity curves {#unibim}
 
 Diel activity patterns are often described or classified as either:
 
@@ -124,4 +124,4 @@ ggsave(plot = pl_shapes, filename = "ms_figures/Fig2_Uni_vs_Bim_comparison.jpg",
 
 ```
 
-We can test other hypotheses related to the shape of the activity curve for our target species (e.g., three or more peaks) by simply adding additional cosine terms to the model structure and then comparing the different structures using AIC or LRT. However, going beyond two peaks might be computationally challenging, especially when a random slope is included. In these cases, one might need to consider reducing model complexity by only including a random intercept.
+We can test other hypotheses related to the shape of the activity curve (e.g., three or more peaks) for our target species by simply adding additional cosine terms to the model structure and then comparing the different structures using AIC or LRT. However, going beyond two peaks might be computationally challenging, especially when a random slope is included. In these cases, one might need to consider reducing model complexity by only including a random intercept.

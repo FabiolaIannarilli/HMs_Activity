@@ -2,7 +2,7 @@
 
 ## The *sim_activity* function {#simfunction}
 
-Throughout the tutorial we use the `sim_activity` function for simulating activity patterns. This function simulates realized activity patterns based on a 'true' activity pattern distribution density build as specified in equation 1 reported in Tutorial \@ref(var) and introduced in @HMsActivity2024. The arguments of the function specify the following:
+Throughout the tutorial, we use the `sim_activity` function for simulating activity patterns. This function simulates realized activity patterns based on a 'true' activity pattern distribution density build as specified in equation 1 reported in Tutorial \@ref(var) and introduced in @HMsActivity2024. The arguments of the function specify the following:
 
 *  `M`: Numeric. Number of sampling units (e.g. sites).
 *  `J`: Numeric. Number of cycles (e.g. days).
@@ -10,7 +10,7 @@ Throughout the tutorial we use the `sim_activity` function for simulating activi
 *  `b0`: Numeric. Intercept.
 *  `b0_constant`: Logic. If TRUE (default), b0 is held constant; otherwise time-varying.
 *  `tau_constant`: Logic. If TRUE (default), random intercept is equal to 0 and there is no variability in use among sampling units
-*  `sdtau`: Numeric. Only if `tau_constant} = FALSE. Random intercept describing variability in use among sampling units coded as a Normal distribution N(0,sdtau).
+*  `sdtau`: Numeric. Only if `tau_constant` = FALSE. Random intercept describing variability in use among sampling units coded as a Normal distribution N(0, `sdtau`).
 *  `b1`: Numeric. Wave amplitude of first cosinusoidal curve.
 *  `b2`: Numeric. Wave amplitude of second cosinusoidal curve.
 *  `theta0`: Numeric. Curve-specific phaseshift for the first cosinusoidal curve.
@@ -122,7 +122,7 @@ dat <- sim_activity(M = M,
 
 ```
 
-## Binomial versus Other Distributions {#poisson}
+## Binomial versus other distributions {#poisson}
 
 How we aggregate observations of activity determines how we model our data. @Rees2024 modeled animal diel activity using a generalized additive modeling approach with a negative binomial distribution after determining there was overdispersion using a Poisson distribution. The Poisson probability density function (PDF) is a special case of the Negative Binomial. Throughout, we have used the binomial probability mass function to model diel activity in both trigonometric GLMMs and cyclic cubic splines HGAMs. The Poisson distribution is in fact a special case of the binomial when the number of 'trials' is very large. As such, we can gain similar inference using these different distributions, but we need to think about how sampling effort is accounted for. 
 
@@ -133,7 +133,7 @@ Below, we demonstrate the equivalence between using the binomial and Poisson pro
 
 ### Data preparation
 
-We use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA, [@Iannarilliea2021]. We use the same data records of American black bear (*Ursus americanus*) as done in the Tutorial \@ref(cat). However, we ignore the season covariate for simplicity and just focus on modeling the fall data. We first load the `occasions_cbind` object that we saved in the Tutorial \@ref(cat), then subset the data to only include records related to the Fall season.
+We use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA [@Iannarilliea2021]. We use the same data records of American black bear (*Ursus americanus*) as done in the Tutorial \@ref(cat). However, we ignore the season covariate for simplicity and just focus on modeling the Fall data. We first load the `occasions_cbind` object that we saved in the Tutorial \@ref(cat), then subset the data to only include records related to the Fall season.
 
 
 ```{r pdf1, message = TRUE, warnings = TRUE}
@@ -150,7 +150,7 @@ library(ggpubr)
 occasions_cbind <- read.csv("data_output/occasions_cbind_Ursus_americanus_seasons.csv") %>% 
   mutate(Site = as.factor(Site))
 
-#Subset the data to the Fall data only, thus removing Spring data.
+# Subset the data to the Fall data only, thus removing Spring data.
 y_fall <-  occasions_cbind[which(occasions_cbind$Season == "F"),]
 head(y_fall)
 
@@ -160,7 +160,7 @@ y_fall$total <-  y_fall$success + y_fall$failure
 
 ```
 
-### Trigonometric PDF Comparison
+### Trigonometric PDF comparison
 
 Fit the model using  a binomial distribution and then fit the equivalent count-based model with an offset to control for sampling effort.
 
@@ -176,7 +176,7 @@ trig_rand_int <- mixed_model(fixed = cbind(success, failure) ~
 summary(trig_rand_int)
 
 
-#Fit Poisson Model with log offset using the variable 'total'
+# Fit Poisson Model with log offset using the variable 'total'
 trig_rand_int_P <- mixed_model(fixed = success ~ 
                                               cos(2 * pi * Time/24) +
                                               sin(2 * pi * Time/24) +
@@ -248,7 +248,7 @@ ggarrange(pl_trig1_P, pl_trig1)
 
 We can see that the predictions are equivalent. 
 
-### Cyclic cubic PDF Comparison
+### Cyclic cubic PDF comparison
 
 Now, let's do the same comparison when fitting models in a generalized additive model framework.
 
@@ -263,7 +263,7 @@ mod_cycl <- bam(cbind(success, failure) ~
 
 # Predict activity patterns
 newdat <- with(occasions_cbind, expand.grid(Time = seq(0, 24, length.out=24),total=1, 
-                                          Site = "7B")) #Station doesn't matter
+                                          Site = "7B")) # Station doesn't matter
 
 # Create predictions and confidence intervals
 cycl_pred <- predict.bam(mod_cycl, newdata = newdat,  exclude = "s(Site)", se.fit = TRUE, type = "link") 
@@ -272,7 +272,7 @@ cycl_pred$upp <- cycl_pred$fit + (1.96 * cycl_pred$se.fit)
 cycl_pred$Time <- newdat$Time
 cycl_pred <- data.frame(cycl_pred)
 
-#Fit Poisson model
+# Fit Poisson model
 mod_cycl_P <- bam(success ~ 
                    s(Time, bs = "cc", k = 12) + 
                    s(Site, bs = "re") + offset(log(total)), 
@@ -340,12 +340,12 @@ ggarrange(pl_cycle1_P, pl_cycle1)
 
 Again, we can see that the predictions are equivalent. 
 
-### Not Controlling for Sampling Effort
+### Not controlling for sampling effort
 
 Let's see what happens when we don't control for sampling effort using the Poisson PDF.
 
 ```{r pdf7}
-#Fit Poisson model
+# Fit Poisson model
 mod_cycl_P2 <- bam(success ~ 
                      s(Time, bs = "cc", k = 12) + 
                      s(Site, bs="re"), 
@@ -355,7 +355,7 @@ mod_cycl_P2 <- bam(success ~
 
 # Create predictions and confidence intervals
 newdat <- with(occasions_cbind, expand.grid(Time = seq(0, 24, length.out=24),
-                                            Site = "7B")) #Station doesn't matter
+                                            Site = "7B")) # Station doesn't matter
 cycl_pred_P2 <- predict.bam(mod_cycl_P2, newdata = newdat,  exclude = "s(Site)", se.fit = TRUE, type = "link") 
 cycl_pred_P2$low <- cycl_pred_P2$fit - (1.96 * cycl_pred_P2$se.fit)
 cycl_pred_P2$upp <- cycl_pred_P2$fit + (1.96 * cycl_pred_P2$se.fit)
@@ -563,7 +563,7 @@ mcmc_plot(cycl_rand_int_alt,
          )
   
   
-#Summary of outputs - coefficients are the same
+# Summary of outputs - coefficients are the same
 summary(cycl_rand_int)
 summary(cycl_rand_int_alt)
 
@@ -654,7 +654,7 @@ In the ecology and evolution literature, animal activity is often discussed in t
 
 ### Data
 
-We use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA [@Iannarilliea2021]. We use the same data records of American black bear (*Ursus americanus*) as done in other Tutorials and in section \@ref(poisson). However, we ignore examining a season covariate for simplicity and focus on modeling the spring data. As before, we first load the `occasions_cbind` object that we saved in section \@ref(cat), then subset the data to only include records related to the season of interest, which is now Spring. 
+We use camera-trap records collected between 2016 and 2018 at 100 locations in Northern Minnesota, USA [@Iannarilliea2021]. We use the same data records of American black bear (*Ursus americanus*) as done in other tutorials and in section \@ref(poisson). However, we ignore examining a season covariate for simplicity and focus on modeling the Spring data. As before, we first load the `occasions_cbind` object that we saved in section \@ref(cat), then subset the data to only include records related to the season of interest, which is now Spring. 
 
 ``` {r data1, warnings = TRUE, message = TRUE, warnings = TRUE}
 # load packages
@@ -669,14 +669,14 @@ library(ggplot2)
 occasions_cbind <- read.csv("data_output/occasions_cbind_Ursus_americanus_seasons.csv")%>% 
   mutate(Site = as.factor(Site))
 
-#Subset the data to the Spring data only, thus removing Fall data.
+# Subset the data to the Spring data only, thus removing Fall data.
 y_spring <-  occasions_cbind[which(occasions_cbind$Season == "S"),]
 head(y_spring)
 
 ```
 
 ### Model Fitting
-Using the spring data for black bears, we can now fit a hierarchical cyclic cubic spline model.
+Using the Spring data for black bears, we can now fit a hierarchical cyclic cubic spline model.
 
 ```{r fit..cc.3, eval=TRUE, echo=TRUE}
 cycl_rand_int_ML <- bam(cbind(success, failure) ~ 
@@ -693,7 +693,7 @@ Let's now use our model to predict the conditional mean activity curve across al
 
 ```{r fit.ml.pred1}
 newdat <- with(occasions_cbind, expand.grid(Time = seq(0, 24, length.out=100),total=1, 
-                                            Site = "7B")) #Station doesn't matter, as 'site' is excluded below
+                                            Site = "7B")) # Station doesn't matter, as 'site' is excluded below
 
 # Get predictions and of the conditional mean
 cycl_pred <- predict.bam(cycl_rand_int_ML, newdata = newdat,  exclude = "s(Site)", type = "response") 
@@ -716,7 +716,7 @@ Next, we need to determine the time periods that correspond to twilight, daytime
 # Extract sunrise and sunset times for the general study area and period. 
 sun.times <- getSunlightTimes( date = as.Date("2016-04-15"), 
                     lat = 47.73 , lon = -94.55, data = NULL, 
-                    keep = c( "dawn", "dusk", "nightEnd", "night"), 
+                    keep = c("dawn", "dusk", "nightEnd", "night"), 
                     tz = "America/Chicago")
 
 # Use the extracted sun times to define dawn and dusk
@@ -773,7 +773,7 @@ plot(cycl_pred$Time,cycl_pred$cycl_pred,type="l",col=2,lwd=3,
 
 The vertical dotted lines indicate the periods of dawn and dusk for this sampling period. As we can see, black bears are mostly active during the day with a relative probability activity of `r round(diel.out$p.day,digits=2)`. They are also have a high relative activity during twilight with a probability of `r round(diel.out$p.twi,digits=2)`. 
 
-Interestingly, if we use a set of diel phenotype hypotheses that are more specific in separating bimodal and trimodal activity (i.e., General hypothesis set; see definitions at [Github repository](https://github.com/diel-project/Diel-Niche-Modeling/)) we would find the correspondent diel phenotype to be better described as **Diurnal-Crepuscular**.
+Interestingly, if we use a set of diel phenotype hypotheses that are more specific in separating bimodal and trimodal activity (i.e. General hypothesis set; see definitions at [Github repository](https://github.com/diel-project/Diel-Niche-Modeling/)) we would find the correspondent diel phenotype to be better described as **Diurnal-Crepuscular**.
 ```{r fit.ml.pred4}  
 Diel.Niche::posthoc.niche(y, hyp= hyp.sets("General"))
 ```
@@ -783,11 +783,11 @@ This difference in classification is because of the low amount of activity durin
 
 Modeling animal activity patterns continuously throughout the 24-hour period provides important fine scale inference that is not achieved when aggregating data into blocks of time (e.g., daytime vs nighttime). However, it is important to then still be able to translate findings in relevant terminology based on diel phenotypes. The [`Diel.Niche` R package](https://github.com/diel-project/Diel-Niche-Modeling/) provides an efficient way of summarizing findings from hierarchical trigonometric and cyclic cubic spline models.
 
-Here, we provided a simple example to demonstrate the process of using the `Diel.Niche` R package](https://github.com/diel-project/Diel-Niche-Modeling/). However, there are a number of options we could also consider. For example, we could predict the diel phenotype for each site. This is most useful when we have site to site variation in terms of a random intercept and slope. We could also use covariates in our model and predict the supported diel phenotype across covariate values. Furthermore, we only predicted the corresponding diel phenotype using the estimated conditional mean activity. There is of course uncertainty associated with this mean activity level. To explore how supported the diel phenotype is when considering uncertainty from the conditional mean, we could predict activity curves at different levels of uncertainty or at certain confidence intervals to investigate uncertainty in the associated diel phenotype.
+Here, we provided a simple example to demonstrate the process of using the [`Diel.Niche` R package](https://github.com/diel-project/Diel-Niche-Modeling/). However, there are a number of options we could also consider. For example, we could predict the diel phenotype for each site. This is most useful when we have site-to-site variation in terms of a random intercept and slope. We could also use covariates in our model and predict the supported diel phenotype across covariate values. Furthermore, we only predicted the corresponding diel phenotype using the estimated conditional mean activity. There is of course uncertainty associated with this mean activity level. To explore how supported the diel phenotype is when considering uncertainty from the conditional mean, we could predict activity curves at different levels of uncertainty or at certain confidence intervals to investigate uncertainty in the associated diel phenotype.
 
 ## Info session
 
-To facilitate reproducibility, we report information on packages and package versions used to create this tutorial.
+To facilitate reproducibility, we report information on packages and package versions used to create these tutorials.
 
 ```{r infosession}
 library(grateful)

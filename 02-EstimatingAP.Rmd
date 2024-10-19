@@ -6,13 +6,13 @@ Activity patterns are currently estimated primarily using Kernel Density Estimat
 
 -   *cyclic cubic spline generalized linear mixed models* (cyclic cubic spline HGAMs).
 
-Both types of hierarchical models can accommodate the periodic nature of activity data, and they can both also address site-to-site and other forms of variability. Although our examples are all focused on the analysis of camera-trap data, the same framework can be applied to data collected using other static devices (e.g., acoustic recorders) or site-based sampling strategies.
+Both types of hierarchical models can accommodate the periodic nature of activity data and also address site-to-site and other forms of variability. Although our examples are all focused on the analysis of camera-trap data, the same framework can be applied to data collected using other static devices (e.g., acoustic recorders) or site-based sampling strategies.
 
 ## Simulating activity patterns
 
 To show how trigonometric and cyclic cubic spline hierarchical models can successfully recover the true pattern of activity, we apply these approaches to simulated data. As such, we can compare the estimated patterns to the known, 'true', simulated patterns.
 
-To keep the focus on estimating activity patterns, we encapsulate the code to simulate the data in the function `sim_activity`, that we source after loading the necessary libraries. This function simulates data based on equation 1 (Tutorial \@ref(var) and Materials and Results in @HMsActivity2024). The function is available in the `source_functions` folder available at *link upon acceptance*; a description of its arguments and outputs is provided in section \@ref(simfunction). 
+To keep the focus on estimating activity patterns, we encapsulate the code to simulate the data in the function `sim_activity`, that we source after loading the necessary libraries. This function simulates data based on equation 1 (Tutorial \@ref(var) and Materials and Results in @HMsActivity2024). The function is available in the `source_functions` folder available at https://github.com/FabiolaIannarilli/HMs_Activity; a description of its arguments and outputs is provided in section \@ref(simfunction). 
 
 ```{r est1, message = FALSE, warnings = FALSE}
 # Load libraries and function to simulate activity patterns
@@ -82,7 +82,7 @@ sample_sites <- as.data.frame(sample_sites) %>%
   pivot_longer(cols = -sites, names_to = "time", values_to = "prob")
 ```
 
-```{r est3b, class.source = "fold-hide", fig.cap="Bimodal probability activity curves showing variability in both the frequency of site-use and variability in timing of activity; displayed are activity curves across sites (dashed lines) along with the marginal mean curve (black lines) and conditional mean curve (red lines)."}
+```{r est3b, class.source = "fold-hide", fig.cap="Bimodal probability activity curves showing variability in both the frequency of site-use and variability in timing of activity; displayed are activity curves across sites (dashed lines) along with the marginal mean curve (black line) and conditional mean curve (red line)."}
 #plot true conditional and marginal with 10 simulated sites
 (pl_sites <- ggplot() +
   geom_line(data = sample_sites, aes(x = as.numeric(time), y = prob, group = sites, color = as.factor(sites)), 
@@ -162,7 +162,7 @@ knitr::kable(head(y_long))
 
 We obtain a dataset in which each row specifies the outcome (i.e. encounter or non-encounter of the target species) at a certain site during a specific hour of a certain day of sampling.
 
-We can use this dataset for our analysis as it is, considering `y` as our response variable. Alternatively, we can reduce model fitting computational time by counting the number of hourly-long occasions in which the species was observed (i.e. successes) and the number of occasions in which the species was not observed (i.e. failures) for each combination of hourly time interval (e.g., `time = 1`) and camera site (e.g. `id = A1`).
+for our analysis, we can use this dataset as it is, considering `y` as our response variable. Alternatively, we can reduce model fitting computational time by counting the number of hourly-long occasions in which the species was observed (i.e. successes) and the number of occasions in which the species was not observed (i.e. failures) for each combination of hourly time interval (e.g., `time = 1`) and camera site (e.g. `id = A1`).
 
 ```{r est5}
 # count successes and failures at each site-occasion
@@ -185,7 +185,7 @@ In this new version of the dataset, each row specifies how many times a species 
 Equation 1 in Tutorial \@ref(var) is non-linear due the presence of the phaseshift parameters. Currently, we are unaware of any out-of-the-box options in the R programming language for fitting trigonometric non-linear mixed models using a frequentist approach. To overcome this challenge, we rewrite equation 1 using compound angle formulas (see also main text @HMsActivity2024): 
 
 $$
-\text{logit}(p_t) = \beta_0 + \alpha_1 \times \text{cos}(\frac{2\pi t}{24}) + \alpha_2 \times \text{sin}(\frac{2\pi t}{24}) + \alpha_3 \times \text{cos}(\frac{2\pi t}{12}) + \alpha_4 \times \text{sin}(\frac{2\pi t}{12}) + \tau_i
+\text{logit}(p_t) = \beta_0 + \alpha_1 \times \text{cos}(\frac{2\pi t}{\omega_1}) + \alpha_2 \times \text{sin}(\frac{2\pi t}{\omega_1}) + \alpha_3 \times \text{cos}(\frac{2\pi t}{\omega_2}) + \alpha_4 \times \text{sin}(\frac{2\pi t}{\omega_2}) + \tau_i
 $$ 
 where 
 

@@ -6,7 +6,7 @@ We begin the tutorial by illustrating how site-to-site variability can affect an
 
 2\. variability in timing of activity.
 
-Here, we illustrate these two components separately in the context of a bimodal activity pattern (i.e. a pattern in which an animal's activity is concentrated at two times of the 24-hour cycle), then to a unimodal activity pattern (i.e. a pattern in which an animal's activity is concentrated at one specific time within the 24-hour cycle). Real activity patterns are likely to exhibit both sources of variability, so, in Tutorial \@ref(est), we present an example in which we simulate activity patterns by simultaneously varying both the frequency of site-use and variability in timing of activity.
+Here, we illustrate these two components separately in the context of a bimodal activity pattern (i.e. a pattern in which an animal's activity is concentrated at two times of the 24-hour cycle) first, and then in the context of a unimodal activity pattern (i.e. a pattern in which an animal's activity is concentrated at one specific time within the 24-hour cycle). Real activity patterns are likely to exhibit both sources of variability, so, in Tutorial \@ref(est), we present an example in which we simulate activity patterns by simultaneously varying both the frequency of site-use and variability in timing of activity.
 
 We simulated data under equation 1 explained in the main text (Materials and Results in @HMsActivity2024) and reported here as:
 
@@ -15,7 +15,7 @@ y_{it} \sim Bernoulli(p_{it})
 $$
 
 $$
-\text{logit}(p_{it}) = \beta_0 + \beta_1*\text{cos}(\frac{2\pi t}{24} + (\theta_0 + \gamma_i)) + \beta_2*\text{cos}(\frac{2\pi t}{12} + (\theta_1 + \gamma_i)) + \tau_i
+\text{logit}(p_{it}) = \beta_0 + \beta_1*\text{cos}(\frac{2\pi t}{\omega_1} + (\theta_0 + \gamma_i)) + \beta_2*\text{cos}(\frac{2\pi t}{omega_1} + (\theta_1 + \gamma_i)) + \tau_i
 $$
 
 $$
@@ -24,7 +24,9 @@ $$
 
 $$
 \gamma_i \sim N(0,\sigma_\gamma)
-$$ We load the necessary libraries and set the intercept $\beta_0$, and the two amplitudes $\beta_1$ and $\beta_2$ equal to -3, 1, and 0.7, respectively. We also assign the values 3 and 2 to the common phaseshifts terms, $\theta_0$ and $\theta_1$, respectively.
+$$ 
+
+We load the necessary libraries and set the intercept $\beta_0$, and the two amplitudes $\beta_1$ and $\beta_2$ equal to -3, 1, and 0.7, respectively. We also assign the values 3 and 2 to the common phaseshifts terms, $\theta_0$ and $\theta_1$, respectively, and set $\omega_1$ and $\omega_2$ equal to 24 and 12, respectively.
 
 The parameters $\tau_i$ and $\gamma_i$ (and their associated distributions) control the level of variability in site-use (i.e. vertical shift among the activity curves) and timing of activity (i.e. horizontal shift among activity curves), respectively. For illustrative purposes, here we assign predefined values to $\tau_i$ and $\gamma_i$, and vary only one of them at a time.
 
@@ -89,7 +91,7 @@ for(i in 1:length(time)){
 }
 ```
 
-We discuss differences between conditional and marginal means in detail in Tutorial \@ref(condvsmarg) and in Box 1 in the main text [@HMsActivity2024]. Although we can consider conditional means for any site, it is often instructive to consider the conditional mean curve for a "typical site" obtained by setting all the random effects equal to zero; it is this conditional mean we are referring to if we do not mention a specific site. We can plot the conditional and marginal curves using the code below:
+We discuss differences between conditional and marginal means in detail in Tutorial \@ref(condvsmarg) and in Box 1 in the main text [@HMsActivity2024]. Although we can consider conditional means for any site, it is often instructive to consider the conditional mean curve for a "typical site", which is obtained by setting all the random effects equal to zero; it is this conditional mean we are referring to if we do not mention a specific site. We can plot the conditional and marginal curves using the code below:
 
 ```{r sim2c}
 # Combine dataframes for plotting
@@ -103,7 +105,7 @@ p_df <- rbind(p_df, p_df2)
 ```
 
 
-```{r sim2d, class.source = "fold-hide", fig.cap="Probability activity curves across sites (dashed lines) along with the marginal mean curve (black lines) and conditional mean curve (red lines). "}
+```{r sim2d, class.source = "fold-hide", fig.cap="Probability activity curves across sites (dashed lines) along with the marginal mean curve (black line) and conditional mean curve (red line). "}
 # plot activity curves
 (pl_vert <- ggplot(p_df, aes(x = time, y = p, group = curvesID)) +
   geom_line(aes(color = curvesLeg, linewidth = mean, linetype = mean)) +
@@ -179,7 +181,7 @@ p_df2 <- data.frame(p = unlist(p_marg),
 p_df <- rbind(p_df, p_df2)
 ```
 
-```{r sim3b, class.source = "fold-hide", fig.cap="Bimodal probability activity curves showing variability in frequency of site-use (A) and variability in timing of activity (B); displayed are activity curves across sites (dashed lines) along with the marginal mean curve (black lines) and conditional mean curve (red lines)."}
+```{r sim3b, class.source = "fold-hide", fig.cap="Bimodal probability activity curves showing variability in frequency of site-use (A) and variability in timing of activity (B); displayed are activity curves across sites (dashed lines) along with the marginal mean curves (black lines) and conditional mean curves (red lines)."}
 # plot
 pl_hor <- ggplot(p_df, aes(x = time, y = p, group = curvesID)) +
   geom_line(aes(color = curvesLeg, linewidth = mean, linetype = mean)) +
@@ -256,7 +258,7 @@ p_df <- rbind(p_df, p_df2)
 ```
 
 
-```{r sim4b, class.source = "fold-hide", fig.cap="Unimodal probability activity curves showing variability in frequency of site-use (A) and variability in timing of activity (B); displayed are activity curves across sites (dashed lines) along with the marginal mean curve (black lines) and conditional mean curve (red lines)."}
+```{r sim4b, class.source = "fold-hide", fig.cap="Unimodal probability activity curves showing variability in frequency of site-use (A) and variability in timing of activity (B); displayed are activity curves across sites (dashed lines) along with the marginal mean curves (black lines) and conditional mean curves (red lines)."}
 # plot
 pl_vert_uni <- ggplot(p_df, aes(x = time, y = p, group = curvesID)) +
   geom_line(aes(color = curvesLeg, linewidth = mean, linetype = mean)) +
