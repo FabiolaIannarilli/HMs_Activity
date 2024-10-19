@@ -17,6 +17,8 @@ fig:temp9b
 fig:condvsmarg1
 fig:condvsmarg6n
 fig:prepkde3
+fig:kdespkg4
+fig:kdedataaggr2
 preface
 requirements
 var
