@@ -5,19 +5,19 @@
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>Tutorial 9 Kernel Density Estimators | A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models</title>
-  <meta name="description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript HMsActivity 2024." />
+  <meta name="description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript Iannarilli et al. 2024. Journal of Animal Ecology" />
   <meta name="generator" content="bookdown 0.39 and GitBook 2.6.7" />
 
   <meta property="og:title" content="Tutorial 9 Kernel Density Estimators | A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models" />
   <meta property="og:type" content="book" />
   
-  <meta property="og:description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript HMsActivity 2024." />
+  <meta property="og:description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript Iannarilli et al. 2024. Journal of Animal Ecology" />
   <meta name="github-repo" content="rstudio/bookdown-demo" />
 
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="Tutorial 9 Kernel Density Estimators | A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models" />
   
-  <meta name="twitter:description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript HMsActivity 2024." />
+  <meta name="twitter:description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript Iannarilli et al. 2024. Journal of Animal Ecology" />
   
 
 
@@ -159,7 +159,8 @@ div.csl-indent {
 <ul class="summary">
 <li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Preface</a>
 <ul>
-<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#requirements"><i class="fa fa-check"></i><b>1.1</b> Requirements</a></li>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#structure-of-the-tutorial"><i class="fa fa-check"></i><b>1.1</b> Structure of the Tutorial</a></li>
+<li class="chapter" data-level="1.2" data-path="index.html"><a href="index.html#requirements"><i class="fa fa-check"></i><b>1.2</b> Requirements</a></li>
 </ul></li>
 <li class="chapter" data-level="2" data-path="var.html"><a href="var.html"><i class="fa fa-check"></i><b>2</b> Variability in activity patterns</a>
 <ul>
@@ -560,8 +561,8 @@ Figure 9.2: Activity patterns based on Kernel Density Estimates of American blac
 ## 1 1 (2-2,1-1) arrange        gtable[layout]
 ## 2 2 (2-2,2-2) arrange        gtable[layout]
 ## 3 3 (2-2,3-3) arrange        gtable[layout]
-## 4 4 (1-1,1-3) arrange text[GRID.text.21758]
-## 5 5 (3-3,1-3) arrange text[GRID.text.21759]</code></pre>
+## 4 4 (1-1,1-3) arrange text[GRID.text.25933]
+## 5 5 (3-3,1-3) arrange text[GRID.text.25934]</code></pre>
 <p>The three packages return patterns in activity that match in the timing of activity peaks and overall shape of the curves. However, there are some differences. Notably, the y-axis associated to the estimates produced using <code>overlap</code> <span class="citation">(<a href="references.html#ref-RidoutLinkie2009">Ridout and Linkie 2009</a>; <a href="references.html#ref-R-overlap">Meredith and Ridout 2021</a>)</span> differs from those returned by the other two packages. These differences are due to an additional step that takes place within the <code>densityPlot</code> function in <code>overlap</code> and converts estimates so that the area under the curve is equal to one. The <code>activity</code> package <span class="citation">(<a href="references.html#ref-Rowcliffeea2014">J. M. Rowcliffe et al. 2014</a>; <a href="references.html#ref-activity2022">M. Rowcliffe 2022</a>)</span> has the additional option to estimate 95% confidence intervals using bootstrap approaches; the main function implemented in this package, named <code>activity::fitact</code>, also has an argument to correct for differences in detection probability (e.g., between day and night) while the function <code>activity::solartime</code> enable double-anchoring procedures to adjust the timestamp associated with the different records based on sunrise and sunset times <span class="citation">(for details, see <a href="references.html#ref-Vazquezea2019">Vazquez et al. 2019</a>)</span>. Finally, the <code>circular</code> package <span class="citation">(<a href="references.html#ref-circular2022">Agostinelli and Lund 2022a</a>; <a href="references.html#ref-Oliveira-Santos2013">Oliveira-Santos, Zucco, and Agostinelli 2013</a>)</span> can identify periods of higher levels of activity using an isopleth approach similar to that applied in the analysis of telemetry data to identify core areas in estimates of home ranges.</p>
 </div>
 </div>
@@ -741,8 +742,8 @@ Figure 9.3: Activity patterns based on Kernel Density Estimates of American blac
 ## 1 1 (2-2,1-1) arrange        gtable[layout]
 ## 2 2 (2-2,2-2) arrange        gtable[layout]
 ## 3 3 (2-2,3-3) arrange        gtable[layout]
-## 4 4 (1-1,1-3) arrange text[GRID.text.21903]
-## 5 5 (3-3,1-3) arrange text[GRID.text.21904]</code></pre>
+## 4 4 (1-1,1-3) arrange text[GRID.text.26078]
+## 5 5 (3-3,1-3) arrange text[GRID.text.26079]</code></pre>
 <p>We see that applying KDEs to non-aggregated data leads to estimates of activity curves that are extremely wiggly due to the choice of smoothing parameter which assumes the observations are independent. This could make the interpretation of the results particularly challenging and even lead to biased conclusions when results are driven by one or two individuals staying in front of a camera for an extensive amount of time (but see <span class="citation">Peral, Landman, and Kerley (<a href="references.html#ref-Peral2022">2022</a>)</span> for a different perspective on this topic).</p>
 </div>
 <div id="compkde" class="section level2 hasAnchor" number="9.4">

@@ -20,6 +20,7 @@ fig:prepkde3
 fig:kdespkg4
 fig:kdedataaggr2
 preface
+structure-of-the-tutorial
 requirements
 var
 variability-in-frequency-of-site-use
@@ -69,4 +70,3 @@ twilight-daytime-and-nighttime
 diel.niche
 conclusion
 info-session
-structure-of-the-tutorial
