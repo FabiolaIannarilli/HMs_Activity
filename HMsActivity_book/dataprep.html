@@ -215,16 +215,16 @@ div.csl-indent {
 </ul></li>
 <li class="chapter" data-level="10.3" data-path="app.html"><a href="app.html#bay"><i class="fa fa-check"></i><b>10.3</b> Activity patterns in the Bayesian framework</a>
 <ul>
-<li class="chapter" data-level="10.3.1" data-path="app.html"><a href="app.html#data-preparation-2"><i class="fa fa-check"></i><b>10.3.1</b> Data Preparation</a></li>
-<li class="chapter" data-level="10.3.2" data-path="app.html"><a href="app.html#model-setup-and-fitting"><i class="fa fa-check"></i><b>10.3.2</b> Model Setup and Fitting</a></li>
-<li class="chapter" data-level="10.3.3" data-path="app.html"><a href="app.html#model-assessment"><i class="fa fa-check"></i><b>10.3.3</b> Model Assessment</a></li>
-<li class="chapter" data-level="10.3.4" data-path="app.html"><a href="app.html#model-predictions"><i class="fa fa-check"></i><b>10.3.4</b> Model Predictions</a></li>
+<li class="chapter" data-level="10.3.1" data-path="app.html"><a href="app.html#data-preparation-2"><i class="fa fa-check"></i><b>10.3.1</b> Data preparation</a></li>
+<li class="chapter" data-level="10.3.2" data-path="app.html"><a href="app.html#model-setup-and-fitting"><i class="fa fa-check"></i><b>10.3.2</b> Model setup and fitting</a></li>
+<li class="chapter" data-level="10.3.3" data-path="app.html"><a href="app.html#model-assessment"><i class="fa fa-check"></i><b>10.3.3</b> Model assessment</a></li>
+<li class="chapter" data-level="10.3.4" data-path="app.html"><a href="app.html#model-predictions"><i class="fa fa-check"></i><b>10.3.4</b> Model predictions</a></li>
 </ul></li>
 <li class="chapter" data-level="10.4" data-path="app.html"><a href="app.html#DielNiche"><i class="fa fa-check"></i><b>10.4</b> Link to the Diel.Niche package</a>
 <ul>
 <li class="chapter" data-level="10.4.1" data-path="app.html"><a href="app.html#data"><i class="fa fa-check"></i><b>10.4.1</b> Data</a></li>
-<li class="chapter" data-level="10.4.2" data-path="app.html"><a href="app.html#model-fitting"><i class="fa fa-check"></i><b>10.4.2</b> Model Fitting</a></li>
-<li class="chapter" data-level="10.4.3" data-path="app.html"><a href="app.html#model-predictions-1"><i class="fa fa-check"></i><b>10.4.3</b> Model Predictions</a></li>
+<li class="chapter" data-level="10.4.2" data-path="app.html"><a href="app.html#model-fitting"><i class="fa fa-check"></i><b>10.4.2</b> Model fitting</a></li>
+<li class="chapter" data-level="10.4.3" data-path="app.html"><a href="app.html#model-predictions-1"><i class="fa fa-check"></i><b>10.4.3</b> Model predictions</a></li>
 <li class="chapter" data-level="10.4.4" data-path="app.html"><a href="app.html#twilight-daytime-and-nighttime"><i class="fa fa-check"></i><b>10.4.4</b> Twilight, daytime, and nighttime</a></li>
 <li class="chapter" data-level="10.4.5" data-path="app.html"><a href="app.html#diel.niche"><i class="fa fa-check"></i><b>10.4.5</b> Diel.Niche</a></li>
 <li class="chapter" data-level="10.4.6" data-path="app.html"><a href="app.html#conclusion"><i class="fa fa-check"></i><b>10.4.6</b> Conclusion</a></li>
@@ -254,20 +254,20 @@ div.csl-indent {
 <p>In the previous Tutorials, we use simulated data to introduce the concept of variability in activity patterns (Tutorial <a href="var.html#var">2</a>) and to illustrate the use of hierarchical models for estimating activity patterns (Tutorial <a href="est.html#est">3</a>). We now switch gears. In this and the following three Tutorials, we fit trigonometric and cyclic cubic spline hierarchical models to empirical camera-trap data to address common ecological questions related to the study of activity patterns.</p>
 <p>In this Tutorial, we explain how to prepare data to analyze activity patterns from camera-trap datasets using hierarchical models. This procedure is applied throughout the tutorial every time we use a new set of real data. To minimize redundancy, we illustrate the procedure in detail here only once, and then refer to the code (and possibly extend it), when necessary.</p>
 <p>We start by loading the data and showing a preview of what it looks like. Here, we select camera-trap records of coyotes (<em>Canis latrans</em>). We also load some libraries to wrangle the dataset and get it in the desired format.</p>
-<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="dataprep.html#cb47-1" tabindex="-1"></a><span class="co"># Load libraries</span></span>
-<span id="cb47-2"><a href="dataprep.html#cb47-2" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">ls</span>())</span>
-<span id="cb47-3"><a href="dataprep.html#cb47-3" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">129</span>)</span>
-<span id="cb47-4"><a href="dataprep.html#cb47-4" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb47-5"><a href="dataprep.html#cb47-5" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span></code></pre></div>
-<pre><code>## Warning: package &#39;lubridate&#39; was built under R version 4.2.3</code></pre>
-<div class="sourceCode" id="cb49"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb49-1"><a href="dataprep.html#cb49-1" tabindex="-1"></a><span class="co"># Load data</span></span>
-<span id="cb49-2"><a href="dataprep.html#cb49-2" tabindex="-1"></a>coy <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">&quot;data_input/species_records.csv&quot;</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb49-3"><a href="dataprep.html#cb49-3" tabindex="-1"></a>  <span class="fu">filter</span>(Species <span class="sc">==</span> <span class="st">&quot;Coyote&quot;</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb49-4"><a href="dataprep.html#cb49-4" tabindex="-1"></a>  droplevels <span class="sc">%&gt;%</span> </span>
-<span id="cb49-5"><a href="dataprep.html#cb49-5" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>X) <span class="sc">%&gt;%</span> </span>
-<span id="cb49-6"><a href="dataprep.html#cb49-6" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">DateTimeOriginal =</span> <span class="fu">ymd_hm</span>(DateTimeOriginal))</span>
-<span id="cb49-7"><a href="dataprep.html#cb49-7" tabindex="-1"></a></span>
-<span id="cb49-8"><a href="dataprep.html#cb49-8" tabindex="-1"></a><span class="fu">head</span>(coy)</span></code></pre></div>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="dataprep.html#cb43-1" tabindex="-1"></a><span class="co"># Load libraries</span></span>
+<span id="cb43-2"><a href="dataprep.html#cb43-2" tabindex="-1"></a><span class="fu">rm</span>(<span class="at">list =</span> <span class="fu">ls</span>())</span>
+<span id="cb43-3"><a href="dataprep.html#cb43-3" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">129</span>)</span>
+<span id="cb43-4"><a href="dataprep.html#cb43-4" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb43-5"><a href="dataprep.html#cb43-5" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span>
+<span id="cb43-6"><a href="dataprep.html#cb43-6" tabindex="-1"></a></span>
+<span id="cb43-7"><a href="dataprep.html#cb43-7" tabindex="-1"></a><span class="co"># Load data</span></span>
+<span id="cb43-8"><a href="dataprep.html#cb43-8" tabindex="-1"></a>coy <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">&quot;data_input/species_records.csv&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb43-9"><a href="dataprep.html#cb43-9" tabindex="-1"></a>  <span class="fu">filter</span>(Species <span class="sc">==</span> <span class="st">&quot;Coyote&quot;</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb43-10"><a href="dataprep.html#cb43-10" tabindex="-1"></a>  droplevels <span class="sc">%&gt;%</span> </span>
+<span id="cb43-11"><a href="dataprep.html#cb43-11" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>X) <span class="sc">%&gt;%</span> </span>
+<span id="cb43-12"><a href="dataprep.html#cb43-12" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">DateTimeOriginal =</span> <span class="fu">ymd_hm</span>(DateTimeOriginal))</span>
+<span id="cb43-13"><a href="dataprep.html#cb43-13" tabindex="-1"></a></span>
+<span id="cb43-14"><a href="dataprep.html#cb43-14" tabindex="-1"></a><span class="fu">head</span>(coy)</span></code></pre></div>
 <pre><code>##   Station Species    DateTimeOriginal       Date     Time    Session
 ## 1     10E  Coyote 2016-05-20 20:30:00 2016-05-20 20:30:51 Spring2016
 ## 2     10E  Coyote 2016-05-20 20:30:00 2016-05-20 20:30:51 Spring2016
@@ -281,13 +281,13 @@ div.csl-indent {
 <p>Unlike KDEs, trigonometric and cyclic hierarchical models allow us to leverage not only the times an encounter was recorded but also the times in which cameras were active at a location and no encounter occurred. This, in turn, allows us to estimate activity while accounting for variable sampling effort and makes comparisons of relative probabilities of activity across sites (or e.g., environmental and anthropogenic conditions) possible.</p>
 <p>To account for sampling effort, we have to build a matrix that stores information about when a camera was active at each site, and in how many of these days (or shorter occasions, see later) we recorded the target species.</p>
 <p>We load a new dataframe that contains information on the start and the end of the sampling period at each site. The start of this period usually corresponds to the deployment date, while the end of the period is the date of retrieval or the last day the camera was working at each location, if failure or malfunctioning occurred (e.g., empty batteries, SD card full, or cameras displaced by an animal).</p>
-<div class="sourceCode" id="cb51"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb51-1"><a href="dataprep.html#cb51-1" tabindex="-1"></a>cov <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">&quot;data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv&quot;</span>, <span class="at">as.is =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> </span>
-<span id="cb51-2"><a href="dataprep.html#cb51-2" tabindex="-1"></a>  <span class="fu">select</span>(Session, Site, Date_setup, Date_retr, Problem1_from, Problem1_to) <span class="sc">%&gt;%</span> </span>
-<span id="cb51-3"><a href="dataprep.html#cb51-3" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Date_setup =</span> <span class="fu">mdy</span>(Date_setup),</span>
-<span id="cb51-4"><a href="dataprep.html#cb51-4" tabindex="-1"></a>         <span class="at">Date_retr =</span> <span class="fu">mdy</span>(Date_retr),</span>
-<span id="cb51-5"><a href="dataprep.html#cb51-5" tabindex="-1"></a>         <span class="at">Problem1_from =</span> <span class="fu">mdy</span>(Problem1_from),</span>
-<span id="cb51-6"><a href="dataprep.html#cb51-6" tabindex="-1"></a>         <span class="at">Problem1_to =</span> <span class="fu">mdy</span>(Problem1_to)) </span>
-<span id="cb51-7"><a href="dataprep.html#cb51-7" tabindex="-1"></a><span class="fu">head</span>(cov)</span></code></pre></div>
+<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb45-1"><a href="dataprep.html#cb45-1" tabindex="-1"></a>cov <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">&quot;data_input/CameraTrapProject_CT_data_for_analysis_MASTER.csv&quot;</span>, <span class="at">as.is =</span> <span class="cn">TRUE</span>) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-2"><a href="dataprep.html#cb45-2" tabindex="-1"></a>  <span class="fu">select</span>(Session, Site, Date_setup, Date_retr, Problem1_from, Problem1_to) <span class="sc">%&gt;%</span> </span>
+<span id="cb45-3"><a href="dataprep.html#cb45-3" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">Date_setup =</span> <span class="fu">mdy</span>(Date_setup),</span>
+<span id="cb45-4"><a href="dataprep.html#cb45-4" tabindex="-1"></a>         <span class="at">Date_retr =</span> <span class="fu">mdy</span>(Date_retr),</span>
+<span id="cb45-5"><a href="dataprep.html#cb45-5" tabindex="-1"></a>         <span class="at">Problem1_from =</span> <span class="fu">mdy</span>(Problem1_from),</span>
+<span id="cb45-6"><a href="dataprep.html#cb45-6" tabindex="-1"></a>         <span class="at">Problem1_to =</span> <span class="fu">mdy</span>(Problem1_to)) </span>
+<span id="cb45-7"><a href="dataprep.html#cb45-7" tabindex="-1"></a><span class="fu">head</span>(cov)</span></code></pre></div>
 <pre><code>##      Session Site Date_setup  Date_retr Problem1_from Problem1_to
 ## 1 Spring2016   1A 2016-05-12 2016-06-22          &lt;NA&gt;        &lt;NA&gt;
 ## 2 Spring2016   1B 2016-05-03 2016-06-22          &lt;NA&gt;        &lt;NA&gt;
@@ -297,36 +297,36 @@ div.csl-indent {
 ## 6 Spring2016   2A 2016-05-12 2016-06-23          &lt;NA&gt;        &lt;NA&gt;</code></pre>
 <p>This dataframe contains identifiers for the sampling session (<code>Session</code>), the camera-trap site (<code>Site</code>), the date a camera was deployed (<code>Date_setup</code>) and retrieved (<code>Date_retr</code>) from the corresponding site. For cameras that were not functioning at the time of retrieval, we also have information regarding the period the camera was inactive (<code>Problem1_from</code> and <code>Problem1_to</code>). This structure follows the one accepted in the <code>camtrapR</code> package <span class="citation">(<a href="references.html#ref-camtrapR">Niedballa et al. 2016</a>)</span>.</p>
 <p>In this format, the information about the last day a camera was active is spread across two columns, <code>Date_retr</code> (for cameras that did not fail) and <code>Problem1_from</code> (for cameras that did fail). We bring this information together in one column called <code>end</code>.</p>
-<div class="sourceCode" id="cb53"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb53-1"><a href="dataprep.html#cb53-1" tabindex="-1"></a><span class="co"># Merge time of deployment and retrieval + problems</span></span>
-<span id="cb53-2"><a href="dataprep.html#cb53-2" tabindex="-1"></a>site <span class="ot">&lt;-</span> cov</span>
-<span id="cb53-3"><a href="dataprep.html#cb53-3" tabindex="-1"></a>site<span class="sc">$</span>end <span class="ot">&lt;-</span> <span class="fu">ymd</span>(<span class="st">&quot;2000-01-01&quot;</span>)</span>
-<span id="cb53-4"><a href="dataprep.html#cb53-4" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(site)){</span>
-<span id="cb53-5"><a href="dataprep.html#cb53-5" tabindex="-1"></a>  site<span class="sc">$</span>end[i] <span class="ot">&lt;-</span>  <span class="fu">min</span>(site<span class="sc">$</span>Date_retr[i], </span>
-<span id="cb53-6"><a href="dataprep.html#cb53-6" tabindex="-1"></a>                      site<span class="sc">$</span>Problem1_from[i], </span>
-<span id="cb53-7"><a href="dataprep.html#cb53-7" tabindex="-1"></a>                      <span class="at">na.rm =</span> <span class="cn">TRUE</span></span>
-<span id="cb53-8"><a href="dataprep.html#cb53-8" tabindex="-1"></a>                      )</span>
-<span id="cb53-9"><a href="dataprep.html#cb53-9" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="dataprep.html#cb47-1" tabindex="-1"></a><span class="co"># Merge time of deployment and retrieval + problems</span></span>
+<span id="cb47-2"><a href="dataprep.html#cb47-2" tabindex="-1"></a>site <span class="ot">&lt;-</span> cov</span>
+<span id="cb47-3"><a href="dataprep.html#cb47-3" tabindex="-1"></a>site<span class="sc">$</span>end <span class="ot">&lt;-</span> <span class="fu">ymd</span>(<span class="st">&quot;2000-01-01&quot;</span>)</span>
+<span id="cb47-4"><a href="dataprep.html#cb47-4" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(site)){</span>
+<span id="cb47-5"><a href="dataprep.html#cb47-5" tabindex="-1"></a>  site<span class="sc">$</span>end[i] <span class="ot">&lt;-</span>  <span class="fu">min</span>(site<span class="sc">$</span>Date_retr[i], </span>
+<span id="cb47-6"><a href="dataprep.html#cb47-6" tabindex="-1"></a>                      site<span class="sc">$</span>Problem1_from[i], </span>
+<span id="cb47-7"><a href="dataprep.html#cb47-7" tabindex="-1"></a>                      <span class="at">na.rm =</span> <span class="cn">TRUE</span></span>
+<span id="cb47-8"><a href="dataprep.html#cb47-8" tabindex="-1"></a>                      )</span>
+<span id="cb47-9"><a href="dataprep.html#cb47-9" tabindex="-1"></a>}</span></code></pre></div>
 <p>Then, we create a dataframe to store the information about when the target species was and was not encountered at the different locations within each temporal observation window. Here, we use 60 minutes to define the temporal sampling units, but different duration (from seconds to several hours) can be used. Shorter lengths will increase model fitting computation time and could potentially lead to parameter convergence problems if data are too sparse. In the code below, the argument <code>by = '60 min'</code> can be changed to accommodate other observation intervals (e.g., <code>by = '30 min'</code> leads to 30-min intervals).</p>
 <p>For each site, we create a list of all the hourly occasions from the start to the end of the deployment of the active camera at the site. We then pre-populate the column <code>capt</code> (which will track the encounter/non-encounter information) with zeros.</p>
-<div class="sourceCode" id="cb54"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb54-1"><a href="dataprep.html#cb54-1" tabindex="-1"></a><span class="co"># Create dataframe to store captures </span></span>
-<span id="cb54-2"><a href="dataprep.html#cb54-2" tabindex="-1"></a><span class="co"># (model does not converge if using 30 minutes)</span></span>
-<span id="cb54-3"><a href="dataprep.html#cb54-3" tabindex="-1"></a>occasions <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">&quot;list&quot;</span>, <span class="at">length =</span> <span class="fu">nrow</span>(site))</span>
-<span id="cb54-4"><a href="dataprep.html#cb54-4" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(site)){</span>
-<span id="cb54-5"><a href="dataprep.html#cb54-5" tabindex="-1"></a>  occasions[[i]] <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">Session =</span> site<span class="sc">$</span>Session[i],</span>
-<span id="cb54-6"><a href="dataprep.html#cb54-6" tabindex="-1"></a>                               <span class="at">Site =</span> site<span class="sc">$</span>Site[i],</span>
-<span id="cb54-7"><a href="dataprep.html#cb54-7" tabindex="-1"></a>                               <span class="at">start =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="fu">ymd_hms</span>(<span class="fu">paste</span>(site<span class="sc">$</span>Date_setup[i], <span class="st">&quot;00:00:00&quot;</span>, <span class="at">sep =</span> <span class="st">&quot; &quot;</span>)), </span>
-<span id="cb54-8"><a href="dataprep.html#cb54-8" tabindex="-1"></a>                                           <span class="at">to =</span> <span class="fu">ymd_hms</span>(<span class="fu">paste</span>(site<span class="sc">$</span>end[i], <span class="st">&quot;23:59:59&quot;</span>, <span class="at">sep =</span> <span class="st">&quot; &quot;</span>)), </span>
-<span id="cb54-9"><a href="dataprep.html#cb54-9" tabindex="-1"></a>                                           <span class="at">by =</span> <span class="st">&#39;60 min&#39;</span></span>
-<span id="cb54-10"><a href="dataprep.html#cb54-10" tabindex="-1"></a>                                           )</span>
-<span id="cb54-11"><a href="dataprep.html#cb54-11" tabindex="-1"></a>                               ) <span class="sc">%&gt;%</span> </span>
-<span id="cb54-12"><a href="dataprep.html#cb54-12" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">end =</span> <span class="fu">c</span>(start[<span class="dv">2</span><span class="sc">:</span><span class="fu">length</span>(start)], </span>
-<span id="cb54-13"><a href="dataprep.html#cb54-13" tabindex="-1"></a>                   start[<span class="fu">length</span>(start)]<span class="sc">+</span><span class="fu">minutes</span>(<span class="dv">60</span>)</span>
-<span id="cb54-14"><a href="dataprep.html#cb54-14" tabindex="-1"></a>                   )</span>
-<span id="cb54-15"><a href="dataprep.html#cb54-15" tabindex="-1"></a>           ) </span>
-<span id="cb54-16"><a href="dataprep.html#cb54-16" tabindex="-1"></a>}</span>
-<span id="cb54-17"><a href="dataprep.html#cb54-17" tabindex="-1"></a>occasions <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind.data.frame, occasions)</span>
-<span id="cb54-18"><a href="dataprep.html#cb54-18" tabindex="-1"></a>occasions<span class="sc">$</span>capt <span class="ot">&lt;-</span> <span class="dv">0</span></span>
-<span id="cb54-19"><a href="dataprep.html#cb54-19" tabindex="-1"></a><span class="fu">head</span>(occasions)</span></code></pre></div>
+<div class="sourceCode" id="cb48"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb48-1"><a href="dataprep.html#cb48-1" tabindex="-1"></a><span class="co"># Create dataframe to store captures </span></span>
+<span id="cb48-2"><a href="dataprep.html#cb48-2" tabindex="-1"></a><span class="co"># (model does not converge if using 30 minutes)</span></span>
+<span id="cb48-3"><a href="dataprep.html#cb48-3" tabindex="-1"></a>occasions <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="st">&quot;list&quot;</span>, <span class="at">length =</span> <span class="fu">nrow</span>(site))</span>
+<span id="cb48-4"><a href="dataprep.html#cb48-4" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(site)){</span>
+<span id="cb48-5"><a href="dataprep.html#cb48-5" tabindex="-1"></a>  occasions[[i]] <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">Session =</span> site<span class="sc">$</span>Session[i],</span>
+<span id="cb48-6"><a href="dataprep.html#cb48-6" tabindex="-1"></a>                               <span class="at">Site =</span> site<span class="sc">$</span>Site[i],</span>
+<span id="cb48-7"><a href="dataprep.html#cb48-7" tabindex="-1"></a>                               <span class="at">start =</span> <span class="fu">seq</span>(<span class="at">from =</span> <span class="fu">ymd_hms</span>(<span class="fu">paste</span>(site<span class="sc">$</span>Date_setup[i], <span class="st">&quot;00:00:00&quot;</span>, <span class="at">sep =</span> <span class="st">&quot; &quot;</span>)), </span>
+<span id="cb48-8"><a href="dataprep.html#cb48-8" tabindex="-1"></a>                                           <span class="at">to =</span> <span class="fu">ymd_hms</span>(<span class="fu">paste</span>(site<span class="sc">$</span>end[i], <span class="st">&quot;23:59:59&quot;</span>, <span class="at">sep =</span> <span class="st">&quot; &quot;</span>)), </span>
+<span id="cb48-9"><a href="dataprep.html#cb48-9" tabindex="-1"></a>                                           <span class="at">by =</span> <span class="st">&#39;60 min&#39;</span></span>
+<span id="cb48-10"><a href="dataprep.html#cb48-10" tabindex="-1"></a>                                           )</span>
+<span id="cb48-11"><a href="dataprep.html#cb48-11" tabindex="-1"></a>                               ) <span class="sc">%&gt;%</span> </span>
+<span id="cb48-12"><a href="dataprep.html#cb48-12" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">end =</span> <span class="fu">c</span>(start[<span class="dv">2</span><span class="sc">:</span><span class="fu">length</span>(start)], </span>
+<span id="cb48-13"><a href="dataprep.html#cb48-13" tabindex="-1"></a>                   start[<span class="fu">length</span>(start)]<span class="sc">+</span><span class="fu">minutes</span>(<span class="dv">60</span>)</span>
+<span id="cb48-14"><a href="dataprep.html#cb48-14" tabindex="-1"></a>                   )</span>
+<span id="cb48-15"><a href="dataprep.html#cb48-15" tabindex="-1"></a>           ) </span>
+<span id="cb48-16"><a href="dataprep.html#cb48-16" tabindex="-1"></a>}</span>
+<span id="cb48-17"><a href="dataprep.html#cb48-17" tabindex="-1"></a>occasions <span class="ot">&lt;-</span> <span class="fu">do.call</span>(rbind.data.frame, occasions)</span>
+<span id="cb48-18"><a href="dataprep.html#cb48-18" tabindex="-1"></a>occasions<span class="sc">$</span>capt <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb48-19"><a href="dataprep.html#cb48-19" tabindex="-1"></a><span class="fu">head</span>(occasions)</span></code></pre></div>
 <pre><code>##      Session Site               start                 end capt
 ## 1 Spring2016   1A 2016-05-12 00:00:00 2016-05-12 01:00:00    0
 ## 2 Spring2016   1A 2016-05-12 01:00:00 2016-05-12 02:00:00    0
@@ -335,33 +335,33 @@ div.csl-indent {
 ## 5 Spring2016   1A 2016-05-12 04:00:00 2016-05-12 05:00:00    0
 ## 6 Spring2016   1A 2016-05-12 05:00:00 2016-05-12 06:00:00    0</code></pre>
 <p>For each coyote observation collected during the study, we assign the value 1 to the column <code>capt</code> for the row corresponding to the site and time interval of the encounter event.</p>
-<div class="sourceCode" id="cb56"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb56-1"><a href="dataprep.html#cb56-1" tabindex="-1"></a><span class="co">#&#39; Store captures</span></span>
-<span id="cb56-2"><a href="dataprep.html#cb56-2" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(coy)){</span>
-<span id="cb56-3"><a href="dataprep.html#cb56-3" tabindex="-1"></a>  occasions[occasions<span class="sc">$</span>Session <span class="sc">==</span> <span class="fu">as.character</span>(coy<span class="sc">$</span>Session[i]) </span>
-<span id="cb56-4"><a href="dataprep.html#cb56-4" tabindex="-1"></a>            <span class="sc">&amp;</span> occasions<span class="sc">$</span>Site <span class="sc">==</span> <span class="fu">as.character</span>(coy<span class="sc">$</span>Station[i]) </span>
-<span id="cb56-5"><a href="dataprep.html#cb56-5" tabindex="-1"></a>            <span class="sc">&amp;</span> occasions<span class="sc">$</span>start <span class="sc">&lt;=</span> coy<span class="sc">$</span>DateTimeOriginal[i] </span>
-<span id="cb56-6"><a href="dataprep.html#cb56-6" tabindex="-1"></a>            <span class="sc">&amp;</span> occasions<span class="sc">$</span>end <span class="sc">&gt;</span> coy<span class="sc">$</span>DateTimeOriginal[i], <span class="st">&quot;capt&quot;</span>] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
-<span id="cb56-7"><a href="dataprep.html#cb56-7" tabindex="-1"></a>}</span>
-<span id="cb56-8"><a href="dataprep.html#cb56-8" tabindex="-1"></a><span class="fu">table</span>(occasions<span class="sc">$</span>capt)</span></code></pre></div>
+<div class="sourceCode" id="cb50"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb50-1"><a href="dataprep.html#cb50-1" tabindex="-1"></a><span class="co">#&#39; Store captures</span></span>
+<span id="cb50-2"><a href="dataprep.html#cb50-2" tabindex="-1"></a><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">nrow</span>(coy)){</span>
+<span id="cb50-3"><a href="dataprep.html#cb50-3" tabindex="-1"></a>  occasions[occasions<span class="sc">$</span>Session <span class="sc">==</span> <span class="fu">as.character</span>(coy<span class="sc">$</span>Session[i]) </span>
+<span id="cb50-4"><a href="dataprep.html#cb50-4" tabindex="-1"></a>            <span class="sc">&amp;</span> occasions<span class="sc">$</span>Site <span class="sc">==</span> <span class="fu">as.character</span>(coy<span class="sc">$</span>Station[i]) </span>
+<span id="cb50-5"><a href="dataprep.html#cb50-5" tabindex="-1"></a>            <span class="sc">&amp;</span> occasions<span class="sc">$</span>start <span class="sc">&lt;=</span> coy<span class="sc">$</span>DateTimeOriginal[i] </span>
+<span id="cb50-6"><a href="dataprep.html#cb50-6" tabindex="-1"></a>            <span class="sc">&amp;</span> occasions<span class="sc">$</span>end <span class="sc">&gt;</span> coy<span class="sc">$</span>DateTimeOriginal[i], <span class="st">&quot;capt&quot;</span>] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb50-7"><a href="dataprep.html#cb50-7" tabindex="-1"></a>}</span>
+<span id="cb50-8"><a href="dataprep.html#cb50-8" tabindex="-1"></a><span class="fu">table</span>(occasions<span class="sc">$</span>capt)</span></code></pre></div>
 <pre><code>## 
 ##      0      1 
 ## 570925    251</code></pre>
 <p>We have 251 and 570 925 1-hour long occasions with and without encounters of coyotes, respectively.</p>
 <p>Because we chose to use hourly occasions, we can extract the information about the hour of each interval and use it as the <em>Time</em> variable in the models that we will run in the following Tutorials. If a different time length is used (e.g., 1-minute long), this step needs to be adjusted accordingly. We also code <code>Site</code> as a factor variable.</p>
-<div class="sourceCode" id="cb58"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb58-1"><a href="dataprep.html#cb58-1" tabindex="-1"></a><span class="co"># Format data </span></span>
-<span id="cb58-2"><a href="dataprep.html#cb58-2" tabindex="-1"></a>occasions<span class="sc">$</span>Time <span class="ot">&lt;-</span> <span class="fu">hour</span>(occasions<span class="sc">$</span>start)</span>
-<span id="cb58-3"><a href="dataprep.html#cb58-3" tabindex="-1"></a>occasions<span class="sc">$</span>Site <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(occasions<span class="sc">$</span>Site)</span>
-<span id="cb58-4"><a href="dataprep.html#cb58-4" tabindex="-1"></a><span class="fu">nrow</span>(occasions)</span></code></pre></div>
+<div class="sourceCode" id="cb52"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb52-1"><a href="dataprep.html#cb52-1" tabindex="-1"></a><span class="co"># Format data </span></span>
+<span id="cb52-2"><a href="dataprep.html#cb52-2" tabindex="-1"></a>occasions<span class="sc">$</span>Time <span class="ot">&lt;-</span> <span class="fu">hour</span>(occasions<span class="sc">$</span>start)</span>
+<span id="cb52-3"><a href="dataprep.html#cb52-3" tabindex="-1"></a>occasions<span class="sc">$</span>Site <span class="ot">&lt;-</span> <span class="fu">as.factor</span>(occasions<span class="sc">$</span>Site)</span>
+<span id="cb52-4"><a href="dataprep.html#cb52-4" tabindex="-1"></a><span class="fu">nrow</span>(occasions)</span></code></pre></div>
 <pre><code>## [1] 571176</code></pre>
 <p>Our dataset, <code>occasions</code>, now contains more than 570,000 rows. Running an hierarchical model on such a large dataset might take a long time or require using a computing cluster. We can speed up model fitting by first summarizing the encounter/non-encounter records across the sampling period, counting the number of successes (i.e. intervals with encounters) and failures (i.e. intervals without encounters) at each site and hourly temporal occasion. We can then run the hierarchical models using the <code>cbind(success, failure)</code> approach (see next Tutorial for examples). However, this approach will not work in cases where we want to model variation in activity as a function of additional temporally-varying covariates (e.g., Julian day). In those situations, we may be forced to work with the <code>occassions</code> data set and its binary encounter records. Below, we provide code for creating a dataset containing the number of successes and failures for each observation window and site.</p>
-<div class="sourceCode" id="cb60"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb60-1"><a href="dataprep.html#cb60-1" tabindex="-1"></a><span class="co"># format data for cbind(success, failure)</span></span>
-<span id="cb60-2"><a href="dataprep.html#cb60-2" tabindex="-1"></a>occasions_cbind <span class="ot">&lt;-</span> occasions <span class="sc">%&gt;%</span> </span>
-<span id="cb60-3"><a href="dataprep.html#cb60-3" tabindex="-1"></a>  <span class="fu">group_by</span>(Site, Time) <span class="sc">%&gt;%</span> </span>
-<span id="cb60-4"><a href="dataprep.html#cb60-4" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">success =</span> <span class="fu">sum</span>(capt),</span>
-<span id="cb60-5"><a href="dataprep.html#cb60-5" tabindex="-1"></a>            <span class="at">failure =</span> <span class="fu">n</span>() <span class="sc">-</span> success</span>
-<span id="cb60-6"><a href="dataprep.html#cb60-6" tabindex="-1"></a>            )</span></code></pre></div>
+<div class="sourceCode" id="cb54"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb54-1"><a href="dataprep.html#cb54-1" tabindex="-1"></a><span class="co"># format data for cbind(success, failure)</span></span>
+<span id="cb54-2"><a href="dataprep.html#cb54-2" tabindex="-1"></a>occasions_cbind <span class="ot">&lt;-</span> occasions <span class="sc">%&gt;%</span> </span>
+<span id="cb54-3"><a href="dataprep.html#cb54-3" tabindex="-1"></a>  <span class="fu">group_by</span>(Site, Time) <span class="sc">%&gt;%</span> </span>
+<span id="cb54-4"><a href="dataprep.html#cb54-4" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">success =</span> <span class="fu">sum</span>(capt),</span>
+<span id="cb54-5"><a href="dataprep.html#cb54-5" tabindex="-1"></a>            <span class="at">failure =</span> <span class="fu">n</span>() <span class="sc">-</span> success</span>
+<span id="cb54-6"><a href="dataprep.html#cb54-6" tabindex="-1"></a>            )</span></code></pre></div>
 <pre><code>## `summarise()` has grouped output by &#39;Site&#39;. You can override using the `.groups` argument.</code></pre>
-<div class="sourceCode" id="cb62"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb62-1"><a href="dataprep.html#cb62-1" tabindex="-1"></a><span class="fu">head</span>(occasions_cbind)</span></code></pre></div>
+<div class="sourceCode" id="cb56"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb56-1"><a href="dataprep.html#cb56-1" tabindex="-1"></a><span class="fu">head</span>(occasions_cbind)</span></code></pre></div>
 <pre><code>## # A tibble: 6 × 4
 ## # Groups:   Site [1]
 ##   Site   Time success failure

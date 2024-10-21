@@ -397,7 +397,7 @@ We can see that the activity curves have the same shape, but the magnitude on th
 
 Here, we use simulated data to illustrate how to fit Bayesian versions of the cyclic cubic spline hierarchical models. In particular, we briefly demonstrate how the `brms` package [@brms] can be used to fit an HGAM with random-intercepts.
 
-### Data Preparation
+### Data preparation
 
 We simulate data using the same approach and the same parameters presented in Tutorial \@ref(est). As such, the simulated data are generated from the same 'true' activity patterns. 
 
@@ -495,7 +495,7 @@ To optimize computational time, we can reduce the number of rows in the dataset 
   knitr::kable(head(occasions_cbind))
 ```
 
-### Model Setup and Fitting
+### Model setup and fitting
 
 We are now ready to setup the Bayesian cyclic cubic spline model using  code similar to that shown in Tutorial \@ref(est). However, here we wrap our code in the `brm` function from the package `brms` [@brms]. We also need to change our notation slightly to specify the number of successes and the number of trials using `success| trials(n_events)`. <!---From the `brms` R package vignette, "cbind() syntax does not work in `brms` in the expected way because this syntax is reserved for other purposes."---> Note that below, we only consider random intercepts, but we could also include random slopes by adding `s(Time, Site, bs="re")`.
 
@@ -543,7 +543,7 @@ cycl_rand_int_alt <- update(cycl_rand_int_setup_alt,
 ```
 
 
-### Model Assessment 
+### Model assessment 
 
 For Bayesian models, we need to investigate parameter posterior distributions to evaluate whether there is evidence they have converged and thus are reliable to be used for inference. There are plenty of ways to conduct MCMC diagnostics (e.g., @roy2020convergence). A good first step, is to simply visualize the posterior distributions as 'traceplots' and 'density plots' for each chain (independent model fit) to evaluate whether 1) different chains for each parameter are largely the same (plotted on top of each other), and 2) there is good 'mixing' within chain for each parameter. Mixing refers to the process of how the MCMC explores the parameter space to 'fill out' the full posterior distribution; good mixing can generally be assessed visually where the traceplot looks like a 'hairy caterpillar' and density plots look smooth. For a simple introduction see Denis Valle's [How do I tell if my MCMC has converged?](https://drvalle1.github.io/20_MCMC_convergence.html) and for additional details, see [MCMC diagnostics](https://sbfnk.github.io/mfiidd/mcmc_diagnostics.html).
 
@@ -569,7 +569,7 @@ summary(cycl_rand_int_alt)
 
 ```
 
-### Model Predictions
+### Model predictions
 
 We use the first parameterization (with `s(Site, bs="re")`) to explore site-level variability in the activity patterns:
 
@@ -593,7 +593,7 @@ ggplot(aes(x=Time, y=Estimate, group=Site, color=Site), data=preds) +
 
 We can then approximate the marginal mean activity curve by averaging across the site-level variation.
 
-```{r fit.bayes.cc.pred2, class.source = 'fold-hide', fig.cap="Predicted probability of the marginal mean activity."}
+```{r fit.bayes.cc.pred2, class.source = 'fold-hide', fig.cap='Predicted probability of the marginal mean activity.'}
 #Average across sites to get the marginal mean
 marginal.mean = aggregate(preds$Estimate, list(preds$Time), FUN=mean)
 marginal.lower = aggregate(preds$Q2.5, list(preds$Time), FUN=mean)
@@ -620,7 +620,7 @@ ranef(cycl_rand_int_alt)$Site[1:5,,]
  
 Because `brms` does not allow smooth terms, such as `s(Site, bs="re")`, to be omitted when predicting, we use the second model to predict the conditional mean activity curve. --->
 
-```{r fit.bayes.cc.predict3, class.source = 'fold-hide', fig.cap="Predicted probability of the conditional mean activity."}
+```{r fit.bayes.cc.predict3, class.source = 'fold-hide', fig.cap='Predicted probability of the conditional mean activity.'}
 # Predict the conditional mean activity
 newdata2 = data.frame(Time=0:23,
                       n_events=1
@@ -675,7 +675,7 @@ head(y_spring)
 
 ```
 
-### Model Fitting
+### Model fitting
 Using the Spring data for black bears, we can now fit a hierarchical cyclic cubic spline model.
 
 ```{r fit..cc.3, eval=TRUE, echo=TRUE}
@@ -688,7 +688,7 @@ cycl_rand_int_ML <- bam(cbind(success, failure) ~
                           )
 ```
 
-### Model Predictions
+### Model predictions
 Let's now use our model to predict the conditional mean activity curve across all sites. We then use those predictions to define the diel phenotype. Below, we classify each predicted time period into twilight, daytime, and nighttime. To make sure we capture enough predictions to summarize each of these periods, we predict the probability of activity at a smaller interval than how we modeled the data (e.g., 100 intervals instead of 24). 
 
 ```{r fit.ml.pred1}
@@ -791,7 +791,7 @@ To facilitate reproducibility, we report information on packages and package ver
 
 ```{r infosession}
 library(grateful)
-pkgs <- cite_packages(output = "table", out.dir = ".")
+pkgs <- cite_packages(output = "table", out.dir = ".", include.RStudio = TRUE)
 knitr::kable(pkgs)
 
 sessionInfo()
