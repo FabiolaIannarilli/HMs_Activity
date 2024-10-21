@@ -5,19 +5,19 @@
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <title>A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models</title>
-  <meta name="description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript HMsActivity 2024." />
+  <meta name="description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript Iannarilli et al. 2024. Journal of Animal Ecology" />
   <meta name="generator" content="bookdown 0.39 and GitBook 2.6.7" />
 
   <meta property="og:title" content="A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models" />
   <meta property="og:type" content="book" />
   
-  <meta property="og:description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript HMsActivity 2024." />
+  <meta property="og:description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript Iannarilli et al. 2024. Journal of Animal Ecology" />
   <meta name="github-repo" content="rstudio/bookdown-demo" />
 
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:title" content="A ‘How-to’ Guide for Estimating Animal Diel Activity Using Hierarchical Models" />
   
-  <meta name="twitter:description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript HMsActivity 2024." />
+  <meta name="twitter:description" content="This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript Iannarilli et al. 2024. Journal of Animal Ecology" />
   
 
 
@@ -145,6 +145,7 @@ div.csl-indent {
 }
 </style>
 
+<link rel="stylesheet" href="style.css" type="text/css" />
 </head>
 
 <body>
@@ -157,9 +158,13 @@ div.csl-indent {
       <nav role="navigation">
 
 <ul class="summary">
+<li><a href="./">A 'How to' Guide for Estimating Animal Diel Activity Using Hierarchical Models: tutorials</a></li>
+
+<li class="divider"></li>
 <li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Preface</a>
 <ul>
-<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#requirements"><i class="fa fa-check"></i><b>1.1</b> Requirements</a></li>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#structure-of-the-tutorial"><i class="fa fa-check"></i><b>1.1</b> Structure of the Tutorial</a></li>
+<li class="chapter" data-level="1.2" data-path="index.html"><a href="index.html#requirements"><i class="fa fa-check"></i><b>1.2</b> Requirements</a></li>
 </ul></li>
 <li class="chapter" data-level="2" data-path="var.html"><a href="var.html"><i class="fa fa-check"></i><b>2</b> Variability in activity patterns</a>
 <ul>
@@ -232,6 +237,9 @@ div.csl-indent {
 <li class="chapter" data-level="10.5" data-path="app.html"><a href="app.html#info-session"><i class="fa fa-check"></i><b>10.5</b> Info session</a></li>
 </ul></li>
 <li class="chapter" data-level="" data-path="references.html"><a href="references.html"><i class="fa fa-check"></i>References</a></li>
+<li class="divider"></li>
+<li><a href="https://github.com/rstudio/bookdown" target="blank">Published with bookdown</a></li>
+
 </ul>
 
       </nav>
@@ -271,7 +279,17 @@ Department of Fisheries, Wildlife and Conservation Biology, St. Paul, Minnesota
 </div>
 <div id="preface" class="section level1 hasAnchor" number="1">
 <h1><span class="header-section-number">Tutorial 1</span> Preface<a href="index.html#preface" class="anchor-section" aria-label="Anchor link to header"></a></h1>
-<p>This tutorial accompanies the manuscript <span class="citation">Iannarilli et al. (<a href="references.html#ref-HMsActivity2024">2024</a>)</span> and contains step-by-step examples on how to use trigonometric and cyclic cubic spline hierarchical models to analyze activity patterns from time-stamped data. We present case studies based on camera-trap data, but these approaches can be applied to data collected via other static sensors (e.g., acoustic recorders).</p>
+<p>This tutorial accompanies the manuscript <span class="citation">Iannarilli et al. (<a href="#ref-HMsActivity2024">2024</a>)</span> and contains step-by-step examples on how to use trigonometric and cyclic cubic spline hierarchical models to analyze activity patterns from time-stamped data. We present case studies based on camera-trap data, but these approaches can be applied to data collected via other static sensors (e.g., acoustic recorders).</p>
+<p><strong>Suggested Citation:</strong></p>
+<ul>
+<li><p>Iannarilli, F., Gerber, B. D., Erb, J., and Fieberg, J. R. (2024). A “How-to” Guide for Estimating Animal Diel Activity Using Hierarchical Models. Journal of Animal Ecology.</p></li>
+<li><p>Iannarilli, F., Gerber, B. D., Erb, J., and Fieberg, J. R. (2024). Data, R Code, and Output Supporting: A “How-to” Guide for Estimating Animal Diel Activity Using Hierarchical Models
+Retrieved from the Data Repository for the University of Minnesota.</p></li>
+</ul>
+<p><strong>License</strong>:
+This work is licensed under a <a href="https://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.</p>
+<div id="structure-of-the-tutorial" class="section level2 hasAnchor" number="1.1">
+<h2><span class="header-section-number">1.1</span> Structure of the Tutorial<a href="index.html#structure-of-the-tutorial" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>We start the tutorial by introducing the concept of site-to-site variability in diel activity patterns. Using simulated data, we explore two components of this variability, variability in frequency of site-use and variability in timing of activity (Tutorial <a href="var.html#var">2</a>). We then introduce trigonometric generalized linear mixed models and cyclic cubic spline hierarchical generalized additive models as approaches to estimate animals’ diel activity patterns (Tutorial <a href="est.html#est">3</a>). From Tutorial <a href="dataprep.html#dataprep">4</a> to <a href="temppart.html#temppart">7</a>, we use real-case studies to illustrate how to organize the data (Tutorial <a href="dataprep.html#dataprep">4</a>) and apply these hierarchical model approaches. In particular, we present three applications typical of ecological studies focused on activity patterns. We explore:</p>
 <ul>
 <li>whether a certain species of interest concentrates its activity at one or two specific times of the day (i.e. unimodal and bimodal patterns), or whether its activity is constant throughout the 24-hour cycle (i.e. cathemeral pattern; Tutorial <a href="unibim.html#unibim">5</a>);</li>
@@ -284,9 +302,10 @@ Department of Fisheries, Wildlife and Conservation Biology, St. Paul, Minnesota
 <p>2. a formulation of the trigonometric and cyclic cubic hierarchical models based on the Poisson distribution, an alternative to the formulation based on the binomial distribution used throughout the tutorial (section <a href="app.html#poisson">10.2</a>);</p>
 <p>3. an example of how to apply these models in a Bayesian framework (section <a href="app.html#bay">10.3</a>);</p>
 <p>4. a link to the <a href="https://github.com/diel-project/Diel-Niche-Modeling/"><code>Diel.Niche</code> R package</a>, a framework recently introduced to robustly characterize animal activity patterns as diel phenotypes (section <a href="app.html#DielNiche">10.4</a>).</p>
-<p>All analyses were performed in <span class="citation">R Core Team (<a href="references.html#ref-R-base">2024</a>)</span> and the tutorial was compiled using <code>bookdown</code> <span class="citation">(<a href="references.html#ref-bookdown1">Xie 2024a</a>, <a href="references.html#ref-bookdown2">2016a</a>)</span>. The camera-trap data used in the real-case examples were collected at 100 locations sampled between 2016 and 2018 in Northern Minnesota, USA <span class="citation">(<a href="references.html#ref-Iannarilliea2021">Iannarilli et al. 2021</a>)</span>. Further details on these data can be found in <span class="citation">Iannarilli et al. (<a href="references.html#ref-Iannarilliea2021">2021</a>)</span>, and data and code to reproduce this tutorial can be accessed at <a href="https://github.com/FabiolaIannarilli/HMs_Activity" class="uri">https://github.com/FabiolaIannarilli/HMs_Activity</a>.</p>
-<div id="requirements" class="section level2 hasAnchor" number="1.1">
-<h2><span class="header-section-number">1.1</span> Requirements<a href="index.html#requirements" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>All analyses were performed in <span class="citation">R Core Team (<a href="#ref-R-base">2024</a>)</span> and the tutorial was compiled using <code>bookdown</code> <span class="citation">(<a href="#ref-bookdown1">Xie 2024</a>, <a href="#ref-bookdown2">2016</a>)</span>. The camera-trap data used in the real-case examples were collected at 100 locations sampled between 2016 and 2018 in Northern Minnesota, USA <span class="citation">(<a href="#ref-Iannarilliea2021">Iannarilli et al. 2021</a>)</span>. Further details on these data can be found in <span class="citation">Iannarilli et al. (<a href="#ref-Iannarilliea2021">2021</a>)</span>, and data and code to reproduce this tutorial can be accessed at <a href="https://github.com/FabiolaIannarilli/HMs_Activity" class="uri">https://github.com/FabiolaIannarilli/HMs_Activity</a>.</p>
+</div>
+<div id="requirements" class="section level2 hasAnchor" number="1.2">
+<h2><span class="header-section-number">1.2</span> Requirements<a href="index.html#requirements" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>Throughout this tutorial, we use several packages. Users interested in compiling the tutorial from source or in reproducing the analysis on their own machine should install them. The code below provides a list of all the libraries needed, checks if they are already installed in the user’s local machine, and installs those packages that are not.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="index.html#cb1-1" tabindex="-1"></a>list.of.packages <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;dplyr&quot;</span>, <span class="st">&quot;grid&quot;</span>, <span class="st">&quot;gridExtra&quot;</span>, <span class="st">&quot;GLMMadaptive&quot;</span>, <span class="st">&quot;ggpubr&quot;</span>, <span class="st">&quot;mgcv&quot;</span>, </span>
 <span id="cb1-2"><a href="index.html#cb1-2" tabindex="-1"></a>                      <span class="st">&quot;tidyr&quot;</span>, <span class="st">&quot;lubridate&quot;</span>, <span class="st">&quot;lmtest&quot;</span>, <span class="st">&quot;activity&quot;</span>, <span class="st">&quot;overlap&quot;</span>, <span class="st">&quot;circular&quot;</span>, </span>
@@ -302,6 +321,24 @@ Department of Fisheries, Wildlife and Conservation Biology, St. Paul, Minnesota
 <span id="cb1-12"><a href="index.html#cb1-12" tabindex="-1"></a>                         )</span>
 <span id="cb1-13"><a href="index.html#cb1-13" tabindex="-1"></a>} </span></code></pre></div>
 
+</div>
+</div>
+<h3>References</h3>
+<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="ref-Iannarilliea2021" class="csl-entry">
+Iannarilli, Fabiola, John Erb, Todd W. Arnold, and John R. Fieberg. 2021. <span>“Evaluating Species-Specific Responses to Camera-Trap Survey Designs.”</span> <em>Wildlife Biology</em> 2021 (1). <a href="https://doi.org/10.2981/wlb.00726">https://doi.org/10.2981/wlb.00726</a>.
+</div>
+<div id="ref-HMsActivity2024" class="csl-entry">
+Iannarilli, Fabiola, Brian D. Gerber, John Erb, and John R. Fieberg. 2024. <span>“<a href="">A <span>‘How-to’</span> Guide for Estimating Animal Diel Activity Using Hierarchical Models</a>.”</span> <em>Journal of Animal Ecology</em>.
+</div>
+<div id="ref-R-base" class="csl-entry">
+R Core Team. 2024. <em>R: A Language and Environment for Statistical Computing</em>. Vienna, Austria: R Foundation for Statistical Computing. <a href="https://www.R-project.org/">https://www.R-project.org/</a>.
+</div>
+<div id="ref-bookdown2" class="csl-entry">
+Xie, Yihui. 2016. <em>Bookdown: Authoring Books and Technical Documents with <span>R</span> Markdown</em>. Boca Raton, Florida: Chapman; Hall/CRC. <a href="https://bookdown.org/yihui/bookdown">https://bookdown.org/yihui/bookdown</a>.
+</div>
+<div id="ref-bookdown1" class="csl-entry">
+———. 2024. <em>Bookdown: Authoring Books and Technical Documents with r Markdown</em>. <a href="https://github.com/rstudio/bookdown">https://github.com/rstudio/bookdown</a>.
 </div>
 </div>
             </section>
@@ -341,8 +378,8 @@ gitbook.start({
 "size": 2
 },
 "edit": {
-"link": null,
-"text": null
+"link": "https://github.com/rstudio/bookdown-demo/edit/master/index.Rmd",
+"text": "Edit"
 },
 "history": {
 "link": null,
@@ -352,7 +389,7 @@ gitbook.start({
 "link": null,
 "text": null
 },
-"download": null,
+"download": ["HMsActivity.pdf", "HMsActivity.epub"],
 "search": {
 "engine": "fuse",
 "options": null
@@ -364,20 +401,6 @@ gitbook.start({
 });
 </script>
 
-<!-- dynamically load mathjax for compatibility with self-contained -->
-<script>
-  (function () {
-    var script = document.createElement("script");
-    script.type = "text/javascript";
-    var src = "true";
-    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
-    if (location.protocol !== "file:")
-      if (/^https?:/.test(src))
-        src = src.replace(/^https?:/, '');
-    script.src = src;
-    document.getElementsByTagName("head")[0].appendChild(script);
-  })();
-</script>
 </body>
 
 </html>

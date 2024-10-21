@@ -69,3 +69,4 @@ twilight-daytime-and-nighttime
 diel.niche
 conclusion
 info-session
+structure-of-the-tutorial

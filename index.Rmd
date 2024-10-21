@@ -22,7 +22,7 @@ bibliography:
 biblio-style: apalike
 link-citations: yes
 github-repo: rstudio/bookdown-demo
-description: "This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript HMsActivity 2024."
+description: "This document contains how-to tutorials that illustrate the use of hierarchical models for the analysis of activity patterns. It accompanies the manuscript Iannarilli et al. 2024. Journal of Animal Ecology"
 pdf_document: 
     number_chapters: yes
     toc: yes
@@ -35,6 +35,18 @@ pdf_document:
 # Preface {#preface}
 
 This tutorial accompanies the manuscript @HMsActivity2024 and contains step-by-step examples on how to use trigonometric and cyclic cubic spline hierarchical models to analyze activity patterns from time-stamped data. We present case studies based on camera-trap data, but these approaches can be applied to data collected via other static sensors (e.g., acoustic recorders).
+
+**Suggested Citation:**
+
+- Iannarilli, F., Gerber, B. D., Erb, J., and Fieberg, J. R. (2024). A “How-to” Guide for Estimating Animal Diel Activity Using Hierarchical Models. Journal of Animal Ecology.
+
+- Iannarilli, F., Gerber, B. D., Erb, J., and Fieberg, J. R. (2024). Data, R Code, and Output Supporting: A “How-to” Guide for Estimating Animal Diel Activity Using Hierarchical Models 
+Retrieved from the Data Repository for the University of Minnesota.
+
+**License**:
+This work is licensed under a [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/).
+
+## Structure of the Tutorial
 
 We start the tutorial by introducing the concept of site-to-site variability in diel activity patterns. Using simulated data, we explore two components of this variability, variability in frequency of site-use and variability in timing of activity (Tutorial \@ref(var)). We then introduce trigonometric generalized linear mixed models and cyclic cubic spline hierarchical generalized additive models as approaches to estimate animals' diel activity patterns (Tutorial \@ref(est)). From Tutorial \@ref(dataprep) to \@ref(temppart), we use real-case studies to illustrate how to organize the data (Tutorial \@ref(dataprep)) and apply these hierarchical model approaches. In particular, we present three applications typical of ecological studies focused on activity patterns. We explore: 
 
